@@ -1352,6 +1352,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("Technical review request", issue_template)
         self.assertIn("not an endorsement request", issue_template)
         self.assertIn("not evidence that anyone has reviewed", issue_template)
+        self.assertIn("only creates a public request URL", issue_template)
+        self.assertIn("not `replied` or", issue_template)
 
         questions = re.findall(r"^\d+\. ", review, flags=re.MULTILINE)
         self.assertEqual(len(questions), 3)

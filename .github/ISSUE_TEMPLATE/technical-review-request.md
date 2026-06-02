@@ -7,6 +7,8 @@ title: "Technical review request: claim-vs-evidence boundary for coding-agent ru
 This is a public request for technical review, not an endorsement request.
 It is not evidence that anyone has reviewed, adopted, endorsed, or shared
 OpenMako Evidence Court.
+Opening this issue only creates a public request URL. It is not `replied` or
+`shared` evidence until a third party posts public feedback or a public share.
 
 ## What To Review
 
