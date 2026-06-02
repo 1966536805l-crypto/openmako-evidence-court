@@ -413,6 +413,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
+            "docs/EVIDENCE_COURT_COMPARISON.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/OUTREACH.md",
             "docs/OUTREACH_TARGETS.md",
@@ -503,6 +504,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
+            "docs/EVIDENCE_COURT_COMPARISON.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/OUTREACH.md",
             "docs/OUTREACH_TARGETS.md",
@@ -865,6 +867,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
+            "docs/EVIDENCE_COURT_COMPARISON.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/OUTREACH.md",
             "docs/OUTREACH_TARGETS.md",
@@ -947,6 +950,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
+            "docs/EVIDENCE_COURT_COMPARISON.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/OUTREACH.md",
             "docs/OUTREACH_TARGETS.md",
@@ -1059,6 +1063,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
+            "docs/EVIDENCE_COURT_COMPARISON.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/OUTREACH.md",
             "docs/OUTREACH_TARGETS.md",
@@ -1200,6 +1205,53 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertNotIn("mako fix", readme)
         self.assertNotIn("Extreme Planner", readme)
 
+    def test_comparison_page_shows_what_normal_tests_miss_without_overclaiming(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        readme = (root / "README.md").read_text(encoding="utf-8")
+        comparison = (root / "docs" / "EVIDENCE_COURT_COMPARISON.md").read_text(encoding="utf-8")
+
+        self.assertIn("docs/EVIDENCE_COURT_COMPARISON.md", readme)
+        self.assertIn("What Evidence Court Catches That Normal Tests Miss", comparison)
+        self.assertIn("Normal test output can say whether a command passed", comparison)
+        self.assertIn("Evidence Court only audits the supplied record", comparison)
+        self.assertIn("does not prove tests actually ran outside", comparison)
+        self.assertIn("does not natively ingest Claude/Codex/Cursor/Devin/CI logs", comparison)
+        self.assertEqual(len(re.findall(r"^## Case \d:", comparison, flags=re.MULTILINE)), 3)
+
+        required_phrases = (
+            "mako evidence-court --input examples/evidence-court/bad-run.json",
+            "mako evidence-court --demo bad-run",
+            "/tmp/evidence-court-weak-test.json",
+            "python -m pytest tests/test_unrelated.py -q",
+            "required test not run: python -m pytest tests/test_calculator.py -q",
+            "edited protected path: tests/test_calculator.py",
+            "broad benchmark or real-world repair accuracy",
+        )
+        for phrase in required_phrases:
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, comparison)
+
+        lower = comparison.lower()
+        forbidden = (
+            "better than claude",
+            "better than codex",
+            "better than cursor",
+            "better than openhands",
+            "replaces ci",
+            "replaces pytest",
+            "native claude ingestion is supported",
+            "native codex ingestion is supported",
+            "proves tests really ran outside",
+            "guarantees correctness",
+            "broad benchmark accuracy is proven",
+            "real-world repair accuracy is proven",
+            "10k",
+            "endorsed by",
+        )
+        for phrase in forbidden:
+            with self.subTest(phrase=phrase):
+                self.assertNotIn(phrase, lower)
+
     def test_launch_assets_keep_v0_1_claims_bounded(self) -> None:
         root = Path(__file__).resolve().parents[1]
         launch_post = (root / "docs" / "LAUNCH_POST.md").read_text(encoding="utf-8")
@@ -1209,6 +1261,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("copyable launch post", readme)
         self.assertIn("public proof card", readme)
         self.assertIn("terminal demo visual", readme)
+        self.assertIn("normal-tests comparison", readme)
         self.assertIn("outreach templates", readme)
         self.assertIn("expert review brief", readme)
         self.assertIn("social card", readme)

@@ -40,6 +40,7 @@ Only these release files support the Evidence Court v0.1 public claim:
 - `docs/EVIDENCE_COURT_V0_1_PR_BODY.md`
 - `docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md`
 - `docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md`
+- `docs/EVIDENCE_COURT_COMPARISON.md`
 - `docs/EXPERT_REVIEW_BRIEF.md`
 - `docs/OUTREACH.md`
 - `docs/OUTREACH_TARGETS.md`

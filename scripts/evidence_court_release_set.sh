@@ -17,6 +17,7 @@ INCLUDE_PATHS=(
   "docs/EVIDENCE_COURT_V0_1_PR_BODY.md"
   "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md"
   "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md"
+  "docs/EVIDENCE_COURT_COMPARISON.md"
   "docs/EXPERT_REVIEW_BRIEF.md"
   "docs/OUTREACH.md"
   "docs/OUTREACH_TARGETS.md"
@@ -194,6 +195,9 @@ audit_staged_claim_copy() {
   require_staged_contains "docs/EVIDENCE_COURT_V0_1_PR_BODY.md" "This PR does not claim native Claude/Codex/Cursor/Devin/CI log ingestion" || invalid=1
   require_staged_contains "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md" "workflow wired locally" || invalid=1
   require_staged_contains "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md" "Only these release files support" || invalid=1
+  require_staged_contains "docs/EVIDENCE_COURT_COMPARISON.md" "Evidence Court only audits the supplied record" || invalid=1
+  require_staged_contains "docs/EVIDENCE_COURT_COMPARISON.md" "does not prove tests actually ran outside" || invalid=1
+  require_staged_contains "docs/EVIDENCE_COURT_COMPARISON.md" "does not natively ingest Claude/Codex/Cursor/Devin/CI logs" || invalid=1
   require_staged_contains "docs/EXPERT_REVIEW_BRIEF.md" "Do Not Share If" || invalid=1
   require_staged_contains "docs/OUTREACH.md" "Do Not Say" || invalid=1
   require_staged_contains "docs/OUTREACH.md" "does not natively ingest Claude/Codex/Cursor/CI logs" || invalid=1

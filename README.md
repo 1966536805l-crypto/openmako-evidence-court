@@ -42,6 +42,9 @@ output does not settle:
 It does not prove tests really ran outside the supplied record. It audits
 whether the supplied record supports the agent's claim.
 
+For concrete examples, see
+[what Evidence Court catches that normal tests miss](docs/EVIDENCE_COURT_COMPARISON.md).
+
 ## Quick Start
 
 ```bash
@@ -157,6 +160,7 @@ Until that PR-head remote run exists, use the local smoke gate above; do not cla
 - [terminal demo visual](docs/demo-terminal.svg)
 - [v0.1.2 release notes](docs/RELEASE_NOTES_V0_1_2.md)
 - [expert review brief](docs/EXPERT_REVIEW_BRIEF.md)
+- [normal-tests comparison](docs/EVIDENCE_COURT_COMPARISON.md)
 - [outreach templates](docs/OUTREACH.md)
 - [outreach target tracker](docs/OUTREACH_TARGETS.md)
 - [technical review request](docs/TECHNICAL_REVIEW_REQUEST.md)
