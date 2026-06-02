@@ -11,8 +11,8 @@ The goal is to ask for a quick technical review first, not to imply endorsement.
 - Technical review request: `https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/TECHNICAL_REVIEW_REQUEST.md`
 - Open public technical review issue: `https://github.com/1966536805l-crypto/openmako-evidence-court/issues/new?template=technical-review-request.md`
 - Release: `https://github.com/1966536805l-crypto/openmako-evidence-court/releases/tag/v0.1.2`
-- Reference green smoke run: `https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26833580086`
-- Reference smoke artifact digest: `sha256:2c62b127ceeb68e3403158e85405e7c89019af88643ba4e7f60fffcabd67f042`
+- Reference green smoke run: `https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26836126047`
+- Reference smoke artifact digest: `sha256:7ec4b7b76b0486ebad593e2936bd083ab80e0eee65c628c80f4ea64852095eac`
 
 ## General AI Tooling Maintainer
 

@@ -117,6 +117,8 @@ candidate:
 - [ ] `docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md`
 - [ ] `docs/EVIDENCE_COURT_COMPARISON.md`
 - [ ] `docs/REDACTION_GUIDE.md`
+- [ ] `docs/CURRENT_PROOF_STATUS.md`
+- [ ] `docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md`
 - [ ] `examples/evidence-court/bad-run.json`
 - [ ] `examples/evidence-court/good-run.json`
 - [ ] `examples/evidence-court/redacted-real-world-bad-run.json`

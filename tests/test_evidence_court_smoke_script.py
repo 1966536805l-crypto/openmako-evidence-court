@@ -433,6 +433,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EVIDENCE_COURT_COMPARISON.md",
             "docs/REDACTION_GUIDE.md",
+            "docs/CURRENT_PROOF_STATUS.md",
+            "docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/OUTREACH.md",
             "docs/OUTREACH_TARGETS.md",
@@ -528,6 +530,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EVIDENCE_COURT_COMPARISON.md",
             "docs/REDACTION_GUIDE.md",
+            "docs/CURRENT_PROOF_STATUS.md",
+            "docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/OUTREACH.md",
             "docs/OUTREACH_TARGETS.md",
@@ -902,6 +906,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EVIDENCE_COURT_COMPARISON.md",
             "docs/REDACTION_GUIDE.md",
+            "docs/CURRENT_PROOF_STATUS.md",
+            "docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/OUTREACH.md",
             "docs/OUTREACH_TARGETS.md",
@@ -987,6 +993,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EVIDENCE_COURT_COMPARISON.md",
             "docs/REDACTION_GUIDE.md",
+            "docs/CURRENT_PROOF_STATUS.md",
+            "docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/OUTREACH.md",
             "docs/OUTREACH_TARGETS.md",
@@ -1102,6 +1110,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EVIDENCE_COURT_COMPARISON.md",
             "docs/REDACTION_GUIDE.md",
+            "docs/CURRENT_PROOF_STATUS.md",
+            "docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/OUTREACH.md",
             "docs/OUTREACH_TARGETS.md",
@@ -1331,6 +1341,48 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
                     continue
                 self.assertNotIn(phrase.lower(), combined)
 
+    def test_current_proof_status_and_review_issue_draft_do_not_overclaim_remote_evidence(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        readme = (root / "README.md").read_text(encoding="utf-8")
+        proof_status = (root / "docs" / "CURRENT_PROOF_STATUS.md").read_text(encoding="utf-8")
+        issue_draft = (root / "docs" / "TECHNICAL_REVIEW_ISSUE_DRAFT.md").read_text(encoding="utf-8")
+
+        self.assertIn("docs/CURRENT_PROOF_STATUS.md", readme)
+        self.assertIn("docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md", readme)
+        self.assertIn("Remote CI evidence is confirmed for commit `cb1ab5e`", proof_status)
+        self.assertIn("actions/runs/26836126047", proof_status)
+        self.assertIn("Status Success", proof_status)
+        self.assertIn("sha256:7ec4b7b76b0486ebad593e2936bd083ab80e0eee65c628c80f4ea64852095eac", proof_status)
+        self.assertIn("does not prove the latest main commit", proof_status)
+        self.assertIn("third-party adoption, endorsement, or review", proof_status)
+        self.assertIn("not an endorsement request", issue_draft)
+        self.assertIn("Do not treat this draft as a sent review request", issue_draft)
+        self.assertIn("Open `docs/CURRENT_PROOF_STATUS.md` before trusting remote CI claims", issue_draft)
+        self.assertIn("Evidence Court Smoke run: https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26836126047", issue_draft)
+        self.assertIn("Run status: `Success` for commit `cb1ab5e`", issue_draft)
+        self.assertIn("It does not have third-party endorsement from this issue being opened", issue_draft)
+
+        draft_body = issue_draft.split("## Do Not Add Before Posting", 1)[0]
+        forbidden = (
+            "remote CI is green for `cb1ab5e`",
+            "downloaded artifact proves `cb1ab5e`",
+            "sent review request",
+            "reviewed by",
+            "endorsed by",
+            "used by",
+            "proves tests actually ran",
+            "native Claude/Codex/Cursor ingestion",
+            "real-world repair accuracy",
+            "10k stars achieved",
+        )
+        safe_text = f"{proof_status}\n{draft_body}"
+        for phrase in forbidden:
+            with self.subTest(phrase=phrase):
+                if phrase == "sent review request":
+                    self.assertIn("Do not treat this draft as a sent review request", safe_text)
+                    continue
+                self.assertNotIn(phrase, safe_text)
+
     def test_launch_assets_keep_v0_1_claims_bounded(self) -> None:
         root = Path(__file__).resolve().parents[1]
         launch_post = (root / "docs" / "LAUNCH_POST.md").read_text(encoding="utf-8")
@@ -1339,6 +1391,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
 
         self.assertIn("copyable launch post", readme)
         self.assertIn("public proof card", readme)
+        self.assertIn("current proof status", readme)
         self.assertIn("terminal demo visual", readme)
         self.assertIn("normal-tests comparison", readme)
         self.assertIn("redaction guide", readme)
@@ -1422,9 +1475,9 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("TECHNICAL_REVIEW_REQUEST.md", outreach)
         self.assertIn("technical boundary feedback", release_notes)
         self.assertIn("Reference green smoke run", outreach)
-        self.assertIn("actions/runs/26833580086", outreach)
+        self.assertIn("actions/runs/26836126047", outreach)
         self.assertIn("Reference smoke artifact digest", outreach)
-        self.assertIn("sha256:2c62b127ceeb68e3403158e85405e7c89019af88643ba4e7f60fffcabd67f042", outreach)
+        self.assertIn("sha256:7ec4b7b76b0486ebad593e2936bd083ab80e0eee65c628c80f4ea64852095eac", outreach)
         self.assertIn("I would value a quick review", outreach)
         self.assertIn("honest enough for", outreach)
         self.assertIn("If you have 30 seconds", outreach)
@@ -1506,8 +1559,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "https://github.com/1966536805l-crypto/openmako-evidence-court",
             "https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/PUBLIC_PROOF.md",
             "https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/demo-terminal.svg",
-            "actions/runs/26833580086",
-            "sha256:2c62b127ceeb68e3403158e85405e7c89019af88643ba4e7f60fffcabd67f042",
+            "actions/runs/26836126047",
+            "sha256:7ec4b7b76b0486ebad593e2936bd083ab80e0eee65c628c80f4ea64852095eac",
             "mako evidence-court --demo bad-run",
             "Verdict: FAIL",
             "docs/OUTREACH_TARGETS.md",

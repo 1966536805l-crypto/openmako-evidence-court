@@ -33,8 +33,8 @@ shows a protected test edit and no reported required pytest command.
 - Repository: `https://github.com/1966536805l-crypto/openmako-evidence-court`
 - Public proof card: `https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/PUBLIC_PROOF.md`
 - Demo visual: `https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/demo-terminal.svg`
-- Reference green smoke run: `https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26833580086`
-- Reference smoke artifact digest: `sha256:2c62b127ceeb68e3403158e85405e7c89019af88643ba4e7f60fffcabd67f042`
+- Reference green smoke run: `https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26836126047`
+- Reference smoke artifact digest: `sha256:7ec4b7b76b0486ebad593e2936bd083ab80e0eee65c628c80f4ea64852095eac`
 
 ## Quick Local Check
 

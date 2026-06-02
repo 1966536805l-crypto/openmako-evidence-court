@@ -19,6 +19,8 @@ INCLUDE_PATHS=(
   "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md"
   "docs/EVIDENCE_COURT_COMPARISON.md"
   "docs/REDACTION_GUIDE.md"
+  "docs/CURRENT_PROOF_STATUS.md"
+  "docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md"
   "docs/EXPERT_REVIEW_BRIEF.md"
   "docs/OUTREACH.md"
   "docs/OUTREACH_TARGETS.md"
@@ -203,6 +205,11 @@ audit_staged_claim_copy() {
   require_staged_contains "docs/REDACTION_GUIDE.md" "Evidence Court only audits the supplied record" || invalid=1
   require_staged_contains "docs/REDACTION_GUIDE.md" "does not prove tests actually ran outside" || invalid=1
   require_staged_contains "docs/REDACTION_GUIDE.md" "not native Claude/Codex/Cursor/Devin/CI" || invalid=1
+  require_staged_contains "docs/CURRENT_PROOF_STATUS.md" "Remote CI evidence is confirmed for commit" || invalid=1
+  require_staged_contains "docs/CURRENT_PROOF_STATUS.md" "sha256:7ec4b7b76b0486ebad593e2936bd083ab80e0eee65c628c80f4ea64852095eac" || invalid=1
+  require_staged_contains "docs/CURRENT_PROOF_STATUS.md" "does not prove the latest main commit" || invalid=1
+  require_staged_contains "docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md" "not an endorsement request" || invalid=1
+  require_staged_contains "docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md" "Do not treat this draft as a sent review request" || invalid=1
   require_staged_contains "docs/EXPERT_REVIEW_BRIEF.md" "Do Not Share If" || invalid=1
   require_staged_contains "docs/OUTREACH.md" "Do Not Say" || invalid=1
   require_staged_contains "docs/OUTREACH.md" "does not natively ingest Claude/Codex/Cursor/CI logs" || invalid=1
