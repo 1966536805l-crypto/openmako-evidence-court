@@ -397,9 +397,11 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
+            "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/LAUNCH_POST.md",
             "docs/social-card.svg",
             "docs/RELEASE_NOTES_V0_1_0.md",
+            "docs/RELEASE_NOTES_V0_1_1.md",
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
             "quantagent/evidence_court.py",
@@ -478,9 +480,11 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
+            "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/LAUNCH_POST.md",
             "docs/social-card.svg",
             "docs/RELEASE_NOTES_V0_1_0.md",
+            "docs/RELEASE_NOTES_V0_1_1.md",
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
             "quantagent/evidence_court.py",
@@ -831,9 +835,11 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
+            "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/LAUNCH_POST.md",
             "docs/social-card.svg",
             "docs/RELEASE_NOTES_V0_1_0.md",
+            "docs/RELEASE_NOTES_V0_1_1.md",
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
             "quantagent/evidence_court.py",
@@ -904,9 +910,11 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
+            "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/LAUNCH_POST.md",
             "docs/social-card.svg",
             "docs/RELEASE_NOTES_V0_1_0.md",
+            "docs/RELEASE_NOTES_V0_1_1.md",
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
             "quantagent/evidence_court.py",
@@ -1007,9 +1015,11 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
+            "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/LAUNCH_POST.md",
             "docs/social-card.svg",
             "docs/RELEASE_NOTES_V0_1_0.md",
+            "docs/RELEASE_NOTES_V0_1_1.md",
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
             "quantagent/evidence_court.py",
@@ -1147,6 +1157,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         readme = (root / "README.md").read_text(encoding="utf-8")
 
         self.assertIn("copyable launch post", readme)
+        self.assertIn("expert review brief", readme)
         self.assertIn("social card", readme)
         self.assertIn("supplied JSON run records", launch_post)
         self.assertIn("explicit marked transcript v0 files", launch_post)
@@ -1171,6 +1182,37 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
                     continue
                 self.assertNotIn(phrase, launch_post)
                 self.assertNotIn(phrase, social_card)
+
+    def test_expert_review_brief_keeps_share_claims_verifiable(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        brief = (root / "docs" / "EXPERT_REVIEW_BRIEF.md").read_text(encoding="utf-8")
+        release_notes = (root / "docs" / "RELEASE_NOTES_V0_1_1.md").read_text(encoding="utf-8")
+        readme = (root / "README.md").read_text(encoding="utf-8")
+
+        self.assertIn("30-Second Check", brief)
+        self.assertIn("mako evidence-court --demo bad-run", brief)
+        self.assertIn("Verdict: FAIL", brief)
+        self.assertIn("Safe Quote", brief)
+        self.assertIn("Do Not Share If", brief)
+        self.assertIn("GitHub Actions smoke gate is red", brief)
+        self.assertIn("native Claude/Codex/Cursor/Devin/CI log ingestion is supported", brief)
+        self.assertIn("does not provide proof that tests actually ran outside", brief)
+        self.assertIn("expert review brief", readme)
+        self.assertIn("v0.1.1 release notes", readme)
+        self.assertIn("public review assets", release_notes)
+        self.assertIn("Not Claimed", release_notes)
+
+        forbidden = (
+            "10k stars",
+            "10000 stars",
+            "native Claude ingestion is supported",
+            "proves tests actually ran",
+            "autonomous repair capability is proven",
+        )
+        for phrase in forbidden:
+            with self.subTest(phrase=phrase):
+                self.assertNotIn(phrase, brief)
+                self.assertNotIn(phrase, release_notes)
 
 
 if __name__ == "__main__":

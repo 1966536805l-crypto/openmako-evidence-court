@@ -144,7 +144,8 @@ Until that PR-head remote run exists, use the local smoke gate above; do not cla
 
 ## Launch Assets
 
-- [v0.1.0 release notes](docs/RELEASE_NOTES_V0_1_0.md)
+- [v0.1.1 release notes](docs/RELEASE_NOTES_V0_1_1.md)
+- [expert review brief](docs/EXPERT_REVIEW_BRIEF.md)
 - [copyable launch post](docs/LAUNCH_POST.md)
 - [social card](docs/social-card.svg)
 
