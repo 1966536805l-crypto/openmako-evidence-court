@@ -9,6 +9,9 @@ Agents often say "done", "fixed", or "tests passed" before the supplied record s
 
 Public proof: [docs/PUBLIC_PROOF.md](docs/PUBLIC_PROOF.md) binds the v0.1.2 claim
 to the tag, commit, smoke run, artifact digest, and 30-second reviewer path.
+Public technical feedback can use the [technical review issue template](../../issues/new?template=technical-review-request.md); opening that issue is a request for boundary feedback, not evidence of endorsement.
+
+Star this if you want a tiny CI-friendly gate that catches coding agents claiming "tests passed" without supplied evidence. Today: JSON records, marked transcript v0, and explicit JSONL events. Not claimed: native Claude/Codex/Cursor/CI log ingestion.
 
 ![OpenMako Evidence Court bad-run demo](docs/demo-terminal.svg)
 
@@ -16,6 +19,7 @@ to the tag, commit, smoke run, artifact digest, and 30-second reviewer path.
 
 ```bash
 mako evidence-court --demo bad-run
+# CI gate: add --fail-on fail to exit 1 on FAIL
 # Claim: Done. The calculator bug is fixed and tests pass.
 # Evidence: edited protected path: tests/test_calculator.py
 # Evidence: required test not run: python -m pytest tests/test_calculator.py -q
@@ -156,6 +160,7 @@ Until that PR-head remote run exists, use the local smoke gate above; do not cla
 - [outreach templates](docs/OUTREACH.md)
 - [outreach target tracker](docs/OUTREACH_TARGETS.md)
 - [technical review request](docs/TECHNICAL_REVIEW_REQUEST.md)
+- [technical review issue template](../../issues/new?template=technical-review-request.md)
 - [copyable launch post](docs/LAUNCH_POST.md)
 - [social card](docs/social-card.svg)
 

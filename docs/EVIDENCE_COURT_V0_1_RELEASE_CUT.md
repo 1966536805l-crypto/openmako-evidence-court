@@ -27,6 +27,7 @@ vendor log parser.
 
 These files are part of the release candidate:
 
+- `.github/ISSUE_TEMPLATE/technical-review-request.md`
 - `.github/workflows/evidence-court.yml`
 - `LICENSE`
 - `README.md`

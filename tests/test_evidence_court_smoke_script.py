@@ -403,6 +403,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         checklist = root / "docs" / "EVIDENCE_COURT_V0_1_RELEASE_CUT.md"
         text = checklist.read_text(encoding="utf-8")
         included_paths = (
+            ".github/ISSUE_TEMPLATE/technical-review-request.md",
             ".github/workflows/evidence-court.yml",
             "LICENSE",
             "README.md",
@@ -492,6 +493,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         text = manifest.read_text(encoding="utf-8")
         normalized = " ".join(text.split())
         included_paths = (
+            ".github/ISSUE_TEMPLATE/technical-review-request.md",
             ".github/workflows/evidence-court.yml",
             "LICENSE",
             "README.md",
@@ -853,6 +855,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
     def test_release_set_script_requires_complete_staged_release_set_when_requested(self) -> None:
         root = Path(__file__).resolve().parents[1]
         release_paths = (
+            ".github/ISSUE_TEMPLATE/technical-review-request.md",
             ".github/workflows/evidence-court.yml",
             "LICENSE",
             "README.md",
@@ -934,6 +937,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         script = root / "scripts" / "evidence_court_release_set.sh"
         release_paths = (
+            ".github/ISSUE_TEMPLATE/technical-review-request.md",
             ".github/workflows/evidence-court.yml",
             "LICENSE",
             "README.md",
@@ -1045,6 +1049,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         source_script = root / "scripts" / "evidence_court_release_set.sh"
         release_paths = (
+            ".github/ISSUE_TEMPLATE/technical-review-request.md",
             ".github/workflows/evidence-court.yml",
             "LICENSE",
             "README.md",
@@ -1268,11 +1273,19 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         release_notes = (root / "docs" / "RELEASE_NOTES_V0_1_2.md").read_text(encoding="utf-8")
         launch_post = (root / "docs" / "LAUNCH_POST.md").read_text(encoding="utf-8")
         readme = (root / "README.md").read_text(encoding="utf-8")
+        issue_template = (
+            root / ".github" / "ISSUE_TEMPLATE" / "technical-review-request.md"
+        ).read_text(encoding="utf-8")
 
         self.assertIn("review-first outreach templates", release_notes)
         self.assertIn("v0.1.2 release notes", readme)
         self.assertIn("outreach templates", readme)
         self.assertIn("technical review request", readme)
+        self.assertIn("technical-review-request.md", readme)
+        self.assertIn("Star this if you want a tiny CI-friendly gate", readme)
+        self.assertIn("claiming \"tests passed\" without supplied evidence", readme)
+        self.assertIn("Not claimed: native", readme)
+        self.assertIn("issues/new?template=technical-review-request.md", outreach)
         self.assertIn("TECHNICAL_REVIEW_REQUEST.md", outreach)
         self.assertIn("technical boundary feedback", release_notes)
         self.assertIn("Reference green smoke run", outreach)
@@ -1314,12 +1327,16 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             with self.subTest(phrase=phrase):
                 self.assertNotIn(phrase, outreach)
                 self.assertNotIn(phrase, release_notes)
+                self.assertNotIn(phrase, issue_template)
 
     def test_technical_review_request_is_bounded_and_actionable(self) -> None:
         root = Path(__file__).resolve().parents[1]
         review = (root / "docs" / "TECHNICAL_REVIEW_REQUEST.md").read_text(encoding="utf-8")
         outreach = (root / "docs" / "OUTREACH.md").read_text(encoding="utf-8")
         readme = (root / "README.md").read_text(encoding="utf-8")
+        issue_template = (
+            root / ".github" / "ISSUE_TEMPLATE" / "technical-review-request.md"
+        ).read_text(encoding="utf-8")
 
         self.assertIn("Technical Review Request", review)
         self.assertIn("public request for technical review", review)
@@ -1332,15 +1349,24 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("does not prove tests actually ran outside the supplied record", review)
         self.assertIn("does not natively ingest Claude/Codex/Cursor/Devin/CI logs", review)
         self.assertIn("docs/TECHNICAL_REVIEW_REQUEST.md", readme)
+        self.assertIn("Technical review request", issue_template)
+        self.assertIn("not an endorsement request", issue_template)
+        self.assertIn("not evidence that anyone has reviewed", issue_template)
 
         questions = re.findall(r"^\d+\. ", review, flags=re.MULTILINE)
         self.assertEqual(len(questions), 3)
+        template_questions = re.findall(r"^\d+\. ", issue_template, flags=re.MULTILINE)
+        self.assertEqual(len(template_questions), 3)
         review_runs = re.findall(r"actions/runs/(\d+)", review)
         outreach_runs = re.findall(r"actions/runs/(\d+)", outreach)
+        template_runs = re.findall(r"actions/runs/(\d+)", issue_template)
         self.assertEqual(set(review_runs), set(outreach_runs))
+        self.assertEqual(set(review_runs), set(template_runs))
         review_digests = re.findall(r"sha256:[0-9a-f]{64}", review)
         outreach_digests = re.findall(r"sha256:[0-9a-f]{64}", outreach)
+        template_digests = re.findall(r"sha256:[0-9a-f]{64}", issue_template)
         self.assertEqual(set(review_digests), set(outreach_digests))
+        self.assertEqual(set(review_digests), set(template_digests))
         for phrase in (
             "https://github.com/1966536805l-crypto/openmako-evidence-court",
             "https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/PUBLIC_PROOF.md",

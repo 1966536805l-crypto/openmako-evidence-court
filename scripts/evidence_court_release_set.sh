@@ -7,6 +7,7 @@ cd "${REPO_ROOT}"
 PY="${PYTHON:-python3}"
 
 INCLUDE_PATHS=(
+  ".github/ISSUE_TEMPLATE/technical-review-request.md"
   ".github/workflows/evidence-court.yml"
   "LICENSE"
   "README.md"
@@ -200,6 +201,8 @@ audit_staged_claim_copy() {
   require_staged_contains "docs/OUTREACH_TARGETS.md" "Start with five targets before scaling" || invalid=1
   require_staged_contains "docs/TECHNICAL_REVIEW_REQUEST.md" "not an endorsement request" || invalid=1
   require_staged_contains "docs/TECHNICAL_REVIEW_REQUEST.md" "Review Questions" || invalid=1
+  require_staged_contains ".github/ISSUE_TEMPLATE/technical-review-request.md" "not an endorsement request" || invalid=1
+  require_staged_contains ".github/ISSUE_TEMPLATE/technical-review-request.md" "Review Questions" || invalid=1
   require_staged_contains "docs/EXPERT_REVIEW_BRIEF.md" "does not provide proof that tests actually ran outside" || invalid=1
   require_staged_contains "docs/PUBLIC_PROOF.md" "What This Does Not Prove" || invalid=1
   require_staged_contains "docs/PUBLIC_PROOF.md" "Artifact digest" || invalid=1

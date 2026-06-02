@@ -40,6 +40,7 @@ Open these first:
 6. `mixed-source-rejection.txt`: mixed inputs fail closed with `exit_code=2`.
 
 ### Included In This Release Claim
+- `.github/ISSUE_TEMPLATE/technical-review-request.md`
 - `.github/workflows/evidence-court.yml`
 - `LICENSE`
 - `README.md`

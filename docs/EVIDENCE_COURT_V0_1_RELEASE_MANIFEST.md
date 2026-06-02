@@ -30,6 +30,7 @@ Evidence Court v0.1 must not claim support for:
 
 Only these release files support the Evidence Court v0.1 public claim:
 
+- `.github/ISSUE_TEMPLATE/technical-review-request.md`
 - `.github/workflows/evidence-court.yml`
 - `LICENSE`
 - `README.md`
