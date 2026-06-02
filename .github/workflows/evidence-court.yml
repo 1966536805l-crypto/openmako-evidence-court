@@ -1,0 +1,40 @@
+name: Evidence Court Smoke
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  evidence-court-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install test runner
+        run: python -m pip install --upgrade pip pytest
+
+      - name: Run Evidence Court smoke gate
+        env:
+          EVIDENCE_COURT_BRANCH_DIFF_BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || github.event.before }}
+          EVIDENCE_COURT_ARTIFACT_DIR: evidence-court-artifacts
+        run: bash scripts/evidence_court_smoke.sh
+
+      - name: Verify Evidence Court smoke artifacts
+        run: bash scripts/evidence_court_release_set.sh --verify-artifact-dir evidence-court-artifacts
+
+      - name: Upload Evidence Court smoke artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidence-court-smoke
+          path: evidence-court-artifacts/
+          if-no-files-found: error

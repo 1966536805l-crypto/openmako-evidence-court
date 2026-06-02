@@ -1,0 +1,1118 @@
+from __future__ import annotations
+
+import hashlib
+import os
+import re
+import subprocess
+import sys
+import tempfile
+import unittest
+import json
+from pathlib import Path
+
+
+class EvidenceCourtSmokeScriptTest(unittest.TestCase):
+    def _run_release_set_with_staged_paths(
+        self,
+        root: Path,
+        *paths: str,
+        mode: str = "--check",
+    ) -> subprocess.CompletedProcess[str]:
+        script = root / "scripts" / "evidence_court_release_set.sh"
+        env = os.environ.copy()
+        with tempfile.TemporaryDirectory(prefix="openmako-release-index-") as tmp:
+            env["GIT_INDEX_FILE"] = str(Path(tmp) / "index")
+            read_tree = subprocess.run(
+                ["git", "read-tree", "HEAD"],
+                cwd=root,
+                env=env,
+                text=True,
+                capture_output=True,
+                timeout=30,
+            )
+            self.assertEqual(read_tree.returncode, 0, read_tree.stdout + read_tree.stderr)
+            for path in paths:
+                source = root / path
+                content = source.read_text(encoding="utf-8") if source.exists() else ""
+                self._stage_synthetic_blob(root, env, path, content + "\n")
+            return subprocess.run(
+                ["bash", str(script), mode],
+                cwd=root,
+                env=env,
+                text=True,
+                capture_output=True,
+                timeout=30,
+            )
+
+    def _stage_synthetic_blob(self, root: Path, env: dict[str, str], path: str, content: str) -> None:
+        blob = subprocess.run(
+            ["git", "hash-object", "-w", "--stdin"],
+            cwd=root,
+            env=env,
+            input=content,
+            text=True,
+            capture_output=True,
+            timeout=30,
+        )
+        self.assertEqual(blob.returncode, 0, blob.stdout + blob.stderr)
+        update = subprocess.run(
+            ["git", "update-index", "--add", "--cacheinfo", "100644", blob.stdout.strip(), path],
+            cwd=root,
+            env=env,
+            text=True,
+            capture_output=True,
+            timeout=30,
+        )
+        self.assertEqual(update.returncode, 0, update.stdout + update.stderr)
+
+    def test_evidence_court_cli_runs_without_full_agent_runtime(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        with tempfile.TemporaryDirectory(prefix="openmako-evidence-cli-minimal-") as tmp:
+            tmp_root = Path(tmp)
+            package = tmp_root / "quantagent"
+            package.mkdir()
+            for name in ("__init__.py", "cli.py", "evidence_court.py"):
+                (package / name).write_text((root / "quantagent" / name).read_text(encoding="utf-8"), encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, "-m", "quantagent.cli", "--no-trust-prompt", "evidence-court", "--demo", "good-run", "--json"],
+                cwd=tmp_root,
+                text=True,
+                capture_output=True,
+                timeout=30,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["verdict"], "PASS")
+
+    def test_smoke_script_runs_release_gate(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        script = root / "scripts" / "evidence_court_smoke.sh"
+        self.assertTrue(os.access(script, os.X_OK), f"{script} must be executable")
+        env = os.environ.copy()
+        env["PYTHON"] = sys.executable
+        env["PYTHONPATH"] = str(root)
+        with tempfile.TemporaryDirectory(prefix="openmako-smoke-pycache-") as pycache:
+            env["PYTHONPYCACHEPREFIX"] = pycache
+            proc = subprocess.run(
+                ["bash", str(script)],
+                cwd=root,
+                env=env,
+                text=True,
+                capture_output=True,
+                timeout=60,
+            )
+
+        output = proc.stdout + proc.stderr
+        self.assertEqual(proc.returncode, 0, output)
+        self.assertIn("Evidence Court smoke gate passed.", output)
+        self.assertIn("[evidence-court-smoke] release set boundary", output)
+
+    def test_smoke_script_uses_branch_diff_gate_when_base_is_set(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        script = root / "scripts" / "evidence_court_smoke.sh"
+        text = script.read_text(encoding="utf-8")
+
+        self.assertIn("EVIDENCE_COURT_BRANCH_DIFF_BASE", text)
+        self.assertIn("--check-branch-diff", text)
+        self.assertIn("--check", text)
+        self.assertIn("--artifact-dir DIR", text)
+        self.assertIn("EVIDENCE_COURT_ARTIFACT_DIR provides the same setting for CI.", text)
+
+    def test_smoke_script_rejects_unknown_arguments(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        script = root / "scripts" / "evidence_court_smoke.sh"
+        proc = subprocess.run(
+            ["bash", str(script), "--unexpected"],
+            cwd=root,
+            text=True,
+            capture_output=True,
+            timeout=10,
+        )
+
+        output = proc.stdout + proc.stderr
+        self.assertEqual(proc.returncode, 2, output)
+        self.assertIn("unknown argument for Evidence Court smoke gate: --unexpected", output)
+        self.assertIn("--artifact-dir DIR writes reviewer-facing smoke artifacts", output)
+
+    def test_smoke_script_writes_review_artifacts_when_requested(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        script = root / "scripts" / "evidence_court_smoke.sh"
+        env = os.environ.copy()
+        env["PYTHON"] = sys.executable
+        env["PYTHONPATH"] = str(root)
+        with tempfile.TemporaryDirectory(prefix="openmako-smoke-artifacts-") as artifacts:
+            with tempfile.TemporaryDirectory(prefix="openmako-smoke-pycache-") as pycache:
+                env["PYTHONPYCACHEPREFIX"] = pycache
+                proc = subprocess.run(
+                    ["bash", str(script), "--artifact-dir", artifacts],
+                    cwd=root,
+                    env=env,
+                    text=True,
+                    capture_output=True,
+                    timeout=60,
+                )
+
+            output = proc.stdout + proc.stderr
+            self.assertEqual(proc.returncode, 0, output)
+            artifact_root = Path(artifacts)
+            expected = {
+                "artifact-manifest.json",
+                "bad-run.md",
+                "fail-on-fail.json",
+                "good-run.json",
+                "jsonl-events.json",
+                "marked-transcript.json",
+                "mixed-source-rejection.txt",
+                "reviewer-quickstart.md",
+                "smoke-summary.txt",
+            }
+            self.assertEqual(expected, {path.name for path in artifact_root.iterdir()})
+            manifest = json.loads((artifact_root / "artifact-manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(manifest["artifact"], "evidence-court-smoke")
+            self.assertEqual(manifest["version"], "v0.1")
+            self.assertIn("safe_claim", manifest)
+            self.assertIn("supplied JSON run records", manifest["safe_claim"])
+            self.assertIn("explicit marked transcript v0 files", manifest["safe_claim"])
+            self.assertIn("explicit Evidence Court JSONL event streams", manifest["safe_claim"])
+            self.assertEqual(
+                [
+                    "reviewer-quickstart.md",
+                    "bad-run.md",
+                    "fail-on-fail.json",
+                    "good-run.json",
+                    "marked-transcript.json",
+                    "jsonl-events.json",
+                    "mixed-source-rejection.txt",
+                    "smoke-summary.txt",
+                ],
+                manifest["review_path"],
+            )
+            self.assertEqual("## Verdict: FAIL", manifest["expected_checks"]["bad-run.md"])
+            self.assertEqual('"verdict": "FAIL" and command exit code 1', manifest["expected_checks"]["fail-on-fail.json"])
+            self.assertEqual('"verdict": "PASS"', manifest["expected_checks"]["good-run.json"])
+            self.assertEqual('"verdict": "FAIL"', manifest["expected_checks"]["jsonl-events.json"])
+            self.assertEqual("source: bad-run-demo", manifest["source_provenance_checks"]["bad-run.md"])
+            self.assertEqual("source: bad-run-demo", manifest["source_provenance_checks"]["fail-on-fail.json"])
+            self.assertEqual("source: good-run-demo", manifest["source_provenance_checks"]["good-run.json"])
+            self.assertEqual(
+                "source: tests/fixtures/evidence_court/marked_bad_transcript.txt",
+                manifest["source_provenance_checks"]["marked-transcript.json"],
+            )
+            self.assertEqual("source: ", manifest["source_provenance_checks"]["jsonl-events.json"])
+            self.assertEqual(set(manifest["review_path"]), set(manifest["artifact_file_sha256"]))
+            for artifact_name, digest in manifest["artifact_file_sha256"].items():
+                with self.subTest(artifact_name=artifact_name):
+                    self.assertRegex(digest, r"^[0-9a-f]{64}$")
+                    expected_digest = hashlib.sha256((artifact_root / artifact_name).read_bytes()).hexdigest()
+                    self.assertEqual(expected_digest, digest)
+            self.assertIn("No native Claude/Codex/Cursor/Devin/CI log ingestion claim.", manifest["boundaries"])
+            quickstart = (artifact_root / "reviewer-quickstart.md").read_text(encoding="utf-8")
+            self.assertIn("not another coding agent", quickstart)
+            self.assertIn("claim-vs-evidence gate", quickstart)
+            self.assertIn("## 30-Second Review Path", quickstart)
+            self.assertIn("Open `artifact-manifest.json`", quickstart)
+            self.assertIn("artifact file SHA-256 hashes", quickstart)
+            self.assertIn("Open `bad-run.md` first", quickstart)
+            self.assertIn("Confirm it includes `source: bad-run-demo`", quickstart)
+            self.assertIn("Open `fail-on-fail.json`", quickstart)
+            self.assertIn("exits with code 1", quickstart)
+            self.assertIn("supplied run record", quickstart)
+            self.assertIn("Open `marked-transcript.json`", quickstart)
+            self.assertIn("fixture path as `source`", quickstart)
+            self.assertIn("Open `jsonl-events.json`", quickstart)
+            self.assertIn("generated JSONL path as `source`", quickstart)
+            self.assertIn("explicit Evidence Court JSONL event stream input returns", quickstart)
+            self.assertIn("mixed JSON plus transcript plus JSONL inputs fail closed with `exit_code=2`", quickstart)
+            self.assertIn("Open `smoke-summary.txt`", quickstart)
+            self.assertIn("This artifact shows these fixtures", quickstart)
+            self.assertIn("explicit JSONL event input fails closed", quickstart)
+            self.assertIn("mixed input modes are rejected", quickstart)
+            self.assertIn("## Boundary", quickstart)
+            self.assertIn("This artifact shows the smoke gate output", quickstart)
+            self.assertNotIn("This artifact proves the smoke gate ran", quickstart)
+            self.assertIn("explicit Evidence Court JSONL event records", quickstart)
+            self.assertIn("does not prove native Claude/Codex/Cursor/Devin/CI log ingestion", quickstart)
+            self.assertIn("does not prove tests really ran outside the supplied record", quickstart)
+            self.assertIn("does not prove broad SWE repair", quickstart)
+            self.assertIn("Safe claim: Evidence Court v0.1 audits supplied JSON run records", quickstart)
+            self.assertIn("explicit Evidence Court JSONL event streams", quickstart)
+            self.assertIn("## Verdict: FAIL", (artifact_root / "bad-run.md").read_text(encoding="utf-8"))
+            fail_on_json = (artifact_root / "fail-on-fail.json").read_text(encoding="utf-8")
+            good_json = (artifact_root / "good-run.json").read_text(encoding="utf-8")
+            marked_json = (artifact_root / "marked-transcript.json").read_text(encoding="utf-8")
+            jsonl_json = (artifact_root / "jsonl-events.json").read_text(encoding="utf-8")
+            for report_json in (fail_on_json, good_json, marked_json, jsonl_json):
+                self.assertIn('"schema_version": "evidence-court.report.v0.1"', report_json)
+            self.assertIn('"verdict": "FAIL"', fail_on_json)
+            self.assertIn("source: bad-run-demo", fail_on_json)
+            self.assertIn('"verdict": "PASS"', good_json)
+            self.assertIn("source: good-run-demo", good_json)
+            self.assertIn('"verdict": "FAIL"', marked_json)
+            self.assertIn("source: tests/fixtures/evidence_court/marked_bad_transcript.txt", marked_json)
+            self.assertIn('"verdict": "FAIL"', jsonl_json)
+            self.assertIn("source: ", jsonl_json)
+            self.assertIn(
+                "required test not run: python -m pytest tests/test_calculator.py -q",
+                jsonl_json,
+            )
+            self.assertIn("exit_code=2", (artifact_root / "mixed-source-rejection.txt").read_text(encoding="utf-8"))
+            self.assertIn("Evidence Court smoke gate passed.", (artifact_root / "smoke-summary.txt").read_text(encoding="utf-8"))
+            summary = (artifact_root / "smoke-summary.txt").read_text(encoding="utf-8")
+            self.assertIn("artifact-manifest.json lists the safe claim", summary)
+            self.assertIn("artifact-manifest.json lists source provenance checks", summary)
+            self.assertIn("artifact-manifest.json lists SHA-256 hashes", summary)
+            self.assertIn("reviewer-quickstart.md gives the 30-second review path.", summary)
+            self.assertIn("compile gate passed", summary)
+            self.assertIn("focused tests passed", summary)
+            self.assertIn("demo verdict gate checked bad-run FAIL and good-run PASS", summary)
+            self.assertIn("fail-on gate checked bad-run exits 1 with --fail-on fail.", summary)
+            self.assertIn("input-mode gate checked marked transcript FAIL, explicit JSONL events FAIL", summary)
+            self.assertIn("release boundary gate checked the Evidence Court release set", summary)
+            self.assertIn("report artifacts must contain source provenance", summary)
+            self.assertIn("review-path artifacts must have SHA-256 hashes", summary)
+            verifier = subprocess.run(
+                [
+                    "bash",
+                    str(root / "scripts" / "evidence_court_release_set.sh"),
+                    "--verify-artifact-dir",
+                    artifacts,
+                ],
+                cwd=root,
+                env=env,
+                text=True,
+                capture_output=True,
+                timeout=30,
+            )
+            self.assertEqual(verifier.returncode, 0, verifier.stdout + verifier.stderr)
+            self.assertIn("Evidence Court artifact dir verified:", verifier.stdout)
+
+            (artifact_root / "bad-run.md").write_text("tampered\n", encoding="utf-8")
+            tampered = subprocess.run(
+                [
+                    "bash",
+                    str(root / "scripts" / "evidence_court_release_set.sh"),
+                    "--verify-artifact-dir",
+                    artifacts,
+                ],
+                cwd=root,
+                env=env,
+                text=True,
+                capture_output=True,
+                timeout=30,
+            )
+            self.assertNotEqual(tampered.returncode, 0, tampered.stdout + tampered.stderr)
+            self.assertIn("artifact SHA-256 mismatch: bad-run.md", tampered.stdout + tampered.stderr)
+
+    def test_smoke_script_rejects_excluded_staged_release_file(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        script = root / "scripts" / "evidence_court_smoke.sh"
+        env = os.environ.copy()
+        env["PYTHON"] = sys.executable
+        env["PYTHONPATH"] = str(root)
+        with tempfile.TemporaryDirectory(prefix="openmako-smoke-index-") as tmp:
+            env["GIT_INDEX_FILE"] = str(Path(tmp) / "index")
+            env["PYTHONPYCACHEPREFIX"] = str(Path(tmp) / "pycache")
+            read_tree = subprocess.run(
+                ["git", "read-tree", "HEAD"],
+                cwd=root,
+                env=env,
+                text=True,
+                capture_output=True,
+                timeout=30,
+            )
+            self.assertEqual(read_tree.returncode, 0, read_tree.stdout + read_tree.stderr)
+            self._stage_synthetic_blob(
+                root,
+                env,
+                "quantagent/agent_planner.py",
+                "# synthetic excluded staged file for Evidence Court release-set test\n",
+            )
+            proc = subprocess.run(
+                ["bash", str(script)],
+                cwd=root,
+                env=env,
+                text=True,
+                capture_output=True,
+                timeout=60,
+            )
+
+        output = proc.stdout + proc.stderr
+        self.assertNotEqual(proc.returncode, 0, output)
+        self.assertIn(
+            "excluded file is staged for Evidence Court v0.1: quantagent/agent_planner.py",
+            output,
+        )
+
+    def test_github_actions_workflow_runs_smoke_script(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        workflow = root / ".github" / "workflows" / "evidence-court.yml"
+
+        text = workflow.read_text(encoding="utf-8")
+
+        self.assertIn("Evidence Court Smoke", text)
+        self.assertIn("fetch-depth: 0", text)
+        self.assertIn("actions/setup-python@v5", text)
+        self.assertIn("python -m pip install --upgrade pip pytest", text)
+        self.assertIn("EVIDENCE_COURT_BRANCH_DIFF_BASE:", text)
+        self.assertIn("github.event_name == 'pull_request'", text)
+        self.assertIn("format('origin/{0}', github.base_ref)", text)
+        self.assertIn("github.event.before", text)
+        self.assertIn("EVIDENCE_COURT_ARTIFACT_DIR: evidence-court-artifacts", text)
+        self.assertIn("run: bash scripts/evidence_court_smoke.sh", text)
+        self.assertIn("Verify Evidence Court smoke artifacts", text)
+        self.assertIn(
+            "run: bash scripts/evidence_court_release_set.sh --verify-artifact-dir evidence-court-artifacts",
+            text,
+        )
+        self.assertNotIn("EVIDENCE_COURT_BRANCH_DIFF_BASE=origin/main", text)
+        self.assertIn("actions/upload-artifact@v4", text)
+        self.assertIn("name: evidence-court-smoke", text)
+        self.assertIn("path: evidence-court-artifacts/", text)
+        self.assertIn("if-no-files-found: error", text)
+        self.assertRegex(
+            text,
+            re.compile(
+                r"- name: Run Evidence Court smoke gate\s+env:\s+EVIDENCE_COURT_BRANCH_DIFF_BASE:[\s\S]*github\.event_name == 'pull_request'[\s\S]*github\.event\.before[\s\S]*EVIDENCE_COURT_ARTIFACT_DIR: evidence-court-artifacts\s+run: bash scripts/evidence_court_smoke\.sh",
+                re.MULTILINE,
+            ),
+        )
+        self.assertLess(
+            text.index("Verify Evidence Court smoke artifacts"),
+            text.index("Upload Evidence Court smoke artifacts"),
+        )
+        self.assertNotIn("pytest -p no:cacheprovider", text)
+
+    def test_release_cut_checklist_separates_evidence_court_from_planner_work(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        checklist = root / "docs" / "EVIDENCE_COURT_V0_1_RELEASE_CUT.md"
+        text = checklist.read_text(encoding="utf-8")
+        included_paths = (
+            ".github/workflows/evidence-court.yml",
+            "README.md",
+            "docs/CAPABILITY_GATES.md",
+            "docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md",
+            "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
+            "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
+            "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
+            "examples/evidence-court/bad-run.json",
+            "examples/evidence-court/good-run.json",
+            "quantagent/evidence_court.py",
+            "quantagent/__init__.py",
+            "quantagent/cli.py",
+            "scripts/evidence_court_release_set.sh",
+            "scripts/evidence_court_smoke.sh",
+            "tests/fixtures/evidence_court/marked_bad_transcript.txt",
+            "tests/test_evidence_court.py",
+            "tests/test_evidence_court_smoke_script.py",
+        )
+        excluded_paths = (
+            "quantagent/agent_planner.py",
+            "tests/test_agent_planner_contract.py",
+            "tests/test_external_benchmark_multimodule_regression.py",
+        )
+
+        for path in included_paths:
+            with self.subTest(path=path):
+                self.assertIn(f"`{path}`", text)
+                self.assertTrue((root / path).exists())
+
+        for path in excluded_paths:
+            with self.subTest(path=path):
+                self.assertIn(f"`{path}`", text)
+
+        normalized = " ".join(text.split())
+        self.assertIn("not a vendor log parser", normalized)
+        self.assertIn("workflow wired locally", normalized)
+        self.assertIn("machine-checkable file boundary", normalized)
+        self.assertIn("bash scripts/evidence_court_smoke.sh", text)
+        self.assertIn("bash scripts/evidence_court_release_set.sh --check", text)
+        self.assertIn("bash scripts/evidence_court_release_set.sh --check-branch-diff main", text)
+        self.assertIn("bash scripts/evidence_court_release_set.sh --check-staged-release-set", text)
+        self.assertIn("bash scripts/evidence_court_release_set.sh --audit-staged-claim-copy", text)
+        self.assertIn(
+            "python -m pytest -p no:cacheprovider tests/test_evidence_court_smoke_script.py tests/test_evidence_court.py -q",
+            text,
+        )
+        self.assertIn("git diff --check", text)
+        self.assertIn("evidence-court-smoke", text)
+        self.assertIn("artifact-manifest.json", text)
+        self.assertIn("jsonl-events.json", text)
+        self.assertIn("reviewer-quickstart.md", text)
+        self.assertIn("smoke-summary.txt", text)
+        self.assertIn("Artifact content check", text)
+        self.assertIn("`artifact-manifest.json` lists the safe claim", text)
+        self.assertIn("source provenance checks", text)
+        self.assertIn("report artifacts include `source: ...`", text)
+        self.assertIn("open `bad-run.md` first", text)
+        self.assertIn("`bad-run.md` shows `Verdict: FAIL`", text)
+        self.assertIn("`good-run.json` contains `\"verdict\": \"PASS\"`", text)
+        self.assertIn("`jsonl-events.json` contains `\"verdict\": \"FAIL\"`", text)
+        self.assertIn("`mixed-source-rejection.txt` contains `exit_code=2`", text)
+        self.assertIn("green for the PR head commit", text)
+        self.assertNotIn("After pushing the release branch", text)
+        self.assertIn("Optional remote artifact download", text)
+        self.assertIn(
+            "gh run download <run-id> --name evidence-court-smoke --dir /tmp/evidence-court-smoke",
+            text,
+        )
+        self.assertIn("sed -n '1,80p' /tmp/evidence-court-smoke/artifact-manifest.json", text)
+
+    def test_release_manifest_is_the_claim_file_boundary(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        manifest = root / "docs" / "EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md"
+        text = manifest.read_text(encoding="utf-8")
+        normalized = " ".join(text.split())
+        included_paths = (
+            ".github/workflows/evidence-court.yml",
+            "README.md",
+            "docs/CAPABILITY_GATES.md",
+            "docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md",
+            "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
+            "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
+            "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
+            "examples/evidence-court/bad-run.json",
+            "examples/evidence-court/good-run.json",
+            "quantagent/evidence_court.py",
+            "quantagent/__init__.py",
+            "quantagent/cli.py",
+            "scripts/evidence_court_release_set.sh",
+            "scripts/evidence_court_smoke.sh",
+            "tests/fixtures/evidence_court/marked_bad_transcript.txt",
+            "tests/test_evidence_court.py",
+            "tests/test_evidence_court_smoke_script.py",
+        )
+        excluded_paths = (
+            "quantagent/agent_planner.py",
+            "tests/test_agent_planner_contract.py",
+            "tests/test_external_benchmark_multimodule_regression.py",
+        )
+
+        for path in included_paths:
+            with self.subTest(path=path):
+                self.assertIn(f"`{path}`", text)
+                self.assertTrue((root / path).exists())
+
+        for path in excluded_paths:
+            with self.subTest(path=path):
+                self.assertIn(f"`{path}`", text)
+
+        self.assertIn("Only these release files support", text)
+        self.assertIn("must not support the Evidence Court v0.1 public claim", normalized)
+        self.assertIn("native Claude/Codex/Cursor/Devin transcript ingestion", text)
+        self.assertIn("GitHub Actions or CI log ingestion", text)
+        self.assertIn("real Node fs/process handling", text)
+        self.assertIn("workflow wired locally", text)
+        self.assertIn("bash scripts/evidence_court_smoke.sh", text)
+        self.assertIn("bash scripts/evidence_court_smoke.sh --artifact-dir /tmp/evidence-court-smoke", text)
+        self.assertIn("bash scripts/evidence_court_release_set.sh --check", text)
+        self.assertIn("bash scripts/evidence_court_release_set.sh --check-branch-diff main", text)
+        self.assertIn("bash scripts/evidence_court_release_set.sh --check-staged-release-set", text)
+        self.assertIn("bash scripts/evidence_court_release_set.sh --audit-staged-claim-copy", text)
+        self.assertIn("bash scripts/evidence_court_release_set.sh --verify-artifact-dir /tmp/evidence-court-smoke", text)
+        self.assertIn(
+            "python -m pytest -p no:cacheprovider tests/test_evidence_court_smoke_script.py tests/test_evidence_court.py -q",
+            text,
+        )
+        self.assertIn("git diff --check", text)
+        self.assertIn("evidence-court-smoke", text)
+        self.assertIn("artifact-manifest.json", text)
+        self.assertIn("jsonl-events.json", text)
+        self.assertIn("reviewer-quickstart.md", text)
+        self.assertIn("smoke-summary.txt", text)
+        self.assertIn("Artifact content check", text)
+        self.assertIn("`artifact-manifest.json` lists the safe claim", text)
+        self.assertIn("source provenance checks", text)
+        self.assertIn("report artifacts include `source: ...`", text)
+        self.assertIn("verifies the artifact file set, manifest contract, artifact SHA-256 hashes", text)
+        self.assertIn("open `bad-run.md` first", text)
+        self.assertIn("`bad-run.md` shows `Verdict: FAIL`", text)
+        self.assertIn("`good-run.json` contains `\"verdict\": \"PASS\"`", text)
+        self.assertIn("`jsonl-events.json` contains `\"verdict\": \"FAIL\"`", text)
+        self.assertIn("`mixed-source-rejection.txt` contains `exit_code=2`", text)
+        self.assertIn("green for the PR head commit", text)
+        self.assertNotIn("After push, remote GitHub Actions", text)
+        self.assertIn("Optional remote artifact download", text)
+        self.assertIn(
+            "gh run download <run-id> --name evidence-court-smoke --dir /tmp/evidence-court-smoke",
+            text,
+        )
+        self.assertIn(
+            "bash scripts/evidence_court_release_set.sh --verify-artifact-dir /tmp/evidence-court-smoke",
+            text,
+        )
+        self.assertIn("sed -n '1,80p' /tmp/evidence-court-smoke/artifact-manifest.json", text)
+
+    def test_launch_packet_keeps_public_claims_bounded(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        launch_packet = root / "docs" / "EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md"
+        text = launch_packet.read_text(encoding="utf-8")
+        normalized = " ".join(text.split())
+
+        self.assertIn("mako evidence-court --demo bad-run", text)
+        self.assertIn("bash scripts/evidence_court_smoke.sh", text)
+        self.assertIn("bash scripts/evidence_court_smoke.sh --artifact-dir /tmp/evidence-court-smoke", text)
+        self.assertIn(
+            "Evidence Court audits supplied structured JSON run records, explicit marked",
+            text,
+        )
+        self.assertIn("Marked transcript v0 is an explicit marker format.", text)
+        self.assertIn(
+            "Remote CI evidence requires GitHub Actions `Evidence Court Smoke` green for the PR head commit.",
+            text,
+        )
+        self.assertIn("## Retweet Copy", text)
+        self.assertIn("It is not another coding agent.", text)
+        self.assertIn("claim-vs-evidence gate for supplied agent-run records", text)
+        self.assertIn("## What Normal Tests Miss", text)
+        self.assertIn("Test output alone cannot tell whether the agent reported the required test", text)
+        self.assertIn("edited protected tests, changed files outside scope", text)
+        self.assertIn("goes beyond the supplied evidence", text)
+        self.assertIn("It audits whether the record supports the claim.", text)
+        self.assertIn("missing reported required tests", normalized)
+        self.assertIn(
+            "protected-file edits, out-of-scope changes, and unsupported success claims",
+            normalized,
+        )
+        self.assertIn("Do not say:", text)
+        self.assertIn("Native Claude/Codex/Cursor/Devin ingestion is supported.", text)
+        self.assertIn("CI logs / GitHub Actions logs are ingested.", text)
+        self.assertIn("inside the supplied record", text)
+        self.assertIn("not \"another agent\"", normalized)
+        safe_copy = text.split("Do not say:", 1)[0]
+        forbidden_positive_claims = (
+            "Native Claude/Codex/Cursor/Devin ingestion is supported.",
+            "CI logs / GitHub Actions logs are ingested.",
+            "CI is green",
+            "OpenMako proves broad SWE-style repository repair.",
+            "OpenMako has achieved Desktop L4/L5 autonomy.",
+            "Evidence Court proves tests really ran outside the supplied record.",
+        )
+        for claim in forbidden_positive_claims:
+            with self.subTest(claim=claim):
+                self.assertNotIn(claim, safe_copy)
+        self.assertNotIn("pushed workflow run", safe_copy)
+        self.assertIn("## PR Checklist", text)
+        included_section = text.split("### Included Files", 1)[1].split("### Excluded From This Claim", 1)[0]
+        self.assertIn("- [ ] `scripts/evidence_court_smoke.sh`", included_section)
+        self.assertNotIn("`bash scripts/evidence_court_smoke.sh`", included_section)
+        self.assertIn("`docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md`", text)
+        self.assertIn("`docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md`", text)
+        self.assertIn("bash scripts/evidence_court_release_set.sh --check-staged-release-set", text)
+        self.assertIn("bash scripts/evidence_court_release_set.sh --audit-staged-claim-copy", text)
+        self.assertIn("bash scripts/evidence_court_release_set.sh --check-branch-diff main", text)
+        self.assertIn("GitHub Actions `Evidence Court Smoke` is green for the PR head commit.", text)
+        self.assertIn("after a green PR workflow for the PR head", text)
+        self.assertIn("evidence-court-smoke", text)
+        self.assertIn("reviewer-quickstart.md", text)
+        self.assertIn("smoke-summary.txt", text)
+        self.assertIn("Artifact content check", text)
+        self.assertIn("open `bad-run.md` first", text)
+        self.assertIn("source provenance checks", text)
+        self.assertIn("report artifacts include `source: ...`", text)
+        self.assertIn("`fail-on-fail.json` contains `\"verdict\": \"FAIL\"`", text)
+        self.assertIn("written only after `--fail-on fail` exits 1", text)
+        self.assertIn("The PR body must include the same 30-second reviewer path", text)
+        self.assertIn("`bad-run.md` shows `Verdict: FAIL`", text)
+        self.assertIn("`good-run.json` shows `\"verdict\": \"PASS\"`", text)
+        self.assertIn("`mixed-source-rejection.txt` shows", text)
+        self.assertIn("Optional remote artifact download", text)
+        self.assertIn("### Local Artifact Review Path", text)
+        self.assertIn("Before remote CI exists:", text)
+        self.assertIn("sed -n '1,80p' /tmp/evidence-court-smoke/reviewer-quickstart.md", text)
+        self.assertIn(
+            "gh run download <run-id> --name evidence-court-smoke --dir /tmp/evidence-court-smoke",
+            text,
+        )
+        self.assertIn("`quantagent/agent_planner.py`", text)
+        self.assertIn("`tests/test_external_benchmark_multimodule_regression.py`", text)
+
+    def test_capability_gates_use_bash_smoke_invocation(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        capability_gates = root / "docs" / "CAPABILITY_GATES.md"
+        text = capability_gates.read_text(encoding="utf-8")
+
+        self.assertIn("bash scripts/evidence_court_smoke.sh", text)
+        self.assertNotIn("run `scripts/evidence_court_smoke.sh` locally", text)
+        self.assertIn(
+            "Programming evidence is tracked separately; do not use it to support the\n  Evidence Court v0.1 launch claim.",
+            text,
+        )
+        self.assertNotIn("Programming evidence exists on internal hidden and repeat-stability packs.", text)
+        self.assertNotIn("Programming repair improves under evidence", text)
+        self.assertNotIn("fixture proves plan", text)
+
+    def test_pr_body_is_copyable_and_keeps_claims_bounded(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        pr_body = root / "docs" / "EVIDENCE_COURT_V0_1_PR_BODY.md"
+        text = pr_body.read_text(encoding="utf-8")
+        normalized = " ".join(text.split())
+
+        self.assertIn("Copy this into the GitHub PR body", text)
+        self.assertIn("````markdown", text)
+        self.assertIn("OpenMako Evidence Court audits supplied structured JSON run records", text)
+        self.assertIn("inside the supplied record", text)
+        self.assertIn("mako evidence-court --demo bad-run", text)
+        self.assertIn("bash scripts/evidence_court_smoke.sh", text)
+        self.assertIn("bash scripts/evidence_court_smoke.sh --artifact-dir /tmp/evidence-court-smoke", text)
+        self.assertIn("### 30-Second Reviewer Path", text)
+        self.assertIn("`bad-run.md`: the supplied record claims success", text)
+        self.assertIn("`fail-on-fail.json`: the same bad run under `--fail-on fail` exits 1", text)
+        self.assertIn("`artifact-manifest.json`: safe claim", text)
+        self.assertIn("`reviewer-quickstart.md`: copy-paste local/remote review path", text)
+        self.assertIn("`jsonl-events.json`: explicit Evidence Court JSONL event-stream input", text)
+        self.assertIn("`mixed-source-rejection.txt`: mixed inputs fail closed with `exit_code=2`", text)
+        included_section = text.split("### Included In This Release Claim", 1)[1].split("### Excluded From This Claim", 1)[0]
+        self.assertIn("- `scripts/evidence_court_smoke.sh`", included_section)
+        self.assertNotIn("`bash scripts/evidence_court_smoke.sh`", included_section)
+        self.assertIn("`docs/EVIDENCE_COURT_V0_1_PR_BODY.md`", text)
+        self.assertIn("`docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md`", text)
+        self.assertIn("bash scripts/evidence_court_release_set.sh --check", text)
+        self.assertIn("bash scripts/evidence_court_release_set.sh --check-staged-release-set", text)
+        self.assertIn("bash scripts/evidence_court_release_set.sh --audit-staged-claim-copy", text)
+        self.assertIn("bash scripts/evidence_court_release_set.sh --verify-artifact-dir /tmp/evidence-court-smoke", text)
+        self.assertIn("bash scripts/evidence_court_release_set.sh --check-branch-diff main", text)
+        self.assertIn("GitHub Actions `Evidence Court Smoke` is green for the PR head commit.", text)
+        self.assertIn("evidence-court-smoke", text)
+        self.assertIn("reviewer-quickstart.md", text)
+        self.assertIn("smoke-summary.txt", text)
+        self.assertIn("Artifact content check", text)
+        self.assertIn("passes on the downloaded artifact directory", text)
+        self.assertIn("open `bad-run.md` first", text)
+        self.assertIn("`bad-run.md` shows `Verdict: FAIL`", text)
+        self.assertIn("`good-run.json` shows `\"verdict\": \"PASS\"`", text)
+        self.assertIn("`mixed-source-rejection.txt` shows", text)
+        self.assertIn("Optional remote artifact download", text)
+        self.assertIn("### Local Artifact Review Path", text)
+        self.assertIn("Before remote CI exists:", text)
+        self.assertIn("fail-on-fail.json", text)
+        self.assertIn(
+            "bash scripts/evidence_court_release_set.sh --verify-artifact-dir /tmp/evidence-court-smoke",
+            text,
+        )
+        self.assertIn("sed -n '1,80p' /tmp/evidence-court-smoke/reviewer-quickstart.md", text)
+        self.assertIn(
+            "gh run download <run-id> --name evidence-court-smoke --dir /tmp/evidence-court-smoke",
+            text,
+        )
+        self.assertIn("`quantagent/agent_planner.py`", text)
+        self.assertIn("do not support the Evidence Court v0.1 public claim", normalized)
+        self.assertIn("Retweet-sized version:", text)
+        self.assertIn("claim-vs-evidence gate for supplied agent-run records", text)
+        self.assertIn("protected-file edits, out-of-scope", text)
+        self.assertIn("unsupported success claims", text)
+        self.assertEqual(text.count("````markdown"), 1)
+        self.assertTrue(text.rstrip().endswith("````"))
+        self.assertIn("bash scripts/evidence_court_smoke.sh --artifact-dir /tmp/evidence-court-smoke\n```", text)
+
+        safe_section = text.split("### Excluded From This Claim", 1)[0]
+        forbidden_positive_claims = (
+            "native Claude/Codex/Cursor/Devin/CI log ingestion is supported",
+            "Evidence Court proves tests really ran outside the supplied record",
+            "OpenMako proves broad SWE-style repository repair",
+            "OpenMako has achieved Desktop L4/L5 autonomy",
+        )
+        for claim in forbidden_positive_claims:
+            with self.subTest(claim=claim):
+                self.assertNotIn(claim, safe_section)
+
+    def test_release_set_script_lists_and_checks_staging_boundary(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        script = root / "scripts" / "evidence_court_release_set.sh"
+
+        list_proc = subprocess.run(
+            ["bash", str(script), "--list"],
+            cwd=root,
+            text=True,
+            capture_output=True,
+            timeout=30,
+        )
+        self.assertEqual(list_proc.returncode, 0, list_proc.stdout + list_proc.stderr)
+        self.assertIn("scripts/evidence_court_release_set.sh", list_proc.stdout)
+        self.assertIn("quantagent/agent_planner.py", list_proc.stdout)
+
+        check_proc = subprocess.run(
+            ["bash", str(script), "--check"],
+            cwd=root,
+            text=True,
+            capture_output=True,
+            timeout=30,
+        )
+        self.assertEqual(check_proc.returncode, 0, check_proc.stdout + check_proc.stderr)
+        self.assertNotIn("excluded file is staged", check_proc.stdout + check_proc.stderr)
+
+    def test_release_set_script_rejects_bad_staging_without_touching_real_index(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        real_index_before = subprocess.run(
+            ["git", "diff", "--cached", "--name-only"],
+            cwd=root,
+            text=True,
+            capture_output=True,
+            timeout=30,
+        )
+        self.assertEqual(real_index_before.returncode, 0, real_index_before.stdout + real_index_before.stderr)
+
+        included = self._run_release_set_with_staged_paths(root, "README.md")
+        self.assertEqual(included.returncode, 0, included.stdout + included.stderr)
+        self.assertIn("Staged files are within the Evidence Court v0.1 release set.", included.stdout)
+
+        script = root / "scripts" / "evidence_court_release_set.sh"
+        env = os.environ.copy()
+        with tempfile.TemporaryDirectory(prefix="openmako-release-index-") as tmp:
+            env["GIT_INDEX_FILE"] = str(Path(tmp) / "index")
+            read_tree = subprocess.run(
+                ["git", "read-tree", "HEAD"],
+                cwd=root,
+                env=env,
+                text=True,
+                capture_output=True,
+                timeout=30,
+            )
+            self.assertEqual(read_tree.returncode, 0, read_tree.stdout + read_tree.stderr)
+            self._stage_synthetic_blob(
+                root,
+                env,
+                "quantagent/agent_planner.py",
+                "# synthetic excluded staged file for Evidence Court release-set test\n",
+            )
+            excluded = subprocess.run(
+                ["bash", str(script), "--check"],
+                cwd=root,
+                env=env,
+                text=True,
+                capture_output=True,
+                timeout=30,
+            )
+        self.assertNotEqual(excluded.returncode, 0, excluded.stdout + excluded.stderr)
+        self.assertIn(
+            "excluded file is staged for Evidence Court v0.1: quantagent/agent_planner.py",
+            excluded.stdout + excluded.stderr,
+        )
+
+        unexpected_path = root / ".tmp_evidence_court_unexpected_stage.md"
+        unexpected_path.write_text("not part of the Evidence Court v0.1 release set\n", encoding="utf-8")
+        try:
+            unexpected = self._run_release_set_with_staged_paths(root, unexpected_path.name)
+        finally:
+            unexpected_path.unlink(missing_ok=True)
+        self.assertNotEqual(unexpected.returncode, 0, unexpected.stdout + unexpected.stderr)
+        self.assertIn(
+            f"unexpected staged file for Evidence Court v0.1: {unexpected_path.name}",
+            unexpected.stdout + unexpected.stderr,
+        )
+
+        real_index_after = subprocess.run(
+            ["git", "diff", "--cached", "--name-only"],
+            cwd=root,
+            text=True,
+            capture_output=True,
+            timeout=30,
+        )
+        self.assertEqual(real_index_after.returncode, 0, real_index_after.stdout + real_index_after.stderr)
+        self.assertEqual(real_index_before.stdout, real_index_after.stdout)
+
+    def test_release_set_script_requires_complete_staged_release_set_when_requested(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        release_paths = (
+            ".github/workflows/evidence-court.yml",
+            "README.md",
+            "docs/CAPABILITY_GATES.md",
+            "docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md",
+            "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
+            "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
+            "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
+            "examples/evidence-court/bad-run.json",
+            "examples/evidence-court/good-run.json",
+            "quantagent/evidence_court.py",
+            "quantagent/__init__.py",
+            "quantagent/cli.py",
+            "scripts/evidence_court_release_set.sh",
+            "scripts/evidence_court_smoke.sh",
+            "tests/fixtures/evidence_court/marked_bad_transcript.txt",
+            "tests/test_evidence_court.py",
+            "tests/test_evidence_court_smoke_script.py",
+        )
+
+        empty = self._run_release_set_with_staged_paths(root, mode="--check-staged-release-set")
+        self.assertNotEqual(empty.returncode, 0, empty.stdout + empty.stderr)
+        self.assertIn(
+            "missing staged release file for Evidence Court v0.1: .github/workflows/evidence-court.yml",
+            empty.stdout + empty.stderr,
+        )
+        self.assertNotIn("unbound variable", empty.stdout + empty.stderr)
+
+        complete = self._run_release_set_with_staged_paths(
+            root,
+            *release_paths,
+            mode="--check-staged-release-set",
+        )
+        self.assertEqual(complete.returncode, 0, complete.stdout + complete.stderr)
+        self.assertIn("Staged files exactly cover the Evidence Court v0.1 release set.", complete.stdout)
+
+        progress_bookkeeping = self._run_release_set_with_staged_paths(root, "PROGRESS.md")
+        self.assertEqual(progress_bookkeeping.returncode, 0, progress_bookkeeping.stdout + progress_bookkeeping.stderr)
+        self.assertIn("Staged files are within the Evidence Court v0.1 release set.", progress_bookkeeping.stdout)
+
+        progress_in_exact_set = self._run_release_set_with_staged_paths(
+            root,
+            *release_paths,
+            "PROGRESS.md",
+            mode="--check-staged-release-set",
+        )
+        self.assertNotEqual(progress_in_exact_set.returncode, 0, progress_in_exact_set.stdout + progress_in_exact_set.stderr)
+        self.assertIn(
+            "PROGRESS.md is not allowed in the exact Evidence Court v0.1 staged release set",
+            progress_in_exact_set.stdout + progress_in_exact_set.stderr,
+        )
+        self.assertNotIn("Staged files exactly cover the Evidence Court v0.1 release set.", progress_in_exact_set.stdout)
+
+        incomplete = self._run_release_set_with_staged_paths(
+            root,
+            "README.md",
+            mode="--check-staged-release-set",
+        )
+        self.assertNotEqual(incomplete.returncode, 0, incomplete.stdout + incomplete.stderr)
+        self.assertIn(
+            "missing staged release file for Evidence Court v0.1: .github/workflows/evidence-court.yml",
+            incomplete.stdout + incomplete.stderr,
+        )
+
+    def test_release_set_script_audits_staged_claim_copy(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        script = root / "scripts" / "evidence_court_release_set.sh"
+        release_paths = (
+            ".github/workflows/evidence-court.yml",
+            "README.md",
+            "docs/CAPABILITY_GATES.md",
+            "docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md",
+            "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
+            "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
+            "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
+            "examples/evidence-court/bad-run.json",
+            "examples/evidence-court/good-run.json",
+            "quantagent/evidence_court.py",
+            "quantagent/__init__.py",
+            "quantagent/cli.py",
+            "scripts/evidence_court_release_set.sh",
+            "scripts/evidence_court_smoke.sh",
+            "tests/fixtures/evidence_court/marked_bad_transcript.txt",
+            "tests/test_evidence_court.py",
+            "tests/test_evidence_court_smoke_script.py",
+        )
+        env = os.environ.copy()
+        with tempfile.TemporaryDirectory(prefix="openmako-claim-copy-index-") as tmp:
+            env["GIT_INDEX_FILE"] = str(Path(tmp) / "index")
+            read_tree = subprocess.run(
+                ["git", "read-tree", "HEAD"],
+                cwd=root,
+                env=env,
+                text=True,
+                capture_output=True,
+                timeout=30,
+            )
+            self.assertEqual(read_tree.returncode, 0, read_tree.stdout + read_tree.stderr)
+            for path in release_paths:
+                self._stage_synthetic_blob(
+                    root,
+                    env,
+                    path,
+                    (root / path).read_text(encoding="utf-8") + "\n",
+                )
+
+            audit = subprocess.run(
+                ["bash", str(script), "--audit-staged-claim-copy"],
+                cwd=root,
+                env=env,
+                text=True,
+                capture_output=True,
+                timeout=30,
+            )
+            self.assertEqual(audit.returncode, 0, audit.stdout + audit.stderr)
+            self.assertIn("Staged Evidence Court public claim copy keeps the v0.1 boundaries.", audit.stdout)
+
+            pr_body = root / "docs" / "EVIDENCE_COURT_V0_1_PR_BODY.md"
+            weakened_text = pr_body.read_text(encoding="utf-8").replace(
+                "- `docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md`\n",
+                "",
+            )
+            blob = subprocess.run(
+                ["git", "hash-object", "-w", "--stdin"],
+                cwd=root,
+                env=env,
+                input=weakened_text,
+                text=True,
+                capture_output=True,
+                timeout=30,
+            )
+            self.assertEqual(blob.returncode, 0, blob.stdout + blob.stderr)
+            update = subprocess.run(
+                [
+                    "git",
+                    "update-index",
+                    "--cacheinfo",
+                    "100644",
+                    blob.stdout.strip(),
+                    "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
+                ],
+                cwd=root,
+                env=env,
+                text=True,
+                capture_output=True,
+                timeout=30,
+            )
+            self.assertEqual(update.returncode, 0, update.stdout + update.stderr)
+            weakened_audit = subprocess.run(
+                ["bash", str(script), "--audit-staged-claim-copy"],
+                cwd=root,
+                env=env,
+                text=True,
+                capture_output=True,
+                timeout=30,
+            )
+            self.assertNotEqual(weakened_audit.returncode, 0, weakened_audit.stdout + weakened_audit.stderr)
+            self.assertIn(
+                "staged claim-copy audit missing in docs/EVIDENCE_COURT_V0_1_PR_BODY.md: docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
+                weakened_audit.stdout + weakened_audit.stderr,
+            )
+
+    def test_release_set_script_checks_committed_branch_diff(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        source_script = root / "scripts" / "evidence_court_release_set.sh"
+        release_paths = (
+            ".github/workflows/evidence-court.yml",
+            "README.md",
+            "docs/CAPABILITY_GATES.md",
+            "docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md",
+            "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
+            "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
+            "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
+            "examples/evidence-court/bad-run.json",
+            "examples/evidence-court/good-run.json",
+            "quantagent/evidence_court.py",
+            "quantagent/__init__.py",
+            "quantagent/cli.py",
+            "scripts/evidence_court_release_set.sh",
+            "scripts/evidence_court_smoke.sh",
+            "tests/fixtures/evidence_court/marked_bad_transcript.txt",
+            "tests/test_evidence_court.py",
+            "tests/test_evidence_court_smoke_script.py",
+        )
+
+        with tempfile.TemporaryDirectory(prefix="openmako-branch-diff-") as tmp:
+            repo = Path(tmp)
+            script = repo / "scripts" / "evidence_court_release_set.sh"
+            for path in release_paths:
+                target = repo / path
+                target.parent.mkdir(parents=True, exist_ok=True)
+                if path == "scripts/evidence_court_release_set.sh":
+                    target.write_text(source_script.read_text(encoding="utf-8"), encoding="utf-8")
+                else:
+                    target.write_text(f"baseline {path}\n", encoding="utf-8")
+
+            self._git(repo, "init", "-b", "main")
+            self._git(repo, "add", "--", ".")
+            self._git(repo, "commit", "-m", "baseline")
+            self._git(repo, "checkout", "-b", "evidence-court-release")
+
+            (repo / "README.md").write_text("release readme change\n", encoding="utf-8")
+            self._git(repo, "add", "--", "README.md")
+            self._git(repo, "commit", "-m", "release-only change")
+            clean = subprocess.run(
+                ["bash", str(script), "--check-branch-diff", "main"],
+                cwd=repo,
+                text=True,
+                capture_output=True,
+                timeout=30,
+            )
+            self.assertEqual(clean.returncode, 0, clean.stdout + clean.stderr)
+            self.assertIn("Branch diff against main is limited to the Evidence Court v0.1 release set.", clean.stdout)
+
+            planner = repo / "quantagent" / "agent_planner.py"
+            planner.write_text("unrelated planner change\n", encoding="utf-8")
+            self._git(repo, "add", "--", "quantagent/agent_planner.py")
+            self._git(repo, "commit", "-m", "leak planner change")
+            leaked = subprocess.run(
+                ["bash", str(script), "--check-branch-diff", "main"],
+                cwd=repo,
+                text=True,
+                capture_output=True,
+                timeout=30,
+            )
+            self.assertNotEqual(leaked.returncode, 0, leaked.stdout + leaked.stderr)
+            self.assertIn(
+                "excluded file is in branch diff for Evidence Court v0.1: quantagent/agent_planner.py",
+                leaked.stdout + leaked.stderr,
+            )
+
+    def _git(self, cwd: Path, *args: str) -> None:
+        proc = subprocess.run(
+            [
+                "git",
+                "-c",
+                "user.name=OpenMako Test",
+                "-c",
+                "user.email=openmako-test@example.invalid",
+                *args,
+            ],
+            cwd=cwd,
+            text=True,
+            capture_output=True,
+            timeout=30,
+        )
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+
+    def test_readme_separates_other_modules_from_v0_1_launch_claim(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        readme = (root / "README.md").read_text(encoding="utf-8")
+
+        self.assertIn("docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md", readme)
+        self.assertIn("Audit whether a coding agent's success claim is supported by a supplied run record.", readme)
+        self.assertIn("not another coding agent", readme)
+        self.assertIn("claim-vs-evidence gate", readme)
+        self.assertIn("reports from the supplied record", readme)
+        self.assertIn("## Review In 30 Seconds", readme)
+        self.assertIn("After a green PR-head GitHub Actions run, download the `evidence-court-smoke` artifact", readme)
+        self.assertIn("bash scripts/evidence_court_smoke.sh --artifact-dir /tmp/evidence-court-smoke", readme)
+        self.assertIn("/tmp/evidence-court-smoke/reviewer-quickstart.md", readme)
+        self.assertNotIn("After a pushed GitHub Actions run", readme)
+        self.assertIn("do not claim remote CI evidence", readme)
+        self.assertIn("The bad demo is a supplied run record", readme)
+        self.assertIn("This is the smallest evidence check: a bad supplied record says tests passed", readme)
+        self.assertIn("protected test edit and no reported required pytest command", readme)
+        self.assertIn("To block CI on this verdict, run the same command with `--fail-on fail`", readme)
+        self.assertIn("the bad run exits 1 instead of report-only 0", readme)
+        self.assertIn("## What Normal Tests Miss", readme)
+        self.assertIn("ordinary test\noutput does not settle", readme)
+        self.assertIn("did the run report the required test command, or only a weaker command?", readme)
+        self.assertIn("did it edit protected tests or out-of-scope files?", readme)
+        self.assertIn("did the final claim go beyond the supplied test evidence?", readme)
+        self.assertIn("It audits\nwhether the supplied record supports the agent's claim.", readme)
+        self.assertIn("does not parse raw chat transcripts or native Claude/Codex/Cursor/Devin/CI logs", readme)
+        self.assertIn("# From a checkout of this repository:", readme)
+        self.assertIn("`mako demo fix` and `mako doctor` are separate runtime checks.", readme)
+        self.assertIn("not part\nof the Evidence Court v0.1 launch claim", readme)
+        self.assertNotIn("not a toy", readme)
+        self.assertNotIn("writes proof artifacts", readme)
+        first_screen = "\n".join(readme.splitlines()[:30])
+        self.assertIn("not another coding agent", first_screen)
+        self.assertIn("claim-vs-evidence gate", first_screen)
+        self.assertIn("mako evidence-court --demo bad-run", first_screen)
+        self.assertIn("# Verdict: FAIL", first_screen)
+        self.assertIn("--fail-on fail", first_screen)
+        demo_block = readme.split("## 10-Second Demo", 1)[1].split("## Quick Start", 1)[0]
+        self.assertIn("mako evidence-court --demo bad-run", demo_block)
+        self.assertIn("To block CI on this verdict", demo_block)
+        self.assertNotIn("pip install", demo_block)
+        quick_start = readme.split("## Quick Start", 1)[1].split("## What It Checks", 1)[0]
+        self.assertIn("# From a checkout of this repository:", quick_start)
+        self.assertIn("python3 -m pip install -e .", quick_start)
+        self.assertLess(readme.index("## 10-Second Demo"), readme.index("## Quick Start"))
+        self.assertLess(readme.index("mako evidence-court --demo bad-run"), readme.index("python3 -m pip install -e ."))
+        self.assertLess(readme.index("# Verdict: FAIL"), readme.index("## Quick Start"))
+        self.assertNotIn("<your-openmako-repo-url>", readme)
+        self.assertIn("## Other OpenMako Modules", readme)
+        self.assertIn("<summary>Other OpenMako modules outside the Evidence Court v0.1 launch claim</summary>", readme)
+        self.assertIn("not part\nof the Evidence Court v0.1 launch claim", readme)
+
+
+if __name__ == "__main__":
+    unittest.main()
