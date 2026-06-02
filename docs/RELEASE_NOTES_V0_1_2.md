@@ -11,6 +11,8 @@ packages the public proof and demo assets into an immutable release.
   bad-run demo.
 - `docs/OUTREACH.md`: review-first outreach templates for AI tooling, agent
   framework, CI/devtools, and evaluator audiences.
+- `docs/OUTREACH_TARGETS.md`: candidate outreach tracker; it is not evidence of
+  endorsement, adoption, review, or sharing.
 
 ## Proven Scope
 

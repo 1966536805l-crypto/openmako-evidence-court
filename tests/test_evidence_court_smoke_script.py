@@ -400,6 +400,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/OUTREACH.md",
+            "docs/OUTREACH_TARGETS.md",
             "docs/PUBLIC_PROOF.md",
             "docs/demo-terminal.svg",
             "docs/LAUNCH_POST.md",
@@ -487,6 +488,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/OUTREACH.md",
+            "docs/OUTREACH_TARGETS.md",
             "docs/PUBLIC_PROOF.md",
             "docs/demo-terminal.svg",
             "docs/LAUNCH_POST.md",
@@ -846,6 +848,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/OUTREACH.md",
+            "docs/OUTREACH_TARGETS.md",
             "docs/PUBLIC_PROOF.md",
             "docs/demo-terminal.svg",
             "docs/LAUNCH_POST.md",
@@ -925,6 +928,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/OUTREACH.md",
+            "docs/OUTREACH_TARGETS.md",
             "docs/PUBLIC_PROOF.md",
             "docs/demo-terminal.svg",
             "docs/LAUNCH_POST.md",
@@ -1034,6 +1038,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/OUTREACH.md",
+            "docs/OUTREACH_TARGETS.md",
             "docs/PUBLIC_PROOF.md",
             "docs/demo-terminal.svg",
             "docs/LAUNCH_POST.md",
@@ -1281,6 +1286,62 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
                 self.assertNotIn(phrase, outreach)
                 self.assertNotIn(phrase, release_notes)
 
+    def test_outreach_targets_are_candidates_and_bounded(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        targets = (root / "docs" / "OUTREACH_TARGETS.md").read_text(encoding="utf-8")
+        readme = (root / "README.md").read_text(encoding="utf-8")
+
+        self.assertIn("outreach target tracker", readme)
+        self.assertIn("None of these people, projects, or organizations has endorsed", targets)
+        self.assertIn("This file is not evidence of interest, adoption, endorsement, review, or sharing.", targets)
+        self.assertIn("Do not imply endorsement, partnership, usage, or affiliation.", targets)
+        self.assertIn("One polite message per target. No follow-up unless they reply.", targets)
+        self.assertIn("Target publicly shared; requires a public share URL", targets)
+        self.assertIn("Start with five targets before scaling", targets)
+        self.assertIn("concrete technical review", targets)
+        self.assertIn("Do Not Say", targets)
+
+        for status in ("candidate", "drafted", "sent", "replied", "shared", "closed"):
+            with self.subTest(status=status):
+                self.assertIn(f"`{status}`", targets)
+
+        target_rows = re.findall(r"^\| \d+ \| .+? \| candidate \|$", targets, flags=re.MULTILINE)
+        self.assertEqual(len(target_rows), 20)
+
+        urls = re.findall(r"`(https://[^`]+)`", targets)
+        self.assertEqual(len(urls), 20)
+        for url in urls:
+            with self.subTest(url=url):
+                self.assertNotIn(" ", url)
+                self.assertTrue(url.startswith("https://"))
+
+        for first_batch_target in (
+            "OpenHands",
+            "SWE-agent / mini-SWE-agent",
+            "Aider",
+            "LangGraph",
+            "SWE-bench",
+        ):
+            with self.subTest(first_batch_target=first_batch_target):
+                self.assertIn(first_batch_target, targets)
+
+        before_do_not_say, do_not_say = targets.split("## Do Not Say", maxsplit=1)
+        self.assertIn("Evidence Court proves tests actually ran outside the supplied record.", do_not_say)
+        forbidden = (
+            "endorsed the project",
+            "uses the project",
+            "10k stars",
+            "10000 stars",
+            "native Claude ingestion is supported",
+            "proves tests actually ran",
+            "autonomous repair capability is proven",
+            "please retweet",
+            "guaranteed",
+        )
+        for phrase in forbidden:
+            with self.subTest(phrase=phrase):
+                self.assertNotIn(phrase, before_do_not_say)
+
     def test_terminal_demo_visual_stays_bounded_and_renderable(self) -> None:
         root = Path(__file__).resolve().parents[1]
         visual_path = root / "docs" / "demo-terminal.svg"
@@ -1329,12 +1390,12 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("Safe Public Claim", proof)
         self.assertIn("Evidence Anchor", proof)
         self.assertIn("Artifact Review Path", proof)
-        self.assertIn("v0.1.1", proof)
-        self.assertIn("babf77e9b08c40152a0e28344a01f59de1918f16", proof)
-        self.assertIn("actions/runs/26829777828", proof)
+        self.assertIn("v0.1.2", proof)
+        self.assertIn("e00cf35a92c09f81ab5cff4169d0dc55fd071811", proof)
+        self.assertIn("actions/runs/26831075226", proof)
         self.assertIn("completed successfully", proof)
         self.assertIn("evidence-court-smoke", proof)
-        self.assertIn("sha256:678628ef691b965480e9f09faba4b942412796ce005a79e08631570945e626d3", proof)
+        self.assertIn("sha256:0f1df42566dbc2352733e3b219117471e0299de3d8004635e265ccd4e9543205", proof)
         self.assertIn("artifact-manifest.json", proof)
         self.assertIn("reviewer-quickstart.md", proof)
         self.assertIn("bad-run.md", proof)
@@ -1345,7 +1406,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("public page proves artifact metadata", proof)
         self.assertIn("claiming its contents were independently reverified", proof)
         self.assertIn("30-Second Verification", proof)
-        self.assertIn("git checkout v0.1.1", proof)
+        self.assertIn("git checkout v0.1.2", proof)
         self.assertIn("mako evidence-court --demo bad-run", proof)
         self.assertIn("Verdict: FAIL", proof)
         self.assertIn("What This Does Not Prove", proof)

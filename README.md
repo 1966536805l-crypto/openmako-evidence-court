@@ -7,7 +7,7 @@ Audit whether a coding agent's success claim is supported by a supplied run reco
 
 Agents often say "done", "fixed", or "tests passed" before the supplied record supports it. Evidence Court is not another coding agent; it is a claim-vs-evidence gate that checks whether the record reports the required files, commands, test output, and scope.
 
-Public proof: [docs/PUBLIC_PROOF.md](docs/PUBLIC_PROOF.md) binds the v0.1.1 claim
+Public proof: [docs/PUBLIC_PROOF.md](docs/PUBLIC_PROOF.md) binds the v0.1.2 claim
 to the tag, commit, smoke run, artifact digest, and 30-second reviewer path.
 
 ![OpenMako Evidence Court bad-run demo](docs/demo-terminal.svg)
@@ -154,6 +154,7 @@ Until that PR-head remote run exists, use the local smoke gate above; do not cla
 - [v0.1.2 release notes](docs/RELEASE_NOTES_V0_1_2.md)
 - [expert review brief](docs/EXPERT_REVIEW_BRIEF.md)
 - [outreach templates](docs/OUTREACH.md)
+- [outreach target tracker](docs/OUTREACH_TARGETS.md)
 - [copyable launch post](docs/LAUNCH_POST.md)
 - [social card](docs/social-card.svg)
 

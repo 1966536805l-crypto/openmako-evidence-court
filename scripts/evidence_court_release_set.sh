@@ -18,6 +18,7 @@ INCLUDE_PATHS=(
   "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md"
   "docs/EXPERT_REVIEW_BRIEF.md"
   "docs/OUTREACH.md"
+  "docs/OUTREACH_TARGETS.md"
   "docs/PUBLIC_PROOF.md"
   "docs/demo-terminal.svg"
   "docs/LAUNCH_POST.md"
@@ -194,6 +195,8 @@ audit_staged_claim_copy() {
   require_staged_contains "docs/EXPERT_REVIEW_BRIEF.md" "Do Not Share If" || invalid=1
   require_staged_contains "docs/OUTREACH.md" "Do Not Say" || invalid=1
   require_staged_contains "docs/OUTREACH.md" "does not natively ingest Claude/Codex/Cursor/CI logs" || invalid=1
+  require_staged_contains "docs/OUTREACH_TARGETS.md" "None of these people, projects, or organizations has endorsed" || invalid=1
+  require_staged_contains "docs/OUTREACH_TARGETS.md" "Start with five targets before scaling" || invalid=1
   require_staged_contains "docs/EXPERT_REVIEW_BRIEF.md" "does not provide proof that tests actually ran outside" || invalid=1
   require_staged_contains "docs/PUBLIC_PROOF.md" "What This Does Not Prove" || invalid=1
   require_staged_contains "docs/PUBLIC_PROOF.md" "Artifact digest" || invalid=1

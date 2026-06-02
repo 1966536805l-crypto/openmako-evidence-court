@@ -51,6 +51,7 @@ Open these first:
 - `docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md`
 - `docs/EXPERT_REVIEW_BRIEF.md`
 - `docs/OUTREACH.md`
+- `docs/OUTREACH_TARGETS.md`
 - `docs/PUBLIC_PROOF.md`
 - `docs/demo-terminal.svg`
 - `docs/LAUNCH_POST.md`
