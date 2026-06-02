@@ -8,6 +8,7 @@ PY="${PYTHON:-python3}"
 
 INCLUDE_PATHS=(
   ".github/workflows/evidence-court.yml"
+  "LICENSE"
   "README.md"
   "pyproject.toml"
   "docs/CAPABILITY_GATES.md"
@@ -15,6 +16,7 @@ INCLUDE_PATHS=(
   "docs/EVIDENCE_COURT_V0_1_PR_BODY.md"
   "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md"
   "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md"
+  "docs/RELEASE_NOTES_V0_1_0.md"
   "examples/evidence-court/bad-run.json"
   "examples/evidence-court/good-run.json"
   "quantagent/evidence_court.py"

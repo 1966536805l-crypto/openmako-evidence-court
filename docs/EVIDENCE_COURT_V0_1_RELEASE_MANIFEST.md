@@ -31,6 +31,7 @@ Evidence Court v0.1 must not claim support for:
 Only these release files support the Evidence Court v0.1 public claim:
 
 - `.github/workflows/evidence-court.yml`
+- `LICENSE`
 - `README.md`
 - `pyproject.toml`
 - `docs/CAPABILITY_GATES.md`
@@ -38,6 +39,7 @@ Only these release files support the Evidence Court v0.1 public claim:
 - `docs/EVIDENCE_COURT_V0_1_PR_BODY.md`
 - `docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md`
 - `docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md`
+- `docs/RELEASE_NOTES_V0_1_0.md`
 - `examples/evidence-court/bad-run.json`
 - `examples/evidence-court/good-run.json`
 - `quantagent/evidence_court.py`

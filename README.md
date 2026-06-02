@@ -1,5 +1,8 @@
 # OpenMako Evidence Court
 
+[![Evidence Court Smoke](https://github.com/1966536805l-crypto/openmako-evidence-court/actions/workflows/evidence-court.yml/badge.svg)](https://github.com/1966536805l-crypto/openmako-evidence-court/actions/workflows/evidence-court.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Audit whether a coding agent's success claim is supported by a supplied run record.
 
 Agents often say "done", "fixed", or "tests passed" before the supplied record supports it. Evidence Court is not another coding agent; it is a claim-vs-evidence gate that checks whether the record reports the required files, commands, test output, and scope.

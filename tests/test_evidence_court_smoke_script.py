@@ -389,6 +389,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         text = checklist.read_text(encoding="utf-8")
         included_paths = (
             ".github/workflows/evidence-court.yml",
+            "LICENSE",
             "README.md",
             "pyproject.toml",
             "docs/CAPABILITY_GATES.md",
@@ -396,6 +397,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
+            "docs/RELEASE_NOTES_V0_1_0.md",
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
             "quantagent/evidence_court.py",
@@ -466,6 +468,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         normalized = " ".join(text.split())
         included_paths = (
             ".github/workflows/evidence-court.yml",
+            "LICENSE",
             "README.md",
             "pyproject.toml",
             "docs/CAPABILITY_GATES.md",
@@ -473,6 +476,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
+            "docs/RELEASE_NOTES_V0_1_0.md",
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
             "quantagent/evidence_court.py",
@@ -815,6 +819,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         release_paths = (
             ".github/workflows/evidence-court.yml",
+            "LICENSE",
             "README.md",
             "pyproject.toml",
             "docs/CAPABILITY_GATES.md",
@@ -822,6 +827,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
+            "docs/RELEASE_NOTES_V0_1_0.md",
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
             "quantagent/evidence_court.py",
@@ -869,6 +875,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
 
         incomplete = self._run_release_set_with_staged_paths(
             root,
+            "LICENSE",
             "README.md",
             mode="--check-staged-release-set",
         )
@@ -883,6 +890,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         script = root / "scripts" / "evidence_court_release_set.sh"
         release_paths = (
             ".github/workflows/evidence-court.yml",
+            "LICENSE",
             "README.md",
             "pyproject.toml",
             "docs/CAPABILITY_GATES.md",
@@ -890,6 +898,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
+            "docs/RELEASE_NOTES_V0_1_0.md",
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
             "quantagent/evidence_court.py",
@@ -982,6 +991,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         source_script = root / "scripts" / "evidence_court_release_set.sh"
         release_paths = (
             ".github/workflows/evidence-court.yml",
+            "LICENSE",
             "README.md",
             "pyproject.toml",
             "docs/CAPABILITY_GATES.md",
@@ -989,6 +999,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
+            "docs/RELEASE_NOTES_V0_1_0.md",
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
             "quantagent/evidence_court.py",
