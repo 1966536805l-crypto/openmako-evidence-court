@@ -9,8 +9,8 @@ The goal is to ask for a quick technical review first, not to imply endorsement.
 - Public proof: `https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/PUBLIC_PROOF.md`
 - Demo visual: `https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/demo-terminal.svg`
 - Release: `https://github.com/1966536805l-crypto/openmako-evidence-court/releases/tag/v0.1.2`
-- Latest green smoke run: `https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26832603411`
-- Latest smoke artifact digest: `sha256:ae4e420ed9db2a862cfac7cd38e84b2d33af8eeacdf7be4a0c727b76433c9bae`
+- Reviewed green smoke run: `https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26832603411`
+- Reviewed smoke artifact digest: `sha256:ae4e420ed9db2a862cfac7cd38e84b2d33af8eeacdf7be4a0c727b76433c9bae`
 
 ## General AI Tooling Maintainer
 
