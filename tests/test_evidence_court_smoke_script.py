@@ -1253,11 +1253,12 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("review-first outreach templates", release_notes)
         self.assertIn("v0.1.2 release notes", readme)
         self.assertIn("outreach templates", readme)
-        self.assertIn("Reviewed green smoke run", outreach)
+        self.assertIn("Reference green smoke run", outreach)
         self.assertIn("actions/runs/26832603411", outreach)
-        self.assertIn("Reviewed smoke artifact digest", outreach)
+        self.assertIn("Reference smoke artifact digest", outreach)
         self.assertIn("sha256:ae4e420ed9db2a862cfac7cd38e84b2d33af8eeacdf7be4a0c727b76433c9bae", outreach)
         self.assertIn("I would value a quick review", outreach)
+        self.assertIn("honest enough for", outreach)
         self.assertIn("If you have 30 seconds", outreach)
         self.assertIn("Do Not Say", outreach)
         self.assertIn("does not natively ingest Claude/Codex/Cursor/CI logs", outreach)
@@ -1284,6 +1285,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "autonomous repair capability is proven",
             "please retweet",
             "guaranteed",
+            "Reviewed green smoke",
+            "honest enough to share",
         )
         for phrase in forbidden:
             with self.subTest(phrase=phrase):
@@ -1303,7 +1306,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("Target publicly shared; requires a public share URL", targets)
         self.assertIn("Start with five targets before scaling", targets)
         self.assertIn("Recommended Send Order", targets)
-        self.assertIn("concrete technical review", targets)
+        self.assertIn("future concrete technical review", targets)
+        self.assertIn("Highest potential evaluation relevance", targets)
         self.assertIn("Do Not Say", targets)
 
         for status in ("candidate", "drafted", "sent", "replied", "shared", "closed"):
@@ -1348,10 +1352,54 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "autonomous repair capability is proven",
             "please retweet",
             "guaranteed",
+            "Reviewed green smoke",
+            "already reviewed",
+            "one tighter technical review",
         )
         for phrase in forbidden:
             with self.subTest(phrase=phrase):
                 self.assertNotIn(phrase, before_do_not_say)
+
+    def test_immediate_send_packet_is_two_short_review_first_messages(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        targets = (root / "docs" / "OUTREACH_TARGETS.md").read_text(encoding="utf-8")
+
+        self.assertIn("## Immediate Send Packet", targets)
+        packet = targets.split("## Immediate Send Packet", maxsplit=1)[1].split("## First-Batch Send Drafts", maxsplit=1)[0]
+        messages = re.findall(
+            r"^### \d+\. (SWE-agent / mini-SWE-agent|Aider)\n\n```text\n(.+?)\n```",
+            packet,
+            flags=re.MULTILINE | re.DOTALL,
+        )
+        self.assertEqual([name for name, _ in messages], ["SWE-agent / mini-SWE-agent", "Aider"])
+
+        required = (
+            "https://github.com/1966536805l-crypto/openmako-evidence-court",
+            "docs/PUBLIC_PROOF.md",
+            "docs/demo-terminal.svg",
+            "not asking",
+            "technical boundary feedback",
+        )
+        forbidden = (
+            "please retweet",
+            "retweet",
+            "10k",
+            "10000",
+            "guaranteed",
+            "native ingestion",
+            "native claude",
+            "native codex",
+            "native cursor",
+            "native ci",
+        )
+        for name, message in messages:
+            with self.subTest(name=name):
+                normalized = " ".join(message.lower().split())
+                self.assertLessEqual(len(message.split()), 80)
+                for phrase in required:
+                    self.assertIn(phrase.lower(), normalized)
+                for phrase in forbidden:
+                    self.assertNotIn(phrase, normalized)
 
     def test_first_batch_send_drafts_are_specific_and_review_first(self) -> None:
         root = Path(__file__).resolve().parents[1]
@@ -1360,6 +1408,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         for section in (
             "First-Batch Contact URLs",
             "First-Batch Specific Asks",
+            "Immediate Send Packet",
             "First-Batch Send Drafts",
             "Tracking Fields To Fill After Sending",
         ):
@@ -1437,8 +1486,32 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
                 self.assertNotIn("guaranteed", normalized)
                 self.assertNotIn("native claude", normalized)
 
-        tracking_header = "| Target | Sent date | Contact URL | Message URL | Message variant | Reply | Action needed | Outcome |"
+        tracking_header = "| Target | Status | Sent date | Contact URL | Message URL | Reply date | Reply URL | Share URL | Message variant | Action needed | Outcome |"
         self.assertIn(tracking_header, targets)
+
+        tracking_section = targets.split("## Tracking Fields To Fill After Sending", maxsplit=1)[1].split(
+            "## Do Not Say",
+            maxsplit=1,
+        )[0]
+        tracking_rows = re.findall(
+            r"^\| (.+?) \| (.+?) \| (.*?) \| (.*?) \| (.*?) \| (.*?) \| (.*?) \| (.*?) \| (.*?) \| (.*?) \| (.*?) \|$",
+            tracking_section,
+            flags=re.MULTILINE,
+        )
+        rows = [row for row in tracking_rows if row[0] not in {"---", "Target"}]
+        self.assertEqual(len(rows), 5)
+        for target, status, sent_date, contact_url, message_url, reply_date, reply_url, share_url, variant, action, outcome in rows:
+            with self.subTest(target=target):
+                self.assertIn(status.strip(), {"candidate", "drafted", "sent", "replied", "shared", "closed"})
+                self.assertTrue(contact_url.strip().startswith("`https://"))
+                if status.strip() in {"sent", "replied", "shared"}:
+                    self.assertRegex(sent_date.strip(), r"^2026-\d{2}-\d{2}$")
+                    self.assertTrue(message_url.strip().startswith("`https://"))
+                if status.strip() in {"replied", "shared"}:
+                    self.assertRegex(reply_date.strip(), r"^2026-\d{2}-\d{2}$")
+                    self.assertTrue(reply_url.strip().startswith("`https://"))
+                if status.strip() == "shared":
+                    self.assertTrue(share_url.strip().startswith("`https://"))
 
     def test_terminal_demo_visual_stays_bounded_and_renderable(self) -> None:
         root = Path(__file__).resolve().parents[1]

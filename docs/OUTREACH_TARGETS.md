@@ -62,8 +62,8 @@ Start with five targets before scaling:
 5. LangGraph
 
 Reason: these are closest to coding-agent evidence and benchmark claims. A
-concrete technical review from any one of them is more valuable than sending
-weak messages to all 20.
+future concrete technical review from any one of them would be more valuable
+than sending weak messages to all 20.
 
 ## Recommended Send Order
 
@@ -71,8 +71,8 @@ weak messages to all 20.
 | --- | --- | --- |
 | 1 | SWE-agent / mini-SWE-agent | Strongest technical match: SWE-Bench-style trajectories, test/eval command evidence, and benchmark claims are central to their context. |
 | 2 | Aider | Strongest user-conversion match: terminal coding-assistant users understand "tests passed" claims, command history, edited files, and test output. |
-| 3 | OpenHands | Largest reach, but the community is broader and noisier; send after one tighter technical review improves the wording. |
-| 4 | SWE-bench | Highest evaluation credibility, but less likely to convert directly into user stars than an agent-tool community. |
+| 3 | OpenHands | Largest reach, but the community is broader and noisier; send after the wording is tightened by at least one external review or manual pass. |
+| 4 | SWE-bench | Highest potential evaluation relevance, but less likely to convert directly into user stars than an agent-tool community. |
 | 5 | LangGraph | Large agent ecosystem, but current v0.1 has no LangGraph trace adapter; ask only about future explicit JSONL event mapping. |
 
 ## First-Batch Contact URLs
@@ -94,6 +94,32 @@ weak messages to all 20.
 | Aider | For terminal pair-programming, is command history plus edited files plus test output enough, or should a supplied record also include diff/protected-path data? | Aider highlights linting and testing after edits, making test-claim gaps easy for its users to evaluate. | Evidence Court only checks reported commands/output; it does not natively ingest Aider logs. |
 | LangGraph | Which trace fields would be necessary to convert a LangGraph run into explicit Evidence Court JSONL events without claiming native ingestion? | LangGraph and LangSmith focus on stateful agents, trajectories, tracing, and observability. | Any LangGraph mapping would be a future adapter; current v0.1 accepts explicit supplied records only. |
 | SWE-bench | For benchmark maintainers, what minimum artifact set should be required before an agent's "solved" claim is evidence-supported? | SWE-bench centers reproducible evaluation, Docker logs, predictions, run IDs, and final results. | Evidence Court does not replace benchmark scoring; it audits whether claim, scope, commands, and outputs line up. |
+
+## Immediate Send Packet
+
+Send only the first message first. Send the second message only after recording a
+public `Message URL` for the first one, or after one calendar day with no reply.
+If the channel does not provide a public URL, do not mark the row as `sent`.
+
+### 1. SWE-agent / mini-SWE-agent
+
+```text
+Hi, I built a tiny v0.1.2 gate that checks whether a coding-agent "fixed/tests passed" claim is backed by its supplied run record: https://github.com/1966536805l-crypto/openmako-evidence-court
+From a SWE-Bench / mini-SWE-agent perspective, is this verdict boundary right?
+If the record misses the exact eval command, or edits protected tests, should that be FAIL or SUSPICIOUS?
+Proof card: docs/PUBLIC_PROOF.md. Demo: docs/demo-terminal.svg.
+Not asking for endorsement or a share; I only want technical boundary feedback.
+```
+
+### 2. Aider
+
+```text
+Hi, I built a small v0.1.2 audit gate for terminal coding-agent run records: https://github.com/1966536805l-crypto/openmako-evidence-court
+For an Aider-style workflow, what should be the minimum record before a "tests passed" claim is supportable?
+Is command history + edited files + test output enough, or should diff/protected-path data be required?
+Proof card: docs/PUBLIC_PROOF.md. Demo: docs/demo-terminal.svg.
+Not asking for endorsement or a share; I only want technical boundary feedback.
+```
 
 ## First-Batch Send Drafts
 
@@ -171,13 +197,18 @@ Not asking for endorsement or a share; just evidence-boundary feedback.
 
 ## Tracking Fields To Fill After Sending
 
-| Target | Sent date | Contact URL | Message URL | Message variant | Reply | Action needed | Outcome |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| OpenHands |  |  |  |  |  |  |  |
-| SWE-agent / mini-SWE-agent |  |  |  |  |  |  |  |
-| Aider |  |  |  |  |  |  |  |
-| LangGraph |  |  |  |  |  |  |  |
-| SWE-bench |  |  |  |  |  |  |  |
+Do not change a target from `candidate` or `drafted` to `sent`, `replied`, or
+`shared` without public evidence URLs. For private channels with no public
+message URL, keep the status as `drafted` and record the private send outside
+this public tracker.
+
+| Target | Status | Sent date | Contact URL | Message URL | Reply date | Reply URL | Share URL | Message variant | Action needed | Outcome |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| SWE-agent / mini-SWE-agent | candidate |  | `https://join.slack.com/t/swe-bench/shared_invite/zt-36pj9bu5s-o3_yXPZbaH2wVnxnss1EkQ` |  |  |  |  | Immediate #1 | Send first; record public message URL before changing status. |  |
+| Aider | candidate |  | `https://discord.gg/Y7X7bhMQFV` |  |  |  |  | Immediate #2 | Send second only after first message URL is recorded, or after one calendar day. |  |
+| OpenHands | candidate |  | `https://dub.sh/openhands` |  |  |  |  | First-Batch Draft | Wait until wording is tightened by a manual pass or external review. |  |
+| SWE-bench | candidate |  | `https://github.com/SWE-bench/SWE-bench/issues/new/choose` |  |  |  |  | First-Batch Draft | Use only if issue template fits evidence-boundary feedback. |  |
+| LangGraph | candidate |  | `https://forum.langchain.com` |  |  |  |  | First-Batch Draft | Wait; current v0.1 has no LangGraph trace adapter. |  |
 
 ## Do Not Say
 

@@ -9,8 +9,8 @@ The goal is to ask for a quick technical review first, not to imply endorsement.
 - Public proof: `https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/PUBLIC_PROOF.md`
 - Demo visual: `https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/demo-terminal.svg`
 - Release: `https://github.com/1966536805l-crypto/openmako-evidence-court/releases/tag/v0.1.2`
-- Reviewed green smoke run: `https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26832603411`
-- Reviewed smoke artifact digest: `sha256:ae4e420ed9db2a862cfac7cd38e84b2d33af8eeacdf7be4a0c727b76433c9bae`
+- Reference green smoke run: `https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26832603411`
+- Reference smoke artifact digest: `sha256:ae4e420ed9db2a862cfac7cd38e84b2d33af8eeacdf7be4a0c727b76433c9bae`
 
 ## General AI Tooling Maintainer
 
@@ -45,8 +45,8 @@ claim: required tests reported, protected files untouched, and scope respected.
 The visual demo is intentionally narrow:
 https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/demo-terminal.svg
 
-I would value a quick review of whether the claim boundary is honest enough to
-share.
+I would value a quick review of whether the claim boundary is honest enough for
+me to publish publicly.
 ```
 
 ## CI / DevTools Engineer
