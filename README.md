@@ -10,6 +10,8 @@ Agents often say "done", "fixed", or "tests passed" before the supplied record s
 Public proof: [docs/PUBLIC_PROOF.md](docs/PUBLIC_PROOF.md) binds the v0.1.1 claim
 to the tag, commit, smoke run, artifact digest, and 30-second reviewer path.
 
+![OpenMako Evidence Court bad-run demo](docs/demo-terminal.svg)
+
 ## 10-Second Demo
 
 ```bash
@@ -148,6 +150,7 @@ Until that PR-head remote run exists, use the local smoke gate above; do not cla
 ## Launch Assets
 
 - [public proof card](docs/PUBLIC_PROOF.md)
+- [terminal demo visual](docs/demo-terminal.svg)
 - [v0.1.1 release notes](docs/RELEASE_NOTES_V0_1_1.md)
 - [expert review brief](docs/EXPERT_REVIEW_BRIEF.md)
 - [copyable launch post](docs/LAUNCH_POST.md)

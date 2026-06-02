@@ -33,6 +33,7 @@ passed even though the supplied record lacks the required test command.
 ## Evidence To Check Before Sharing
 
 - `README.md` shows the bad-run demo above the install path.
+- `docs/demo-terminal.svg` is a visual version of the same supplied-record demo.
 - `examples/evidence-court/bad-run.json` is the supplied failing run record.
 - `docs/PUBLIC_PROOF.md` binds the shared claim to the tag, commit, smoke run,
   and artifact digest.

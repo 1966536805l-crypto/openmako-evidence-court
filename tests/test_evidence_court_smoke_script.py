@@ -8,6 +8,7 @@ import sys
 import tempfile
 import unittest
 import json
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 
@@ -399,6 +400,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/PUBLIC_PROOF.md",
+            "docs/demo-terminal.svg",
             "docs/LAUNCH_POST.md",
             "docs/social-card.svg",
             "docs/RELEASE_NOTES_V0_1_0.md",
@@ -483,6 +485,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/PUBLIC_PROOF.md",
+            "docs/demo-terminal.svg",
             "docs/LAUNCH_POST.md",
             "docs/social-card.svg",
             "docs/RELEASE_NOTES_V0_1_0.md",
@@ -839,6 +842,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/PUBLIC_PROOF.md",
+            "docs/demo-terminal.svg",
             "docs/LAUNCH_POST.md",
             "docs/social-card.svg",
             "docs/RELEASE_NOTES_V0_1_0.md",
@@ -915,6 +919,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/PUBLIC_PROOF.md",
+            "docs/demo-terminal.svg",
             "docs/LAUNCH_POST.md",
             "docs/social-card.svg",
             "docs/RELEASE_NOTES_V0_1_0.md",
@@ -1021,6 +1026,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/PUBLIC_PROOF.md",
+            "docs/demo-terminal.svg",
             "docs/LAUNCH_POST.md",
             "docs/social-card.svg",
             "docs/RELEASE_NOTES_V0_1_0.md",
@@ -1163,6 +1169,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
 
         self.assertIn("copyable launch post", readme)
         self.assertIn("public proof card", readme)
+        self.assertIn("terminal demo visual", readme)
         self.assertIn("expert review brief", readme)
         self.assertIn("social card", readme)
         self.assertIn("supplied JSON run records", launch_post)
@@ -1219,6 +1226,46 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             with self.subTest(phrase=phrase):
                 self.assertNotIn(phrase, brief)
                 self.assertNotIn(phrase, release_notes)
+
+    def test_terminal_demo_visual_stays_bounded_and_renderable(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        visual_path = root / "docs" / "demo-terminal.svg"
+        visual = visual_path.read_text(encoding="utf-8")
+        readme = (root / "README.md").read_text(encoding="utf-8")
+
+        tree = ET.parse(visual_path)
+        root_node = tree.getroot()
+        self.assertTrue(root_node.tag.endswith("svg"))
+        for element in root_node.iter():
+            self.assertFalse(element.tag.endswith("script"))
+            self.assertFalse(element.tag.endswith("foreignObject"))
+            for attribute, value in element.attrib.items():
+                self.assertFalse(attribute.lower().startswith("on"))
+                self.assertNotIn("http://", value)
+                self.assertNotIn("https://", value)
+        self.assertIn("![OpenMako Evidence Court bad-run demo](docs/demo-terminal.svg)", readme)
+        self.assertLess(readme.index("docs/demo-terminal.svg"), readme.index("## 10-Second Demo"))
+        self.assertIn("mako evidence-court --demo bad-run", visual)
+        self.assertIn("Claim", visual)
+        self.assertIn("Evidence", visual)
+        self.assertIn("Verdict", visual)
+        self.assertIn("FAIL", visual)
+        self.assertIn("supplied run records only", visual)
+        self.assertIn("not native Claude/Codex/Cursor/Devin/CI log ingestion", visual)
+        self.assertIn("Does not prove tests ran outside the supplied record", visual)
+
+        forbidden = (
+            "native Claude ingestion is supported",
+            "proves tests actually ran",
+            "broad SWE",
+            "Desktop L4",
+            "quant trading ready",
+            "10k stars",
+            "10000 stars",
+        )
+        for phrase in forbidden:
+            with self.subTest(phrase=phrase):
+                self.assertNotIn(phrase, visual)
 
     def test_public_proof_card_binds_claim_to_remote_evidence(self) -> None:
         root = Path(__file__).resolve().parents[1]
