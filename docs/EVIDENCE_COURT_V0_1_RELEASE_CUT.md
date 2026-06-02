@@ -29,6 +29,7 @@ These files are part of the release candidate:
 
 - `.github/workflows/evidence-court.yml`
 - `README.md`
+- `pyproject.toml`
 - `docs/CAPABILITY_GATES.md`
 - `docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md`
 - `docs/EVIDENCE_COURT_V0_1_PR_BODY.md`
@@ -45,7 +46,7 @@ These files are part of the release candidate:
 - `tests/test_evidence_court.py`
 - `tests/test_evidence_court_smoke_script.py`
 
-`PROGRESS.md` may be included as project bookkeeping, but it is not evidence by
+`PROGRESS.md` is not part of this public release set and is not evidence by
 itself. Public claims must point to the smoke script, tests, examples, and CI
 workflow above.
 

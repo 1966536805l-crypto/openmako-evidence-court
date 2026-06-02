@@ -136,7 +136,7 @@ if [[ -n "${ARTIFACT_DIR}" ]]; then
 fi
 
 echo "[evidence-court-smoke] release set boundary"
-if [[ -n "${EVIDENCE_COURT_BRANCH_DIFF_BASE:-}" ]]; then
+if [[ -n "${EVIDENCE_COURT_BRANCH_DIFF_BASE:-}" && ! "${EVIDENCE_COURT_BRANCH_DIFF_BASE}" =~ ^0+$ ]]; then
   bash scripts/evidence_court_release_set.sh --check-branch-diff "${EVIDENCE_COURT_BRANCH_DIFF_BASE}"
 else
   bash scripts/evidence_court_release_set.sh --check

@@ -115,6 +115,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("EVIDENCE_COURT_BRANCH_DIFF_BASE", text)
         self.assertIn("--check-branch-diff", text)
         self.assertIn("--check", text)
+        self.assertIn('! "${EVIDENCE_COURT_BRANCH_DIFF_BASE}" =~ ^0+$', text)
         self.assertIn("--artifact-dir DIR", text)
         self.assertIn("EVIDENCE_COURT_ARTIFACT_DIR provides the same setting for CI.", text)
 
@@ -389,6 +390,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         included_paths = (
             ".github/workflows/evidence-court.yml",
             "README.md",
+            "pyproject.toml",
             "docs/CAPABILITY_GATES.md",
             "docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md",
             "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
@@ -465,6 +467,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         included_paths = (
             ".github/workflows/evidence-court.yml",
             "README.md",
+            "pyproject.toml",
             "docs/CAPABILITY_GATES.md",
             "docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md",
             "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
@@ -633,10 +636,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
 
         self.assertIn("bash scripts/evidence_court_smoke.sh", text)
         self.assertNotIn("run `scripts/evidence_court_smoke.sh` locally", text)
-        self.assertIn(
-            "Programming evidence is tracked separately; do not use it to support the\n  Evidence Court v0.1 launch claim.",
-            text,
-        )
+        self.assertIn('"This repository ships the broader OpenMako coding agent runtime."', text)
+        self.assertIn("Desktop, quant trading, planner, or autonomous repair capability is proven", text)
         self.assertNotIn("Programming evidence exists on internal hidden and repeat-stability packs.", text)
         self.assertNotIn("Programming repair improves under evidence", text)
         self.assertNotIn("fixture proves plan", text)
@@ -815,6 +816,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         release_paths = (
             ".github/workflows/evidence-court.yml",
             "README.md",
+            "pyproject.toml",
             "docs/CAPABILITY_GATES.md",
             "docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md",
             "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
@@ -882,6 +884,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         release_paths = (
             ".github/workflows/evidence-court.yml",
             "README.md",
+            "pyproject.toml",
             "docs/CAPABILITY_GATES.md",
             "docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md",
             "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
@@ -980,6 +983,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         release_paths = (
             ".github/workflows/evidence-court.yml",
             "README.md",
+            "pyproject.toml",
             "docs/CAPABILITY_GATES.md",
             "docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md",
             "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
@@ -1088,8 +1092,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("It audits\nwhether the supplied record supports the agent's claim.", readme)
         self.assertIn("does not parse raw chat transcripts or native Claude/Codex/Cursor/Devin/CI logs", readme)
         self.assertIn("# From a checkout of this repository:", readme)
-        self.assertIn("`mako demo fix` and `mako doctor` are separate runtime checks.", readme)
-        self.assertIn("not part\nof the Evidence Court v0.1 launch claim", readme)
+        self.assertIn("This public repository contains the Evidence Court v0.1 release set only.", readme)
+        self.assertIn("does not ship or claim the broader OpenMako agent runtime", readme)
         self.assertNotIn("not a toy", readme)
         self.assertNotIn("writes proof artifacts", readme)
         first_screen = "\n".join(readme.splitlines()[:30])
@@ -1104,14 +1108,16 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertNotIn("pip install", demo_block)
         quick_start = readme.split("## Quick Start", 1)[1].split("## What It Checks", 1)[0]
         self.assertIn("# From a checkout of this repository:", quick_start)
-        self.assertIn("python3 -m pip install -e .", quick_start)
+        self.assertIn("python3 -m pip install .", quick_start)
         self.assertLess(readme.index("## 10-Second Demo"), readme.index("## Quick Start"))
-        self.assertLess(readme.index("mako evidence-court --demo bad-run"), readme.index("python3 -m pip install -e ."))
+        self.assertLess(readme.index("mako evidence-court --demo bad-run"), readme.index("python3 -m pip install ."))
         self.assertLess(readme.index("# Verdict: FAIL"), readme.index("## Quick Start"))
         self.assertNotIn("<your-openmako-repo-url>", readme)
-        self.assertIn("## Other OpenMako Modules", readme)
-        self.assertIn("<summary>Other OpenMako modules outside the Evidence Court v0.1 launch claim</summary>", readme)
-        self.assertIn("not part\nof the Evidence Court v0.1 launch claim", readme)
+        self.assertNotIn("## Other OpenMako Modules", readme)
+        self.assertNotIn("<summary>Other OpenMako modules outside the Evidence Court v0.1 launch claim</summary>", readme)
+        self.assertNotIn("mako doctor", readme)
+        self.assertNotIn("mako fix", readme)
+        self.assertNotIn("Extreme Planner", readme)
 
 
 if __name__ == "__main__":

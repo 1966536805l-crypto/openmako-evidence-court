@@ -42,6 +42,7 @@ Open these first:
 ### Included In This Release Claim
 - `.github/workflows/evidence-court.yml`
 - `README.md`
+- `pyproject.toml`
 - `docs/CAPABILITY_GATES.md`
 - `docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md`
 - `docs/EVIDENCE_COURT_V0_1_PR_BODY.md`

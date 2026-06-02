@@ -9,6 +9,7 @@ PY="${PYTHON:-python3}"
 INCLUDE_PATHS=(
   ".github/workflows/evidence-court.yml"
   "README.md"
+  "pyproject.toml"
   "docs/CAPABILITY_GATES.md"
   "docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md"
   "docs/EVIDENCE_COURT_V0_1_PR_BODY.md"

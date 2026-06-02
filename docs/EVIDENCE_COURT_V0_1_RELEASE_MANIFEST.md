@@ -32,6 +32,7 @@ Only these release files support the Evidence Court v0.1 public claim:
 
 - `.github/workflows/evidence-court.yml`
 - `README.md`
+- `pyproject.toml`
 - `docs/CAPABILITY_GATES.md`
 - `docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md`
 - `docs/EVIDENCE_COURT_V0_1_PR_BODY.md`
@@ -48,8 +49,8 @@ Only these release files support the Evidence Court v0.1 public claim:
 - `tests/test_evidence_court.py`
 - `tests/test_evidence_court_smoke_script.py`
 
-`PROGRESS.md` may record project state, but it is not release evidence by
-itself.
+`PROGRESS.md` is not part of this public release set and is not release
+evidence by itself.
 
 ## Exclude
 
