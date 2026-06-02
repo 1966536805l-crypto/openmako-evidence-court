@@ -11,6 +11,21 @@ from typing import Any, Mapping
 
 EVIDENCE_COURT_REPORT_SCHEMA_VERSION = "evidence-court.report.v0.1"
 
+_EXPLICIT_EVIDENCE_COURT_FIELDS = {
+    "claimed_task",
+    "claim",
+    "final_claim",
+    "files_read",
+    "files_edited",
+    "commands_run",
+    "test_output",
+    "allowed_edit_paths",
+    "allowed_files",
+    "protected_paths",
+    "required_tests",
+    "required_commands",
+}
+
 
 @dataclass(frozen=True)
 class EvidenceCourtRun:
@@ -152,6 +167,8 @@ def evidence_court_run_from_jsonl_events(text: str, *, source: str = "") -> Evid
 
 
 def evidence_court_run_from_dict(payload: Mapping[str, Any]) -> EvidenceCourtRun:
+    if _looks_like_openmako_agent_result(payload) and not _has_explicit_evidence_court_fields(payload):
+        return _evidence_court_run_from_openmako_agent_result(payload)
     allowed_edit_paths, allowed_edit_field = _field_value(
         payload,
         "allowed_edit_paths",
@@ -174,6 +191,137 @@ def evidence_court_run_from_dict(payload: Mapping[str, Any]) -> EvidenceCourtRun
         required_tests=_commands_tuple(required_tests, field_name=required_tests_field),
         source=_text_field(payload, "source"),
     )
+
+
+def _looks_like_openmako_agent_result(payload: Mapping[str, Any]) -> bool:
+    if not isinstance(payload.get("observations"), list) or not isinstance(payload.get("plan"), list):
+        return False
+    if not isinstance(payload.get("task"), str) or not isinstance(payload.get("summary"), str):
+        return False
+    if not isinstance(payload.get("ok"), bool):
+        return False
+    compatibility = payload.get("compatibility")
+    if isinstance(compatibility, Mapping):
+        return compatibility.get("canonical_loop") == "quantagent.agent_loop.run_agent_loop"
+    return isinstance(payload.get("runtime_context"), Mapping) and isinstance(payload.get("final_mode"), str)
+
+
+def _has_explicit_evidence_court_fields(payload: Mapping[str, Any]) -> bool:
+    return any(field_name in payload for field_name in _EXPLICIT_EVIDENCE_COURT_FIELDS)
+
+
+def _evidence_court_run_from_openmako_agent_result(payload: Mapping[str, Any]) -> EvidenceCourtRun:
+    files_read: list[str] = []
+    files_edited: list[str] = []
+    commands_run: list[str] = []
+    test_outputs: list[str] = []
+    required_tests: list[str] = []
+
+    observations = payload.get("observations")
+    if not isinstance(observations, list):
+        raise ValueError("OpenMako agent result `observations` must be a list")
+    for index, observation in enumerate(observations):
+        if not isinstance(observation, Mapping):
+            raise ValueError(f"OpenMako agent result `observations` item {index} must be an object")
+        data = _openmako_observation_data(observation, index)
+        name = _openmako_observation_text(observation, "name")
+        kind = _openmako_observation_text(observation, "kind") or _openmako_observation_text(observation, "action")
+        commands = _openmako_observation_commands(data, index)
+
+        if name in {"file_read", "read_file", "context"}:
+            files_read.extend(_openmako_observation_paths(data, index))
+        if name in {"implement", "edit", "write", "custom_write", "verification_required"} or kind in {
+            "edit",
+            "write",
+        }:
+            files_edited.extend(_openmako_observation_paths(data, index))
+        if name == "verification_required":
+            required_tests.extend(_openmako_required_verification(data, index))
+
+        commands_run.extend(commands)
+        test_outputs.extend(_openmako_observation_test_outputs(observation, data, commands))
+
+    source = _openmako_agent_result_source(payload)
+    return EvidenceCourtRun(
+        claimed_task=_text_field(payload, "task"),
+        final_claim=_text_field(payload, "summary"),
+        files_read=tuple(_dedupe(files_read)),
+        files_edited=tuple(_dedupe(files_edited)),
+        commands_run=tuple(_dedupe(commands_run)),
+        test_output="\n".join(test_outputs).strip(),
+        required_tests=tuple(_dedupe(required_tests)),
+        source=source,
+    )
+
+
+def _openmako_observation_data(observation: Mapping[str, Any], index: int) -> Mapping[str, Any]:
+    data = observation.get("data")
+    if data is None:
+        return {}
+    if not isinstance(data, Mapping):
+        raise ValueError(f"OpenMako agent result `observations` item {index} data must be an object")
+    return data
+
+
+def _openmako_observation_text(observation: Mapping[str, Any], field_name: str) -> str:
+    value = observation.get(field_name)
+    return value.strip() if isinstance(value, str) else ""
+
+
+def _openmako_observation_paths(data: Mapping[str, Any], index: int) -> list[str]:
+    paths: list[str] = []
+    for field_name in ("files_touched", "created_files", "changed_files", "modified_files", "file_path", "path", "paths"):
+        if field_name in data:
+            paths.extend(_string_tuple(data.get(field_name), field_name=f"observations[{index}].data.{field_name}"))
+    return paths
+
+
+def _openmako_observation_commands(data: Mapping[str, Any], index: int) -> list[str]:
+    if any(field_name in data for field_name in ("command", "cmd", "argv")):
+        return list(_commands_tuple([data], field_name=f"observations[{index}].data.command"))
+    trace = data.get("trace")
+    if isinstance(trace, Mapping):
+        args = trace.get("args")
+        if isinstance(args, Mapping) and any(field_name in args for field_name in ("command", "cmd", "argv")):
+            return list(_commands_tuple([args], field_name=f"observations[{index}].data.trace.args.command"))
+    return []
+
+
+def _openmako_required_verification(data: Mapping[str, Any], index: int) -> list[str]:
+    if "required_verification" in data:
+        return list(_string_tuple(data.get("required_verification"), field_name=f"observations[{index}].data.required_verification"))
+    if "required_tests" in data:
+        return list(_commands_tuple(data.get("required_tests"), field_name=f"observations[{index}].data.required_tests"))
+    if "required_commands" in data:
+        return list(_commands_tuple(data.get("required_commands"), field_name=f"observations[{index}].data.required_commands"))
+    return ["post-edit verification"]
+
+
+def _openmako_observation_test_outputs(
+    observation: Mapping[str, Any],
+    data: Mapping[str, Any],
+    commands: list[str],
+) -> list[str]:
+    outputs: list[str] = []
+    for field_name in ("stdout", "stderr", "output", "test_output"):
+        value = data.get(field_name)
+        if isinstance(value, str) and value.strip():
+            outputs.append(value.strip())
+    name = _openmako_observation_text(observation, "name")
+    if name in {"validate", "unit_tests", "tests"} or any(_looks_like_test_command(command) for command in commands):
+        summary = _openmako_observation_text(observation, "summary")
+        if summary:
+            outputs.append(summary)
+    return outputs
+
+
+def _openmako_agent_result_source(payload: Mapping[str, Any]) -> str:
+    source = payload.get("source")
+    if isinstance(source, str) and source.strip():
+        return source.strip()
+    if isinstance(payload.get("compatibility"), Mapping):
+        return "openmako-agent-v2-result"
+    return "openmako-agent-loop-result"
 
 
 def bad_run_demo() -> EvidenceCourtRun:

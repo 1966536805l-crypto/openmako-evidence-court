@@ -8,21 +8,15 @@ PY="${PYTHON:-python3}"
 
 INCLUDE_PATHS=(
   ".github/workflows/evidence-court.yml"
-  "LICENSE"
   "README.md"
-  "pyproject.toml"
   "docs/CAPABILITY_GATES.md"
   "docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md"
   "docs/EVIDENCE_COURT_V0_1_PR_BODY.md"
   "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md"
   "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md"
-  "docs/LAUNCH_POST.md"
-  "docs/social-card.svg"
-  "docs/RELEASE_NOTES_V0_1_0.md"
   "examples/evidence-court/bad-run.json"
   "examples/evidence-court/good-run.json"
   "quantagent/evidence_court.py"
-  "quantagent/__init__.py"
   "quantagent/cli.py"
   "scripts/evidence_court_release_set.sh"
   "scripts/evidence_court_smoke.sh"
@@ -266,6 +260,7 @@ expected_review_path = [
     "good-run.json",
     "marked-transcript.json",
     "jsonl-events.json",
+    "openmako-agent-result.json",
     "mixed-source-rejection.txt",
     "smoke-summary.txt",
 ]
@@ -294,6 +289,10 @@ require(
 )
 require(expected_checks.get("good-run.json") == '"verdict": "PASS"', "manifest missing good-run expected check")
 require(expected_checks.get("jsonl-events.json") == '"verdict": "FAIL"', "manifest missing JSONL expected check")
+require(
+    expected_checks.get("openmako-agent-result.json") == '"verdict": "FAIL"',
+    "manifest missing OpenMako agent result expected check",
+)
 
 source_checks = manifest.get("source_provenance_checks", {})
 require(source_checks.get("bad-run.md") == "source: bad-run-demo", "manifest missing bad-run source check")
@@ -304,6 +303,10 @@ require(
     "manifest missing transcript source check",
 )
 require(source_checks.get("jsonl-events.json") == "source: ", "manifest missing JSONL source check")
+require(
+    source_checks.get("openmako-agent-result.json") == "source: openmako-agent-loop-result",
+    "manifest missing OpenMako agent result source check",
+)
 
 boundaries = set(manifest.get("boundaries", []))
 require("No native Claude/Codex/Cursor/Devin/CI log ingestion claim." in boundaries, "manifest missing native-ingestion boundary")
@@ -332,6 +335,12 @@ content_checks = {
     "jsonl-events.json": [
         '"verdict": "FAIL"',
         "required test not run: python -m pytest tests/test_calculator.py -q",
+    ],
+    "openmako-agent-result.json": [
+        '"verdict": "FAIL"',
+        "source: openmako-agent-loop-result",
+        "required test not run: validate",
+        "required test not run: unit_tests",
     ],
     "mixed-source-rejection.txt": ["exit_code=2"],
     "smoke-summary.txt": [

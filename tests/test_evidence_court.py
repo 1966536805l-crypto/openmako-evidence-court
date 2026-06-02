@@ -332,6 +332,154 @@ class EvidenceCourtTest(unittest.TestCase):
 
         self.assertEqual(report.verdict, "PASS")
 
+    def test_openmako_agent_result_missing_verification_fails_closed(self) -> None:
+        run = evidence_court_run_from_dict(
+            {
+                "task": "Create hello.py with greet function and test it.",
+                "ok": False,
+                "status": "failed",
+                "summary": "Done. Tests pass.",
+                "failure_class": "verification_failed",
+                "final_mode": "build",
+                "route": {},
+                "runtime_context": {},
+                "plan": [],
+                "observations": [
+                    {
+                        "step": 1,
+                        "name": "implement",
+                        "kind": "tool",
+                        "ok": True,
+                        "summary": "wrote hello.py",
+                        "mode": "build",
+                        "data": {"files_touched": ["hello.py"], "created_files": ["hello.py"]},
+                    },
+                    {
+                        "step": 2,
+                        "name": "verification_required",
+                        "kind": "internal",
+                        "ok": False,
+                        "summary": "post-edit verification missing after file changes",
+                        "mode": "build",
+                        "data": {
+                            "files_touched": ["hello.py"],
+                            "required_verification": ["validate", "unit_tests"],
+                        },
+                    },
+                ],
+                "trajectory_path": ".quantagent/trajectory.jsonl",
+                "query_events_path": ".quantagent/query_events.jsonl",
+            }
+        )
+
+        report = evaluate_evidence_court(run)
+
+        self.assertEqual(run.claimed_task, "Create hello.py with greet function and test it.")
+        self.assertEqual(run.final_claim, "Done. Tests pass.")
+        self.assertEqual(run.files_edited, ("hello.py",))
+        self.assertEqual(run.required_tests, ("validate", "unit_tests"))
+        self.assertEqual(run.source, "openmako-agent-loop-result")
+        self.assertIn("required test not run: validate", report.test_verification)
+        self.assertIn("required test not run: unit_tests", report.test_verification)
+        self.assertIn("final claim says success, but test evidence is missing or failing", report.suspicious_behavior)
+        self.assertEqual(report.verdict, "FAIL")
+
+    def test_openmako_agent_result_uses_command_observation_as_test_evidence(self) -> None:
+        run = evidence_court_run_from_dict(
+            {
+                "task": "Fix subject.py and run tests.",
+                "ok": True,
+                "status": "done",
+                "summary": "Fixed. Tests pass.",
+                "failure_class": "",
+                "final_mode": "build",
+                "runtime_context": {},
+                "plan": [],
+                "observations": [
+                    {
+                        "step": 1,
+                        "name": "file_read",
+                        "kind": "tool",
+                        "ok": True,
+                        "summary": "read subject.py",
+                        "data": {"file_path": "subject.py"},
+                    },
+                    {
+                        "step": 2,
+                        "name": "implement",
+                        "kind": "tool",
+                        "ok": True,
+                        "summary": "updated subject.py",
+                        "data": {"files_touched": ["subject.py"]},
+                    },
+                    {
+                        "step": 3,
+                        "name": "unit_tests",
+                        "kind": "command",
+                        "ok": True,
+                        "summary": "command ok",
+                        "data": {
+                            "command": ["python3", "-m", "unittest", "discover", "-s", "tests"],
+                            "stdout": "OK\nRan 1 test in 0.001s\n",
+                            "stderr": "",
+                            "returncode": 0,
+                        },
+                    },
+                ],
+                "trajectory_path": ".quantagent/trajectory.jsonl",
+            }
+        )
+
+        report = evaluate_evidence_court(run)
+
+        self.assertEqual(run.files_read, ("subject.py",))
+        self.assertEqual(run.files_edited, ("subject.py",))
+        self.assertEqual(run.commands_run, ("python3 -m unittest discover -s tests",))
+        self.assertIn("test command observed: python3 -m unittest discover -s tests", report.test_verification)
+        self.assertIn("test output status: passed", report.test_verification)
+        self.assertEqual(report.verdict, "PASS")
+
+    def test_explicit_evidence_court_fields_disable_openmako_auto_adapter(self) -> None:
+        run = evidence_court_run_from_dict(
+            {
+                "task": "OpenMako-looking task should not win.",
+                "ok": False,
+                "summary": "OpenMako-looking summary should not win.",
+                "final_mode": "build",
+                "runtime_context": {},
+                "plan": [],
+                "observations": [
+                    {
+                        "name": "verification_required",
+                        "kind": "internal",
+                        "data": {
+                            "files_touched": ["wrong.py"],
+                            "required_verification": ["unit_tests"],
+                        },
+                    }
+                ],
+                "claimed_task": "Audit the explicit Evidence Court fields.",
+                "final_claim": "Explicit claim wins.",
+                "files_read": ["explicit.py"],
+                "files_edited": ["explicit.py"],
+                "commands_run": ["python -m pytest tests/test_explicit.py -q"],
+                "test_output": "1 passed in 0.01s",
+                "required_tests": ["python -m pytest tests/test_explicit.py -q"],
+                "source": "explicit-run-record",
+            }
+        )
+
+        report = evaluate_evidence_court(run)
+
+        self.assertEqual(run.claimed_task, "Audit the explicit Evidence Court fields.")
+        self.assertEqual(run.final_claim, "Explicit claim wins.")
+        self.assertEqual(run.files_edited, ("explicit.py",))
+        self.assertEqual(run.required_tests, ("python -m pytest tests/test_explicit.py -q",))
+        self.assertEqual(run.source, "explicit-run-record")
+        self.assertNotIn("wrong.py", report.evidence)
+        self.assertNotIn("required test not run: unit_tests", report.test_verification)
+        self.assertEqual(report.verdict, "PASS")
+
     def test_null_primary_fields_do_not_mask_legacy_aliases(self) -> None:
         run = evidence_court_run_from_dict(
             {

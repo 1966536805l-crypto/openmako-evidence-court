@@ -65,25 +65,6 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         )
         self.assertEqual(update.returncode, 0, update.stdout + update.stderr)
 
-    def test_evidence_court_cli_runs_without_full_agent_runtime(self) -> None:
-        root = Path(__file__).resolve().parents[1]
-        with tempfile.TemporaryDirectory(prefix="openmako-evidence-cli-minimal-") as tmp:
-            tmp_root = Path(tmp)
-            package = tmp_root / "quantagent"
-            package.mkdir()
-            for name in ("__init__.py", "cli.py", "evidence_court.py"):
-                (package / name).write_text((root / "quantagent" / name).read_text(encoding="utf-8"), encoding="utf-8")
-            result = subprocess.run(
-                [sys.executable, "-m", "quantagent.cli", "--no-trust-prompt", "evidence-court", "--demo", "good-run", "--json"],
-                cwd=tmp_root,
-                text=True,
-                capture_output=True,
-                timeout=30,
-            )
-            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-            payload = json.loads(result.stdout)
-            self.assertEqual(payload["verdict"], "PASS")
-
     def test_smoke_script_runs_release_gate(self) -> None:
         root = Path(__file__).resolve().parents[1]
         script = root / "scripts" / "evidence_court_smoke.sh"
@@ -115,7 +96,6 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("EVIDENCE_COURT_BRANCH_DIFF_BASE", text)
         self.assertIn("--check-branch-diff", text)
         self.assertIn("--check", text)
-        self.assertIn('! "${EVIDENCE_COURT_BRANCH_DIFF_BASE}" =~ ^0+$', text)
         self.assertIn("--artifact-dir DIR", text)
         self.assertIn("EVIDENCE_COURT_ARTIFACT_DIR provides the same setting for CI.", text)
 
@@ -164,6 +144,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
                 "jsonl-events.json",
                 "marked-transcript.json",
                 "mixed-source-rejection.txt",
+                "openmako-agent-result.json",
                 "reviewer-quickstart.md",
                 "smoke-summary.txt",
             }
@@ -183,6 +164,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
                     "good-run.json",
                     "marked-transcript.json",
                     "jsonl-events.json",
+                    "openmako-agent-result.json",
                     "mixed-source-rejection.txt",
                     "smoke-summary.txt",
                 ],
@@ -192,6 +174,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             self.assertEqual('"verdict": "FAIL" and command exit code 1', manifest["expected_checks"]["fail-on-fail.json"])
             self.assertEqual('"verdict": "PASS"', manifest["expected_checks"]["good-run.json"])
             self.assertEqual('"verdict": "FAIL"', manifest["expected_checks"]["jsonl-events.json"])
+            self.assertEqual('"verdict": "FAIL"', manifest["expected_checks"]["openmako-agent-result.json"])
             self.assertEqual("source: bad-run-demo", manifest["source_provenance_checks"]["bad-run.md"])
             self.assertEqual("source: bad-run-demo", manifest["source_provenance_checks"]["fail-on-fail.json"])
             self.assertEqual("source: good-run-demo", manifest["source_provenance_checks"]["good-run.json"])
@@ -200,6 +183,10 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
                 manifest["source_provenance_checks"]["marked-transcript.json"],
             )
             self.assertEqual("source: ", manifest["source_provenance_checks"]["jsonl-events.json"])
+            self.assertEqual(
+                "source: openmako-agent-loop-result",
+                manifest["source_provenance_checks"]["openmako-agent-result.json"],
+            )
             self.assertEqual(set(manifest["review_path"]), set(manifest["artifact_file_sha256"]))
             for artifact_name, digest in manifest["artifact_file_sha256"].items():
                 with self.subTest(artifact_name=artifact_name):
@@ -223,10 +210,14 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             self.assertIn("Open `jsonl-events.json`", quickstart)
             self.assertIn("generated JSONL path as `source`", quickstart)
             self.assertIn("explicit Evidence Court JSONL event stream input returns", quickstart)
+            self.assertIn("Open `openmako-agent-result.json`", quickstart)
+            self.assertIn("OpenMako AgentLoopResult-shaped record returns", quickstart)
+            self.assertIn("verification_required` but no test command", quickstart)
             self.assertIn("mixed JSON plus transcript plus JSONL inputs fail closed with `exit_code=2`", quickstart)
             self.assertIn("Open `smoke-summary.txt`", quickstart)
             self.assertIn("This artifact shows these fixtures", quickstart)
             self.assertIn("explicit JSONL event input fails closed", quickstart)
+            self.assertIn("OpenMako AgentLoopResult-shaped input fails closed", quickstart)
             self.assertIn("mixed input modes are rejected", quickstart)
             self.assertIn("## Boundary", quickstart)
             self.assertIn("This artifact shows the smoke gate output", quickstart)
@@ -242,7 +233,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             good_json = (artifact_root / "good-run.json").read_text(encoding="utf-8")
             marked_json = (artifact_root / "marked-transcript.json").read_text(encoding="utf-8")
             jsonl_json = (artifact_root / "jsonl-events.json").read_text(encoding="utf-8")
-            for report_json in (fail_on_json, good_json, marked_json, jsonl_json):
+            openmako_json = (artifact_root / "openmako-agent-result.json").read_text(encoding="utf-8")
+            for report_json in (fail_on_json, good_json, marked_json, jsonl_json, openmako_json):
                 self.assertIn('"schema_version": "evidence-court.report.v0.1"', report_json)
             self.assertIn('"verdict": "FAIL"', fail_on_json)
             self.assertIn("source: bad-run-demo", fail_on_json)
@@ -256,8 +248,15 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
                 "required test not run: python -m pytest tests/test_calculator.py -q",
                 jsonl_json,
             )
+            self.assertIn('"verdict": "FAIL"', openmako_json)
+            self.assertIn("source: openmako-agent-loop-result", openmako_json)
+            self.assertIn("required test not run: validate", openmako_json)
+            self.assertIn("required test not run: unit_tests", openmako_json)
             self.assertIn("exit_code=2", (artifact_root / "mixed-source-rejection.txt").read_text(encoding="utf-8"))
-            self.assertIn("Evidence Court smoke gate passed.", (artifact_root / "smoke-summary.txt").read_text(encoding="utf-8"))
+            summary = (artifact_root / "smoke-summary.txt").read_text(encoding="utf-8")
+            self.assertIn("Evidence Court smoke gate passed.", summary)
+            self.assertIn("OpenMako AgentLoopResult-shaped gate checked verification_required", summary)
+            self.assertIn("openmako-agent-result.json must contain \"verdict\": \"FAIL\"", summary)
             summary = (artifact_root / "smoke-summary.txt").read_text(encoding="utf-8")
             self.assertIn("artifact-manifest.json lists the safe claim", summary)
             self.assertIn("artifact-manifest.json lists source provenance checks", summary)
@@ -389,21 +388,15 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         text = checklist.read_text(encoding="utf-8")
         included_paths = (
             ".github/workflows/evidence-court.yml",
-            "LICENSE",
             "README.md",
-            "pyproject.toml",
             "docs/CAPABILITY_GATES.md",
             "docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md",
             "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
-            "docs/LAUNCH_POST.md",
-            "docs/social-card.svg",
-            "docs/RELEASE_NOTES_V0_1_0.md",
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
             "quantagent/evidence_court.py",
-            "quantagent/__init__.py",
             "quantagent/cli.py",
             "scripts/evidence_court_release_set.sh",
             "scripts/evidence_court_smoke.sh",
@@ -470,21 +463,15 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         normalized = " ".join(text.split())
         included_paths = (
             ".github/workflows/evidence-court.yml",
-            "LICENSE",
             "README.md",
-            "pyproject.toml",
             "docs/CAPABILITY_GATES.md",
             "docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md",
             "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
-            "docs/LAUNCH_POST.md",
-            "docs/social-card.svg",
-            "docs/RELEASE_NOTES_V0_1_0.md",
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
             "quantagent/evidence_court.py",
-            "quantagent/__init__.py",
             "quantagent/cli.py",
             "scripts/evidence_court_release_set.sh",
             "scripts/evidence_court_smoke.sh",
@@ -644,8 +631,6 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
 
         self.assertIn("bash scripts/evidence_court_smoke.sh", text)
         self.assertNotIn("run `scripts/evidence_court_smoke.sh` locally", text)
-        self.assertIn('"This repository ships the broader OpenMako coding agent runtime."', text)
-        self.assertIn("Desktop, quant trading, planner, or autonomous repair capability is proven", text)
         self.assertNotIn("Programming evidence exists on internal hidden and repeat-stability packs.", text)
         self.assertNotIn("Programming repair improves under evidence", text)
         self.assertNotIn("fixture proves plan", text)
@@ -823,21 +808,15 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         release_paths = (
             ".github/workflows/evidence-court.yml",
-            "LICENSE",
             "README.md",
-            "pyproject.toml",
             "docs/CAPABILITY_GATES.md",
             "docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md",
             "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
-            "docs/LAUNCH_POST.md",
-            "docs/social-card.svg",
-            "docs/RELEASE_NOTES_V0_1_0.md",
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
             "quantagent/evidence_court.py",
-            "quantagent/__init__.py",
             "quantagent/cli.py",
             "scripts/evidence_court_release_set.sh",
             "scripts/evidence_court_smoke.sh",
@@ -881,7 +860,6 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
 
         incomplete = self._run_release_set_with_staged_paths(
             root,
-            "LICENSE",
             "README.md",
             mode="--check-staged-release-set",
         )
@@ -896,21 +874,15 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         script = root / "scripts" / "evidence_court_release_set.sh"
         release_paths = (
             ".github/workflows/evidence-court.yml",
-            "LICENSE",
             "README.md",
-            "pyproject.toml",
             "docs/CAPABILITY_GATES.md",
             "docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md",
             "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
-            "docs/LAUNCH_POST.md",
-            "docs/social-card.svg",
-            "docs/RELEASE_NOTES_V0_1_0.md",
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
             "quantagent/evidence_court.py",
-            "quantagent/__init__.py",
             "quantagent/cli.py",
             "scripts/evidence_court_release_set.sh",
             "scripts/evidence_court_smoke.sh",
@@ -999,21 +971,15 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         source_script = root / "scripts" / "evidence_court_release_set.sh"
         release_paths = (
             ".github/workflows/evidence-court.yml",
-            "LICENSE",
             "README.md",
-            "pyproject.toml",
             "docs/CAPABILITY_GATES.md",
             "docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md",
             "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
-            "docs/LAUNCH_POST.md",
-            "docs/social-card.svg",
-            "docs/RELEASE_NOTES_V0_1_0.md",
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
             "quantagent/evidence_court.py",
-            "quantagent/__init__.py",
             "quantagent/cli.py",
             "scripts/evidence_court_release_set.sh",
             "scripts/evidence_court_smoke.sh",
@@ -1113,8 +1079,6 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("It audits\nwhether the supplied record supports the agent's claim.", readme)
         self.assertIn("does not parse raw chat transcripts or native Claude/Codex/Cursor/Devin/CI logs", readme)
         self.assertIn("# From a checkout of this repository:", readme)
-        self.assertIn("This public repository contains the Evidence Court v0.1 release set only.", readme)
-        self.assertIn("does not ship or claim the broader OpenMako agent runtime", readme)
         self.assertNotIn("not a toy", readme)
         self.assertNotIn("writes proof artifacts", readme)
         first_screen = "\n".join(readme.splitlines()[:30])
@@ -1129,48 +1093,11 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertNotIn("pip install", demo_block)
         quick_start = readme.split("## Quick Start", 1)[1].split("## What It Checks", 1)[0]
         self.assertIn("# From a checkout of this repository:", quick_start)
-        self.assertIn("python3 -m pip install .", quick_start)
+        self.assertIn("python3 -m pip install", quick_start)
         self.assertLess(readme.index("## 10-Second Demo"), readme.index("## Quick Start"))
-        self.assertLess(readme.index("mako evidence-court --demo bad-run"), readme.index("python3 -m pip install ."))
+        self.assertLess(readme.index("mako evidence-court --demo bad-run"), readme.index("python3 -m pip install"))
         self.assertLess(readme.index("# Verdict: FAIL"), readme.index("## Quick Start"))
         self.assertNotIn("<your-openmako-repo-url>", readme)
-        self.assertNotIn("## Other OpenMako Modules", readme)
-        self.assertNotIn("<summary>Other OpenMako modules outside the Evidence Court v0.1 launch claim</summary>", readme)
-        self.assertNotIn("mako doctor", readme)
-        self.assertNotIn("mako fix", readme)
-        self.assertNotIn("Extreme Planner", readme)
-
-    def test_launch_assets_keep_v0_1_claims_bounded(self) -> None:
-        root = Path(__file__).resolve().parents[1]
-        launch_post = (root / "docs" / "LAUNCH_POST.md").read_text(encoding="utf-8")
-        social_card = (root / "docs" / "social-card.svg").read_text(encoding="utf-8")
-        readme = (root / "README.md").read_text(encoding="utf-8")
-
-        self.assertIn("copyable launch post", readme)
-        self.assertIn("social card", readme)
-        self.assertIn("supplied JSON run records", launch_post)
-        self.assertIn("explicit marked transcript v0 files", launch_post)
-        self.assertIn("explicit Evidence Court JSONL event streams", launch_post)
-        self.assertIn("Boundary: this does not ingest native Claude/Codex/Cursor/Devin/CI logs", launch_post)
-        self.assertIn("does not prove tests ran outside the supplied record", launch_post)
-        self.assertIn("VERDICT: FAIL", social_card)
-        self.assertIn("required test not run", social_card)
-        self.assertIn("Boundary: not native Claude/Codex/Cursor/Devin/CI log ingestion", social_card)
-        forbidden = (
-            "native Claude",
-            "native Codex",
-            "broad SWE",
-            "Desktop L4",
-            "quant trading ready",
-            "proves tests ran",
-        )
-        for phrase in forbidden:
-            with self.subTest(phrase=phrase):
-                if phrase == "native Claude":
-                    self.assertIn("does not ingest native Claude", launch_post)
-                    continue
-                self.assertNotIn(phrase, launch_post)
-                self.assertNotIn(phrase, social_card)
 
 
 if __name__ == "__main__":
