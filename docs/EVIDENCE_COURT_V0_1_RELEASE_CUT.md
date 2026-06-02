@@ -36,6 +36,8 @@ These files are part of the release candidate:
 - `docs/EVIDENCE_COURT_V0_1_PR_BODY.md`
 - `docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md`
 - `docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md`
+- `docs/LAUNCH_POST.md`
+- `docs/social-card.svg`
 - `docs/RELEASE_NOTES_V0_1_0.md`
 - `examples/evidence-court/bad-run.json`
 - `examples/evidence-court/good-run.json`

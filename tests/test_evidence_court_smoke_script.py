@@ -397,6 +397,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
+            "docs/LAUNCH_POST.md",
+            "docs/social-card.svg",
             "docs/RELEASE_NOTES_V0_1_0.md",
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
@@ -476,6 +478,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
+            "docs/LAUNCH_POST.md",
+            "docs/social-card.svg",
             "docs/RELEASE_NOTES_V0_1_0.md",
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
@@ -827,6 +831,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
+            "docs/LAUNCH_POST.md",
+            "docs/social-card.svg",
             "docs/RELEASE_NOTES_V0_1_0.md",
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
@@ -898,6 +904,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
+            "docs/LAUNCH_POST.md",
+            "docs/social-card.svg",
             "docs/RELEASE_NOTES_V0_1_0.md",
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
@@ -999,6 +1007,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_PR_BODY.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
+            "docs/LAUNCH_POST.md",
+            "docs/social-card.svg",
             "docs/RELEASE_NOTES_V0_1_0.md",
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
@@ -1129,6 +1139,38 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertNotIn("mako doctor", readme)
         self.assertNotIn("mako fix", readme)
         self.assertNotIn("Extreme Planner", readme)
+
+    def test_launch_assets_keep_v0_1_claims_bounded(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        launch_post = (root / "docs" / "LAUNCH_POST.md").read_text(encoding="utf-8")
+        social_card = (root / "docs" / "social-card.svg").read_text(encoding="utf-8")
+        readme = (root / "README.md").read_text(encoding="utf-8")
+
+        self.assertIn("copyable launch post", readme)
+        self.assertIn("social card", readme)
+        self.assertIn("supplied JSON run records", launch_post)
+        self.assertIn("explicit marked transcript v0 files", launch_post)
+        self.assertIn("explicit Evidence Court JSONL event streams", launch_post)
+        self.assertIn("Boundary: this does not ingest native Claude/Codex/Cursor/Devin/CI logs", launch_post)
+        self.assertIn("does not prove tests ran outside the supplied record", launch_post)
+        self.assertIn("VERDICT: FAIL", social_card)
+        self.assertIn("required test not run", social_card)
+        self.assertIn("Boundary: not native Claude/Codex/Cursor/Devin/CI log ingestion", social_card)
+        forbidden = (
+            "native Claude",
+            "native Codex",
+            "broad SWE",
+            "Desktop L4",
+            "quant trading ready",
+            "proves tests ran",
+        )
+        for phrase in forbidden:
+            with self.subTest(phrase=phrase):
+                if phrase == "native Claude":
+                    self.assertIn("does not ingest native Claude", launch_post)
+                    continue
+                self.assertNotIn(phrase, launch_post)
+                self.assertNotIn(phrase, social_card)
 
 
 if __name__ == "__main__":

@@ -142,6 +142,12 @@ After a green PR-head GitHub Actions run, download the `evidence-court-smoke` ar
 Before remote CI exists, run `bash scripts/evidence_court_smoke.sh --artifact-dir /tmp/evidence-court-smoke` and open `/tmp/evidence-court-smoke/reviewer-quickstart.md`.
 Until that PR-head remote run exists, use the local smoke gate above; do not claim remote CI evidence.
 
+## Launch Assets
+
+- [v0.1.0 release notes](docs/RELEASE_NOTES_V0_1_0.md)
+- [copyable launch post](docs/LAUNCH_POST.md)
+- [social card](docs/social-card.svg)
+
 ## Boundaries
 
 This public repository contains the Evidence Court v0.1 release set only. It does not ship or claim the broader OpenMako agent runtime, planner, desktop automation, quant trading readiness, or native Claude/Codex/Cursor/Devin/CI log ingestion.
