@@ -398,6 +398,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
+            "docs/PUBLIC_PROOF.md",
             "docs/LAUNCH_POST.md",
             "docs/social-card.svg",
             "docs/RELEASE_NOTES_V0_1_0.md",
@@ -481,6 +482,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
+            "docs/PUBLIC_PROOF.md",
             "docs/LAUNCH_POST.md",
             "docs/social-card.svg",
             "docs/RELEASE_NOTES_V0_1_0.md",
@@ -836,6 +838,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
+            "docs/PUBLIC_PROOF.md",
             "docs/LAUNCH_POST.md",
             "docs/social-card.svg",
             "docs/RELEASE_NOTES_V0_1_0.md",
@@ -911,6 +914,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
+            "docs/PUBLIC_PROOF.md",
             "docs/LAUNCH_POST.md",
             "docs/social-card.svg",
             "docs/RELEASE_NOTES_V0_1_0.md",
@@ -1016,6 +1020,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
+            "docs/PUBLIC_PROOF.md",
             "docs/LAUNCH_POST.md",
             "docs/social-card.svg",
             "docs/RELEASE_NOTES_V0_1_0.md",
@@ -1157,6 +1162,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         readme = (root / "README.md").read_text(encoding="utf-8")
 
         self.assertIn("copyable launch post", readme)
+        self.assertIn("public proof card", readme)
         self.assertIn("expert review brief", readme)
         self.assertIn("social card", readme)
         self.assertIn("supplied JSON run records", launch_post)
@@ -1213,6 +1219,50 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             with self.subTest(phrase=phrase):
                 self.assertNotIn(phrase, brief)
                 self.assertNotIn(phrase, release_notes)
+
+    def test_public_proof_card_binds_claim_to_remote_evidence(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        proof = (root / "docs" / "PUBLIC_PROOF.md").read_text(encoding="utf-8")
+        readme = (root / "README.md").read_text(encoding="utf-8")
+
+        self.assertIn("Safe Public Claim", proof)
+        self.assertIn("Evidence Anchor", proof)
+        self.assertIn("Artifact Review Path", proof)
+        self.assertIn("v0.1.1", proof)
+        self.assertIn("babf77e9b08c40152a0e28344a01f59de1918f16", proof)
+        self.assertIn("actions/runs/26829777828", proof)
+        self.assertIn("completed successfully", proof)
+        self.assertIn("evidence-court-smoke", proof)
+        self.assertIn("sha256:678628ef691b965480e9f09faba4b942412796ce005a79e08631570945e626d3", proof)
+        self.assertIn("artifact-manifest.json", proof)
+        self.assertIn("reviewer-quickstart.md", proof)
+        self.assertIn("bad-run.md", proof)
+        self.assertIn("good-run.json", proof)
+        self.assertIn("marked-transcript.json", proof)
+        self.assertIn("mixed-source-rejection.txt", proof)
+        self.assertIn("smoke-summary.txt", proof)
+        self.assertIn("public page proves artifact metadata", proof)
+        self.assertIn("claiming its contents were independently reverified", proof)
+        self.assertIn("30-Second Verification", proof)
+        self.assertIn("git checkout v0.1.1", proof)
+        self.assertIn("mako evidence-court --demo bad-run", proof)
+        self.assertIn("Verdict: FAIL", proof)
+        self.assertIn("What This Does Not Prove", proof)
+        self.assertIn("Native Claude/Codex/Cursor/Devin/CI log ingestion", proof)
+        self.assertIn("10k stars, adoption, or endorsement", proof)
+        self.assertIn("public proof card", readme)
+        self.assertLess(readme.index("Public proof:"), readme.index("## 10-Second Demo"))
+
+        forbidden = (
+            "native Claude ingestion is supported",
+            "proves tests actually ran",
+            "broad SWE repair ability is proven",
+            "endorsed by",
+            "10000 stars",
+        )
+        for phrase in forbidden:
+            with self.subTest(phrase=phrase):
+                self.assertNotIn(phrase, proof)
 
 
 if __name__ == "__main__":

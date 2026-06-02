@@ -5,6 +5,8 @@ adds public review assets for safer sharing.
 
 ## Added
 
+- `docs/PUBLIC_PROOF.md`: a shareable proof card that binds the public claim to
+  the release tag, commit, smoke run, and artifact digest.
 - `docs/EXPERT_REVIEW_BRIEF.md`: a 30-second review path and safe quote for
   expert reviewers before they share the project.
 - `docs/LAUNCH_POST.md`: copyable launch text with the native-ingestion

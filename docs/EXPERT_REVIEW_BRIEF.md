@@ -34,6 +34,8 @@ passed even though the supplied record lacks the required test command.
 
 - `README.md` shows the bad-run demo above the install path.
 - `examples/evidence-court/bad-run.json` is the supplied failing run record.
+- `docs/PUBLIC_PROOF.md` binds the shared claim to the tag, commit, smoke run,
+  and artifact digest.
 - `bash scripts/evidence_court_smoke.sh` runs the local smoke gate.
 - GitHub Actions `Evidence Court Smoke` is green for the commit being shared.
 - `docs/LAUNCH_POST.md` states the native-ingestion boundary.
