@@ -1253,6 +1253,9 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("review-first outreach templates", release_notes)
         self.assertIn("v0.1.2 release notes", readme)
         self.assertIn("outreach templates", readme)
+        self.assertIn("Latest green smoke run", outreach)
+        self.assertIn("actions/runs/26832146804", outreach)
+        self.assertIn("sha256:fbe541f7ef007287649d424951001bdec6f6ea17ab3345567856ddf5b08c18d0", outreach)
         self.assertIn("I would value a quick review", outreach)
         self.assertIn("If you have 30 seconds", outreach)
         self.assertIn("Do Not Say", outreach)
@@ -1298,6 +1301,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("One polite message per target. No follow-up unless they reply.", targets)
         self.assertIn("Target publicly shared; requires a public share URL", targets)
         self.assertIn("Start with five targets before scaling", targets)
+        self.assertIn("Recommended Send Order", targets)
         self.assertIn("concrete technical review", targets)
         self.assertIn("Do Not Say", targets)
 
@@ -1305,10 +1309,11 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             with self.subTest(status=status):
                 self.assertIn(f"`{status}`", targets)
 
-        target_rows = re.findall(r"^\| \d+ \| .+? \| candidate \|$", targets, flags=re.MULTILINE)
+        target_list = targets.split("## Target List", maxsplit=1)[1].split("## First Batch", maxsplit=1)[0]
+        target_rows = re.findall(r"^\| \d+ \| .+? \| candidate \|$", target_list, flags=re.MULTILINE)
         self.assertEqual(len(target_rows), 20)
 
-        urls = re.findall(r"`(https://[^`]+)`", targets)
+        urls = re.findall(r"`(https://[^`]+)`", target_list)
         self.assertEqual(len(urls), 20)
         for url in urls:
             with self.subTest(url=url):
@@ -1324,6 +1329,11 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         ):
             with self.subTest(first_batch_target=first_batch_target):
                 self.assertIn(first_batch_target, targets)
+
+        self.assertLess(
+            targets.index("| 1 | SWE-agent / mini-SWE-agent |"),
+            targets.index("| 2 | Aider |"),
+        )
 
         before_do_not_say, do_not_say = targets.split("## Do Not Say", maxsplit=1)
         self.assertIn("Evidence Court proves tests actually ran outside the supplied record.", do_not_say)
@@ -1341,6 +1351,93 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         for phrase in forbidden:
             with self.subTest(phrase=phrase):
                 self.assertNotIn(phrase, before_do_not_say)
+
+    def test_first_batch_send_drafts_are_specific_and_review_first(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        targets = (root / "docs" / "OUTREACH_TARGETS.md").read_text(encoding="utf-8")
+
+        for section in (
+            "First-Batch Contact URLs",
+            "First-Batch Specific Asks",
+            "First-Batch Send Drafts",
+            "Tracking Fields To Fill After Sending",
+        ):
+            with self.subTest(section=section):
+                self.assertIn(f"## {section}", targets)
+
+        first_batch = (
+            "OpenHands",
+            "SWE-agent / mini-SWE-agent",
+            "Aider",
+            "LangGraph",
+            "SWE-bench",
+        )
+        contact_section = targets.split("## First-Batch Contact URLs", maxsplit=1)[1].split(
+            "## First-Batch Specific Asks",
+            maxsplit=1,
+        )[0]
+        ask_section = targets.split("## First-Batch Specific Asks", maxsplit=1)[1].split(
+            "## First-Batch Send Drafts",
+            maxsplit=1,
+        )[0]
+        for name in first_batch:
+            with self.subTest(name=name):
+                self.assertIsNotNone(
+                    re.search(
+                        rf"^\| {re.escape(name)} \| `https://[^`]+` \| .+ \| .+ \|$",
+                        contact_section,
+                        flags=re.MULTILINE,
+                    ),
+                    msg=f"missing contact URL row for {name}",
+                )
+                self.assertIsNotNone(
+                    re.search(
+                        rf"^\| {re.escape(name)} \| .+ \| .+ \| .+ \|$",
+                        ask_section,
+                        flags=re.MULTILINE,
+                    ),
+                    msg=f"missing specific ask row for {name}",
+                )
+                self.assertIn(f"### {name}", targets)
+
+        contact_rows = re.findall(r"^\| (.+?) \| `https://[^`]+` \| .+ \| .+ \|$", contact_section, flags=re.MULTILINE)
+        self.assertEqual(set(contact_rows), set(first_batch))
+
+        for phrase in (
+            "quick technical review",
+            "v0.1.2",
+            "docs/PUBLIC_PROOF.md",
+            "docs/demo-terminal.svg",
+            "Not asking",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, targets)
+
+        draft_section = targets.split("## First-Batch Send Drafts", maxsplit=1)[1].split(
+            "## Tracking Fields To Fill After Sending",
+            maxsplit=1,
+        )[0]
+        draft_blocks = re.findall(
+            r"^### (.+?)\n\n```text\n(.+?)\n```",
+            draft_section,
+            flags=re.MULTILINE | re.DOTALL,
+        )
+        self.assertEqual(len(draft_blocks), 5)
+        for target, draft in draft_blocks:
+            with self.subTest(target=target):
+                self.assertLessEqual(len(draft.split()), 120)
+                normalized = draft.lower()
+                self.assertIn("quick technical review", normalized)
+                self.assertIn("not asking", normalized)
+                self.assertIn("docs/public_proof.md", normalized)
+                self.assertIn("docs/demo-terminal.svg", normalized)
+                self.assertNotIn("please retweet", normalized)
+                self.assertNotIn("10k", normalized)
+                self.assertNotIn("guaranteed", normalized)
+                self.assertNotIn("native claude", normalized)
+
+        tracking_header = "| Target | Sent date | Contact URL | Message URL | Message variant | Reply | Action needed | Outcome |"
+        self.assertIn(tracking_header, targets)
 
     def test_terminal_demo_visual_stays_bounded_and_renderable(self) -> None:
         root = Path(__file__).resolve().parents[1]

@@ -55,25 +55,129 @@ This file is not evidence of interest, adoption, endorsement, review, or sharing
 
 Start with five targets before scaling:
 
-1. OpenHands
-2. SWE-agent / mini-SWE-agent
-3. Aider
-4. LangGraph
-5. SWE-bench
+1. SWE-agent / mini-SWE-agent
+2. Aider
+3. OpenHands
+4. SWE-bench
+5. LangGraph
 
 Reason: these are closest to coding-agent evidence and benchmark claims. A
 concrete technical review from any one of them is more valuable than sending
 weak messages to all 20.
 
+## Recommended Send Order
+
+| Rank | Target | Reason |
+| --- | --- | --- |
+| 1 | SWE-agent / mini-SWE-agent | Strongest technical match: SWE-Bench-style trajectories, test/eval command evidence, and benchmark claims are central to their context. |
+| 2 | Aider | Strongest user-conversion match: terminal coding-assistant users understand "tests passed" claims, command history, edited files, and test output. |
+| 3 | OpenHands | Largest reach, but the community is broader and noisier; send after one tighter technical review improves the wording. |
+| 4 | SWE-bench | Highest evaluation credibility, but less likely to convert directly into user stars than an agent-tool community. |
+| 5 | LangGraph | Large agent ecosystem, but current v0.1 has no LangGraph trace adapter; ask only about future explicit JSONL event mapping. |
+
+## First-Batch Contact URLs
+
+| Target | Contact URL | Public source checked | Channel rule |
+| --- | --- | --- | --- |
+| OpenHands | `https://dub.sh/openhands` | OpenHands README links to Slack and also points feature requests to GitHub issues. | Ask in community Slack first; do not open an issue unless maintainers direct it there. |
+| SWE-agent / mini-SWE-agent | `https://join.slack.com/t/swe-bench/shared_invite/zt-36pj9bu5s-o3_yXPZbaH2wVnxnss1EkQ` | mini-SWE-agent README exposes a SWE-bench Slack badge. | Ask in Slack as a benchmark/evidence-boundary review, not as an integration request. |
+| Aider | `https://discord.gg/Y7X7bhMQFV` | Aider README lists a Discord Community. | Ask in Discord only if there is a relevant community channel; do not file a repo issue. |
+| LangGraph | `https://forum.langchain.com` | LangGraph README sends technical questions, ideas, and feedback to the LangChain Forum. | Use the forum; frame as trace-to-supplied-record schema feedback. |
+| SWE-bench | `https://github.com/SWE-bench/SWE-bench/issues/new/choose` | SWE-bench README welcomes contributions, pull requests, or issues. | Open only if the issue template fits evidence-boundary feedback; otherwise use the listed academic contacts manually. |
+
+## First-Batch Specific Asks
+
+| Target | Specific review ask | Why this target | Evidence boundary to mention |
+| --- | --- | --- | --- |
+| OpenHands | What fields should a supplied coding-agent run record contain before a claim like "fixed and tests passed" is considered supported? | OpenHands exposes SDK, CLI, local GUI, and evaluation infrastructure, so run-record boundaries are directly relevant. | Evidence Court audits supplied records only; it does not prove real test execution outside the record. |
+| SWE-agent / mini-SWE-agent | If a SWE-Bench-style run lacks the exact eval/test command or edits a protected test file, should the verdict be `FAIL` or a more granular `SUSPICIOUS`? | mini-SWE-agent emphasizes a minimal linear trajectory and SWE-bench verified performance, so claim/eval evidence wording matters. | Evidence Court is not scoring SWE-Bench performance; it checks whether the supplied evidence supports the final claim. |
+| Aider | For terminal pair-programming, is command history plus edited files plus test output enough, or should a supplied record also include diff/protected-path data? | Aider highlights linting and testing after edits, making test-claim gaps easy for its users to evaluate. | Evidence Court only checks reported commands/output; it does not natively ingest Aider logs. |
+| LangGraph | Which trace fields would be necessary to convert a LangGraph run into explicit Evidence Court JSONL events without claiming native ingestion? | LangGraph and LangSmith focus on stateful agents, trajectories, tracing, and observability. | Any LangGraph mapping would be a future adapter; current v0.1 accepts explicit supplied records only. |
+| SWE-bench | For benchmark maintainers, what minimum artifact set should be required before an agent's "solved" claim is evidence-supported? | SWE-bench centers reproducible evaluation, Docker logs, predictions, run IDs, and final results. | Evidence Court does not replace benchmark scoring; it audits whether claim, scope, commands, and outputs line up. |
+
+## First-Batch Send Drafts
+
+### OpenHands
+
+```text
+I built a small v0.1.2 claim-vs-evidence gate for supplied coding-agent run
+records:
+https://github.com/1966536805l-crypto/openmako-evidence-court
+
+Could I get a quick technical review from an OpenHands perspective? For a run
+that says "fixed and tests passed", what fields should the supplied record
+contain before that claim is supportable?
+
+Proof card: docs/PUBLIC_PROOF.md. Demo: docs/demo-terminal.svg.
+Not asking you to endorse or share it; I want boundary feedback first.
+```
+
+### SWE-agent / mini-SWE-agent
+
+```text
+I made a narrow v0.1.2 evidence gate for coding-agent success claims:
+https://github.com/1966536805l-crypto/openmako-evidence-court
+
+Could I get a quick technical review from a SWE-Bench / mini-SWE-agent angle?
+If a supplied run lacks the exact eval/test command, or edits a protected test
+file, should the verdict be FAIL or a more granular SUSPICIOUS?
+
+Proof card: docs/PUBLIC_PROOF.md. Demo: docs/demo-terminal.svg.
+Not asking for endorsement or a share; just boundary feedback.
+```
+
+### Aider
+
+```text
+I built a small v0.1.2 audit gate for coding-agent run records:
+https://github.com/1966536805l-crypto/openmako-evidence-court
+
+Could I get a quick technical review from an Aider/terminal workflow angle? Is
+command history plus edited files plus test output enough for a supplied record,
+or should diff/protected-path data be required to catch "tests passed" claims?
+
+Proof card: docs/PUBLIC_PROOF.md. Demo: docs/demo-terminal.svg.
+Not asking you to endorse or share it; I want the boundary to be honest first.
+```
+
+### LangGraph
+
+```text
+I made a narrow v0.1.2 claim-vs-evidence gate for supplied agent-run records:
+https://github.com/1966536805l-crypto/openmako-evidence-court
+
+Could I get a quick technical review from a LangGraph trace perspective? Which
+node/tool-call/state fields would be necessary to convert a trace into explicit
+Evidence Court JSONL events without claiming native LangGraph ingestion?
+
+Proof card: docs/PUBLIC_PROOF.md. Demo: docs/demo-terminal.svg.
+Not asking for endorsement or a share; just schema-boundary feedback.
+```
+
+### SWE-bench
+
+```text
+I built a small v0.1.2 evidence gate for coding-agent success claims:
+https://github.com/1966536805l-crypto/openmako-evidence-court
+
+Could I get a quick technical review from a benchmark-maintainer angle? Before
+an agent claims an issue is solved, what minimum artifact set should support the
+claim: issue id, patch files, allowed/protected scope, eval command, eval
+output, final claim, or something else?
+
+Proof card: docs/PUBLIC_PROOF.md. Demo: docs/demo-terminal.svg.
+Not asking for endorsement or a share; just evidence-boundary feedback.
+```
+
 ## Tracking Fields To Fill After Sending
 
-| Target | Sent date | Channel URL | Message variant | Reply | Action needed | Outcome |
-| --- | --- | --- | --- | --- | --- | --- |
-| OpenHands |  |  |  |  |  |  |
-| SWE-agent / mini-SWE-agent |  |  |  |  |  |  |
-| Aider |  |  |  |  |  |  |
-| LangGraph |  |  |  |  |  |  |
-| SWE-bench |  |  |  |  |  |  |
+| Target | Sent date | Contact URL | Message URL | Message variant | Reply | Action needed | Outcome |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| OpenHands |  |  |  |  |  |  |  |
+| SWE-agent / mini-SWE-agent |  |  |  |  |  |  |  |
+| Aider |  |  |  |  |  |  |  |
+| LangGraph |  |  |  |  |  |  |  |
+| SWE-bench |  |  |  |  |  |  |  |
 
 ## Do Not Say
 
