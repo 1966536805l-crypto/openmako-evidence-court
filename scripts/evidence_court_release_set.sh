@@ -17,12 +17,14 @@ INCLUDE_PATHS=(
   "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md"
   "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md"
   "docs/EXPERT_REVIEW_BRIEF.md"
+  "docs/OUTREACH.md"
   "docs/PUBLIC_PROOF.md"
   "docs/demo-terminal.svg"
   "docs/LAUNCH_POST.md"
   "docs/social-card.svg"
   "docs/RELEASE_NOTES_V0_1_0.md"
   "docs/RELEASE_NOTES_V0_1_1.md"
+  "docs/RELEASE_NOTES_V0_1_2.md"
   "examples/evidence-court/bad-run.json"
   "examples/evidence-court/good-run.json"
   "quantagent/evidence_court.py"
@@ -190,6 +192,8 @@ audit_staged_claim_copy() {
   require_staged_contains "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md" "workflow wired locally" || invalid=1
   require_staged_contains "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md" "Only these release files support" || invalid=1
   require_staged_contains "docs/EXPERT_REVIEW_BRIEF.md" "Do Not Share If" || invalid=1
+  require_staged_contains "docs/OUTREACH.md" "Do Not Say" || invalid=1
+  require_staged_contains "docs/OUTREACH.md" "does not natively ingest Claude/Codex/Cursor/CI logs" || invalid=1
   require_staged_contains "docs/EXPERT_REVIEW_BRIEF.md" "does not provide proof that tests actually ran outside" || invalid=1
   require_staged_contains "docs/PUBLIC_PROOF.md" "What This Does Not Prove" || invalid=1
   require_staged_contains "docs/PUBLIC_PROOF.md" "Artifact digest" || invalid=1

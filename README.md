@@ -151,8 +151,9 @@ Until that PR-head remote run exists, use the local smoke gate above; do not cla
 
 - [public proof card](docs/PUBLIC_PROOF.md)
 - [terminal demo visual](docs/demo-terminal.svg)
-- [v0.1.1 release notes](docs/RELEASE_NOTES_V0_1_1.md)
+- [v0.1.2 release notes](docs/RELEASE_NOTES_V0_1_2.md)
 - [expert review brief](docs/EXPERT_REVIEW_BRIEF.md)
+- [outreach templates](docs/OUTREACH.md)
 - [copyable launch post](docs/LAUNCH_POST.md)
 - [social card](docs/social-card.svg)
 

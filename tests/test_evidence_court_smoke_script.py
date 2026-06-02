@@ -399,12 +399,14 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
+            "docs/OUTREACH.md",
             "docs/PUBLIC_PROOF.md",
             "docs/demo-terminal.svg",
             "docs/LAUNCH_POST.md",
             "docs/social-card.svg",
             "docs/RELEASE_NOTES_V0_1_0.md",
             "docs/RELEASE_NOTES_V0_1_1.md",
+            "docs/RELEASE_NOTES_V0_1_2.md",
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
             "quantagent/evidence_court.py",
@@ -484,12 +486,14 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
+            "docs/OUTREACH.md",
             "docs/PUBLIC_PROOF.md",
             "docs/demo-terminal.svg",
             "docs/LAUNCH_POST.md",
             "docs/social-card.svg",
             "docs/RELEASE_NOTES_V0_1_0.md",
             "docs/RELEASE_NOTES_V0_1_1.md",
+            "docs/RELEASE_NOTES_V0_1_2.md",
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
             "quantagent/evidence_court.py",
@@ -841,12 +845,14 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
+            "docs/OUTREACH.md",
             "docs/PUBLIC_PROOF.md",
             "docs/demo-terminal.svg",
             "docs/LAUNCH_POST.md",
             "docs/social-card.svg",
             "docs/RELEASE_NOTES_V0_1_0.md",
             "docs/RELEASE_NOTES_V0_1_1.md",
+            "docs/RELEASE_NOTES_V0_1_2.md",
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
             "quantagent/evidence_court.py",
@@ -918,12 +924,14 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
+            "docs/OUTREACH.md",
             "docs/PUBLIC_PROOF.md",
             "docs/demo-terminal.svg",
             "docs/LAUNCH_POST.md",
             "docs/social-card.svg",
             "docs/RELEASE_NOTES_V0_1_0.md",
             "docs/RELEASE_NOTES_V0_1_1.md",
+            "docs/RELEASE_NOTES_V0_1_2.md",
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
             "quantagent/evidence_court.py",
@@ -1025,12 +1033,14 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
+            "docs/OUTREACH.md",
             "docs/PUBLIC_PROOF.md",
             "docs/demo-terminal.svg",
             "docs/LAUNCH_POST.md",
             "docs/social-card.svg",
             "docs/RELEASE_NOTES_V0_1_0.md",
             "docs/RELEASE_NOTES_V0_1_1.md",
+            "docs/RELEASE_NOTES_V0_1_2.md",
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
             "quantagent/evidence_court.py",
@@ -1170,6 +1180,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("copyable launch post", readme)
         self.assertIn("public proof card", readme)
         self.assertIn("terminal demo visual", readme)
+        self.assertIn("outreach templates", readme)
         self.assertIn("expert review brief", readme)
         self.assertIn("social card", readme)
         self.assertIn("supplied JSON run records", launch_post)
@@ -1211,7 +1222,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("native Claude/Codex/Cursor/Devin/CI log ingestion is supported", brief)
         self.assertIn("does not provide proof that tests actually ran outside", brief)
         self.assertIn("expert review brief", readme)
-        self.assertIn("v0.1.1 release notes", readme)
+        self.assertIn("v0.1.2 release notes", readme)
         self.assertIn("public review assets", release_notes)
         self.assertIn("Not Claimed", release_notes)
 
@@ -1225,6 +1236,49 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         for phrase in forbidden:
             with self.subTest(phrase=phrase):
                 self.assertNotIn(phrase, brief)
+                self.assertNotIn(phrase, release_notes)
+
+    def test_outreach_templates_are_review_first_and_bounded(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        outreach = (root / "docs" / "OUTREACH.md").read_text(encoding="utf-8")
+        release_notes = (root / "docs" / "RELEASE_NOTES_V0_1_2.md").read_text(encoding="utf-8")
+        launch_post = (root / "docs" / "LAUNCH_POST.md").read_text(encoding="utf-8")
+        readme = (root / "README.md").read_text(encoding="utf-8")
+
+        self.assertIn("review-first outreach templates", release_notes)
+        self.assertIn("v0.1.2 release notes", readme)
+        self.assertIn("outreach templates", readme)
+        self.assertIn("I would value a quick review", outreach)
+        self.assertIn("If you have 30 seconds", outreach)
+        self.assertIn("Do Not Say", outreach)
+        self.assertIn("does not natively ingest Claude/Codex/Cursor/CI logs", outreach)
+        self.assertIn("does not prove tests", outreach)
+        self.assertIn("v0.1.2", launch_post)
+        self.assertIn("releases/tag/v0.1.2", launch_post)
+        for section in (
+            "General AI Tooling Maintainer",
+            "Agent Framework Author",
+            "CI / DevTools Engineer",
+            "Researcher / Evaluator",
+            "Short Public Post",
+        ):
+            with self.subTest(section=section):
+                self.assertIn(section, outreach)
+
+        forbidden = (
+            "endorsed the project",
+            "uses the project",
+            "10k stars achieved",
+            "10000 stars",
+            "native Claude ingestion is supported",
+            "proves tests actually ran",
+            "autonomous repair capability is proven",
+            "please retweet",
+            "guaranteed",
+        )
+        for phrase in forbidden:
+            with self.subTest(phrase=phrase):
+                self.assertNotIn(phrase, outreach)
                 self.assertNotIn(phrase, release_notes)
 
     def test_terminal_demo_visual_stays_bounded_and_renderable(self) -> None:

@@ -50,12 +50,14 @@ Open these first:
 - `docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md`
 - `docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md`
 - `docs/EXPERT_REVIEW_BRIEF.md`
+- `docs/OUTREACH.md`
 - `docs/PUBLIC_PROOF.md`
 - `docs/demo-terminal.svg`
 - `docs/LAUNCH_POST.md`
 - `docs/social-card.svg`
 - `docs/RELEASE_NOTES_V0_1_0.md`
 - `docs/RELEASE_NOTES_V0_1_1.md`
+- `docs/RELEASE_NOTES_V0_1_2.md`
 - `examples/evidence-court/bad-run.json`
 - `examples/evidence-court/good-run.json`
 - `quantagent/evidence_court.py`
