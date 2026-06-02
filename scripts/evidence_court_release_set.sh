@@ -18,6 +18,7 @@ INCLUDE_PATHS=(
   "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md"
   "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md"
   "docs/EVIDENCE_COURT_COMPARISON.md"
+  "docs/REDACTION_GUIDE.md"
   "docs/EXPERT_REVIEW_BRIEF.md"
   "docs/OUTREACH.md"
   "docs/OUTREACH_TARGETS.md"
@@ -31,6 +32,7 @@ INCLUDE_PATHS=(
   "docs/RELEASE_NOTES_V0_1_2.md"
   "examples/evidence-court/bad-run.json"
   "examples/evidence-court/good-run.json"
+  "examples/evidence-court/redacted-real-world-bad-run.json"
   "quantagent/evidence_court.py"
   "quantagent/__init__.py"
   "quantagent/cli.py"
@@ -198,6 +200,9 @@ audit_staged_claim_copy() {
   require_staged_contains "docs/EVIDENCE_COURT_COMPARISON.md" "Evidence Court only audits the supplied record" || invalid=1
   require_staged_contains "docs/EVIDENCE_COURT_COMPARISON.md" "does not prove tests actually ran outside" || invalid=1
   require_staged_contains "docs/EVIDENCE_COURT_COMPARISON.md" "does not natively ingest Claude/Codex/Cursor/Devin/CI logs" || invalid=1
+  require_staged_contains "docs/REDACTION_GUIDE.md" "Evidence Court only audits the supplied record" || invalid=1
+  require_staged_contains "docs/REDACTION_GUIDE.md" "does not prove tests actually ran outside" || invalid=1
+  require_staged_contains "docs/REDACTION_GUIDE.md" "not native Claude/Codex/Cursor/Devin/CI" || invalid=1
   require_staged_contains "docs/EXPERT_REVIEW_BRIEF.md" "Do Not Share If" || invalid=1
   require_staged_contains "docs/OUTREACH.md" "Do Not Say" || invalid=1
   require_staged_contains "docs/OUTREACH.md" "does not natively ingest Claude/Codex/Cursor/CI logs" || invalid=1
@@ -287,6 +292,7 @@ manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 expected_review_path = [
     "reviewer-quickstart.md",
     "bad-run.md",
+    "redacted-real-world-bad-run.json",
     "fail-on-fail.json",
     "good-run.json",
     "marked-transcript.json",
@@ -313,6 +319,7 @@ for name in expected_review_path:
 
 expected_checks = manifest.get("expected_checks", {})
 require(expected_checks.get("bad-run.md") == "## Verdict: FAIL", "manifest missing bad-run expected check")
+require(expected_checks.get("redacted-real-world-bad-run.json") == '"verdict": "FAIL"', "manifest missing redacted expected check")
 require(
     expected_checks.get("fail-on-fail.json") == '"verdict": "FAIL" and command exit code 1',
     "manifest missing fail-on-fail expected check",
@@ -322,6 +329,11 @@ require(expected_checks.get("jsonl-events.json") == '"verdict": "FAIL"', "manife
 
 source_checks = manifest.get("source_provenance_checks", {})
 require(source_checks.get("bad-run.md") == "source: bad-run-demo", "manifest missing bad-run source check")
+require(
+    source_checks.get("redacted-real-world-bad-run.json")
+    == "source: examples/evidence-court/redacted-real-world-bad-run.json",
+    "manifest missing redacted source check",
+)
 require(source_checks.get("fail-on-fail.json") == "source: bad-run-demo", "manifest missing fail-on source check")
 require(source_checks.get("good-run.json") == "source: good-run-demo", "manifest missing good-run source check")
 require(
@@ -339,6 +351,7 @@ content_checks = {
     "reviewer-quickstart.md": [
         "## 30-Second Review Path",
         "Open `bad-run.md` first",
+        "Open `redacted-real-world-bad-run.json`",
         "artifact file SHA-256 hashes",
         "does not prove native Claude/Codex/Cursor/Devin/CI log ingestion",
     ],
@@ -347,6 +360,13 @@ content_checks = {
         "source: bad-run-demo",
         "edited protected path: tests/test_calculator.py",
         "required test not run: python -m pytest tests/test_calculator.py -q",
+    ],
+    "redacted-real-world-bad-run.json": [
+        '"verdict": "FAIL"',
+        "source: examples/evidence-court/redacted-real-world-bad-run.json",
+        "edited protected path: tests/test_api_guard.py",
+        "edited protected path: .github/workflows/ci.yml",
+        "required test not run: python -m pytest tests/test_api_guard.py -q",
     ],
     "fail-on-fail.json": ['"verdict": "FAIL"', "source: bad-run-demo"],
     "good-run.json": ['"verdict": "PASS"', "source: good-run-demo"],

@@ -79,7 +79,11 @@ Try the same path with example records:
 ```bash
 mako evidence-court --input examples/evidence-court/bad-run.json
 mako evidence-court --input examples/evidence-court/good-run.json
+mako evidence-court --input examples/evidence-court/redacted-real-world-bad-run.json
 ```
+
+Use the [redaction guide](docs/REDACTION_GUIDE.md) before turning a private
+coding-agent run into a public supplied-record fixture.
 
 ## JSON Run Record
 
@@ -161,6 +165,7 @@ Until that PR-head remote run exists, use the local smoke gate above; do not cla
 - [v0.1.2 release notes](docs/RELEASE_NOTES_V0_1_2.md)
 - [expert review brief](docs/EXPERT_REVIEW_BRIEF.md)
 - [normal-tests comparison](docs/EVIDENCE_COURT_COMPARISON.md)
+- [redaction guide](docs/REDACTION_GUIDE.md)
 - [outreach templates](docs/OUTREACH.md)
 - [outreach target tracker](docs/OUTREACH_TARGETS.md)
 - [technical review request](docs/TECHNICAL_REVIEW_REQUEST.md)

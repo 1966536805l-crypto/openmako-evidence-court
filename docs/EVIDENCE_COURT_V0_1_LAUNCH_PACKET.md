@@ -115,8 +115,11 @@ candidate:
 - [ ] `.github/workflows/evidence-court.yml`
 - [ ] `docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md`
 - [ ] `docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md`
+- [ ] `docs/EVIDENCE_COURT_COMPARISON.md`
+- [ ] `docs/REDACTION_GUIDE.md`
 - [ ] `examples/evidence-court/bad-run.json`
 - [ ] `examples/evidence-court/good-run.json`
+- [ ] `examples/evidence-court/redacted-real-world-bad-run.json`
 - [ ] `quantagent/evidence_court.py`
 - [ ] `scripts/evidence_court_smoke.sh`
 - [ ] `tests/fixtures/evidence_court/marked_bad_transcript.txt`
@@ -151,12 +154,14 @@ sed -n '1,40p' /tmp/evidence-court-smoke/bad-run.md
 - [ ] GitHub Actions `Evidence Court Smoke` is green for the PR head commit.
 - [ ] GitHub Actions uploaded the `evidence-court-smoke` artifact containing
       `artifact-manifest.json`, `reviewer-quickstart.md`, `bad-run.md`,
-      `fail-on-fail.json`, `good-run.json`, `marked-transcript.json`,
-      `jsonl-events.json`, `mixed-source-rejection.txt`, and
-      `smoke-summary.txt`.
+      `redacted-real-world-bad-run.json`, `fail-on-fail.json`,
+      `good-run.json`, `marked-transcript.json`, `jsonl-events.json`,
+      `mixed-source-rejection.txt`, and `smoke-summary.txt`.
 - [ ] Artifact content check: `artifact-manifest.json` lists the safe claim,
       review path, expected checks, source provenance checks, artifact file SHA-256 hashes, and boundaries; `reviewer-quickstart.md` tells reviewers to
       open `bad-run.md` first; `bad-run.md` shows `Verdict: FAIL`;
+      `redacted-real-world-bad-run.json` shows `"verdict": "FAIL"` and
+      `source: examples/evidence-court/redacted-real-world-bad-run.json`;
       `fail-on-fail.json` contains `"verdict": "FAIL"` and is
       written only after `--fail-on fail` exits 1; `good-run.json` shows `"verdict": "PASS"`;
       `marked-transcript.json` shows `"verdict": "FAIL"`; `jsonl-events.json` shows `"verdict": "FAIL"`;
@@ -168,7 +173,7 @@ sed -n '1,40p' /tmp/evidence-court-smoke/bad-run.md
 
 The PR body must include the same 30-second reviewer path as the remote
 artifact: `bad-run.md`, `fail-on-fail.json`, `artifact-manifest.json`,
-`reviewer-quickstart.md`, `jsonl-events.json`, and
+`redacted-real-world-bad-run.json`, `reviewer-quickstart.md`, `jsonl-events.json`, and
 `mixed-source-rejection.txt`.
 
 Optional remote artifact download, only if GitHub CLI is installed and

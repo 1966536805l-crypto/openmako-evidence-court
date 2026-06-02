@@ -179,6 +179,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
                 "jsonl-events.json",
                 "marked-transcript.json",
                 "mixed-source-rejection.txt",
+                "redacted-real-world-bad-run.json",
                 "reviewer-quickstart.md",
                 "smoke-summary.txt",
             }
@@ -194,6 +195,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
                 [
                     "reviewer-quickstart.md",
                     "bad-run.md",
+                    "redacted-real-world-bad-run.json",
                     "fail-on-fail.json",
                     "good-run.json",
                     "marked-transcript.json",
@@ -204,10 +206,15 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
                 manifest["review_path"],
             )
             self.assertEqual("## Verdict: FAIL", manifest["expected_checks"]["bad-run.md"])
+            self.assertEqual('"verdict": "FAIL"', manifest["expected_checks"]["redacted-real-world-bad-run.json"])
             self.assertEqual('"verdict": "FAIL" and command exit code 1', manifest["expected_checks"]["fail-on-fail.json"])
             self.assertEqual('"verdict": "PASS"', manifest["expected_checks"]["good-run.json"])
             self.assertEqual('"verdict": "FAIL"', manifest["expected_checks"]["jsonl-events.json"])
             self.assertEqual("source: bad-run-demo", manifest["source_provenance_checks"]["bad-run.md"])
+            self.assertEqual(
+                "source: examples/evidence-court/redacted-real-world-bad-run.json",
+                manifest["source_provenance_checks"]["redacted-real-world-bad-run.json"],
+            )
             self.assertEqual("source: bad-run-demo", manifest["source_provenance_checks"]["fail-on-fail.json"])
             self.assertEqual("source: good-run-demo", manifest["source_provenance_checks"]["good-run.json"])
             self.assertEqual(
@@ -230,6 +237,9 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             self.assertIn("artifact file SHA-256 hashes", quickstart)
             self.assertIn("Open `bad-run.md` first", quickstart)
             self.assertIn("Confirm it includes `source: bad-run-demo`", quickstart)
+            self.assertIn("Open `redacted-real-world-bad-run.json`", quickstart)
+            self.assertIn("redacted supplied record returns", quickstart)
+            self.assertIn("source: examples/evidence-court/redacted-real-world-bad-run.json", quickstart)
             self.assertIn("Open `fail-on-fail.json`", quickstart)
             self.assertIn("exits with code 1", quickstart)
             self.assertIn("supplied run record", quickstart)
@@ -241,6 +251,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             self.assertIn("mixed JSON plus transcript plus JSONL inputs fail closed with `exit_code=2`", quickstart)
             self.assertIn("Open `smoke-summary.txt`", quickstart)
             self.assertIn("This artifact shows these fixtures", quickstart)
+            self.assertIn("redacted supplied-record bad run fails", quickstart)
             self.assertIn("explicit JSONL event input fails closed", quickstart)
             self.assertIn("mixed input modes are rejected", quickstart)
             self.assertIn("## Boundary", quickstart)
@@ -257,8 +268,14 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             good_json = (artifact_root / "good-run.json").read_text(encoding="utf-8")
             marked_json = (artifact_root / "marked-transcript.json").read_text(encoding="utf-8")
             jsonl_json = (artifact_root / "jsonl-events.json").read_text(encoding="utf-8")
-            for report_json in (fail_on_json, good_json, marked_json, jsonl_json):
+            redacted_json = (artifact_root / "redacted-real-world-bad-run.json").read_text(encoding="utf-8")
+            for report_json in (fail_on_json, good_json, marked_json, jsonl_json, redacted_json):
                 self.assertIn('"schema_version": "evidence-court.report.v0.1"', report_json)
+            self.assertIn('"verdict": "FAIL"', redacted_json)
+            self.assertIn("source: examples/evidence-court/redacted-real-world-bad-run.json", redacted_json)
+            self.assertIn("edited protected path: tests/test_api_guard.py", redacted_json)
+            self.assertIn("edited protected path: .github/workflows/ci.yml", redacted_json)
+            self.assertIn("required test not run: python -m pytest tests/test_api_guard.py -q", redacted_json)
             self.assertIn('"verdict": "FAIL"', fail_on_json)
             self.assertIn("source: bad-run-demo", fail_on_json)
             self.assertIn('"verdict": "PASS"', good_json)
@@ -281,6 +298,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             self.assertIn("compile gate passed", summary)
             self.assertIn("focused tests passed", summary)
             self.assertIn("demo verdict gate checked bad-run FAIL and good-run PASS", summary)
+            self.assertIn("redacted supplied-record gate checked redacted-real-world-bad-run FAIL.", summary)
             self.assertIn("fail-on gate checked bad-run exits 1 with --fail-on fail.", summary)
             self.assertIn("input-mode gate checked marked transcript FAIL, explicit JSONL events FAIL", summary)
             self.assertIn("release boundary gate checked the Evidence Court release set", summary)
@@ -414,6 +432,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EVIDENCE_COURT_COMPARISON.md",
+            "docs/REDACTION_GUIDE.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/OUTREACH.md",
             "docs/OUTREACH_TARGETS.md",
@@ -427,6 +446,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/RELEASE_NOTES_V0_1_2.md",
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
+            "examples/evidence-court/redacted-real-world-bad-run.json",
             "quantagent/evidence_court.py",
             "quantagent/__init__.py",
             "quantagent/cli.py",
@@ -476,6 +496,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("report artifacts include `source: ...`", text)
         self.assertIn("open `bad-run.md` first", text)
         self.assertIn("`bad-run.md` shows `Verdict: FAIL`", text)
+        self.assertIn("`redacted-real-world-bad-run.json` contains `\"verdict\": \"FAIL\"`", text)
+        self.assertIn("source: examples/evidence-court/redacted-real-world-bad-run.json", text)
         self.assertIn("`good-run.json` contains `\"verdict\": \"PASS\"`", text)
         self.assertIn("`jsonl-events.json` contains `\"verdict\": \"FAIL\"`", text)
         self.assertIn("`mixed-source-rejection.txt` contains `exit_code=2`", text)
@@ -505,6 +527,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EVIDENCE_COURT_COMPARISON.md",
+            "docs/REDACTION_GUIDE.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/OUTREACH.md",
             "docs/OUTREACH_TARGETS.md",
@@ -518,6 +541,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/RELEASE_NOTES_V0_1_2.md",
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
+            "examples/evidence-court/redacted-real-world-bad-run.json",
             "quantagent/evidence_court.py",
             "quantagent/__init__.py",
             "quantagent/cli.py",
@@ -572,6 +596,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("verifies the artifact file set, manifest contract, artifact SHA-256 hashes", text)
         self.assertIn("open `bad-run.md` first", text)
         self.assertIn("`bad-run.md` shows `Verdict: FAIL`", text)
+        self.assertIn("`redacted-real-world-bad-run.json` contains `\"verdict\": \"FAIL\"`", text)
+        self.assertIn("source: examples/evidence-court/redacted-real-world-bad-run.json", text)
         self.assertIn("`good-run.json` contains `\"verdict\": \"PASS\"`", text)
         self.assertIn("`jsonl-events.json` contains `\"verdict\": \"FAIL\"`", text)
         self.assertIn("`mixed-source-rejection.txt` contains `exit_code=2`", text)
@@ -639,6 +665,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertNotIn("pushed workflow run", safe_copy)
         self.assertIn("## PR Checklist", text)
         included_section = text.split("### Included Files", 1)[1].split("### Excluded From This Claim", 1)[0]
+        self.assertIn("- [ ] `docs/REDACTION_GUIDE.md`", included_section)
+        self.assertIn("- [ ] `examples/evidence-court/redacted-real-world-bad-run.json`", included_section)
         self.assertIn("- [ ] `scripts/evidence_court_smoke.sh`", included_section)
         self.assertNotIn("`bash scripts/evidence_court_smoke.sh`", included_section)
         self.assertIn("`docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md`", text)
@@ -659,6 +687,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("written only after `--fail-on fail` exits 1", text)
         self.assertIn("The PR body must include the same 30-second reviewer path", text)
         self.assertIn("`bad-run.md` shows `Verdict: FAIL`", text)
+        self.assertIn("`redacted-real-world-bad-run.json` shows `\"verdict\": \"FAIL\"`", text)
+        self.assertIn("source: examples/evidence-court/redacted-real-world-bad-run.json", text)
         self.assertIn("`good-run.json` shows `\"verdict\": \"PASS\"`", text)
         self.assertIn("`mixed-source-rejection.txt` shows", text)
         self.assertIn("Optional remote artifact download", text)
@@ -700,6 +730,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("bash scripts/evidence_court_smoke.sh --artifact-dir /tmp/evidence-court-smoke", text)
         self.assertIn("### 30-Second Reviewer Path", text)
         self.assertIn("`bad-run.md`: the supplied record claims success", text)
+        self.assertIn("`redacted-real-world-bad-run.json`: a redacted supplied record claims success", text)
         self.assertIn("`fail-on-fail.json`: the same bad run under `--fail-on fail` exits 1", text)
         self.assertIn("`artifact-manifest.json`: safe claim", text)
         self.assertIn("`reviewer-quickstart.md`: copy-paste local/remote review path", text)
@@ -723,6 +754,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("passes on the downloaded artifact directory", text)
         self.assertIn("open `bad-run.md` first", text)
         self.assertIn("`bad-run.md` shows `Verdict: FAIL`", text)
+        self.assertIn("`redacted-real-world-bad-run.json` shows `\"verdict\": \"FAIL\"`", text)
+        self.assertIn("source: examples/evidence-court/redacted-real-world-bad-run.json", text)
         self.assertIn("`good-run.json` shows `\"verdict\": \"PASS\"`", text)
         self.assertIn("`mixed-source-rejection.txt` shows", text)
         self.assertIn("Optional remote artifact download", text)
@@ -868,6 +901,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EVIDENCE_COURT_COMPARISON.md",
+            "docs/REDACTION_GUIDE.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/OUTREACH.md",
             "docs/OUTREACH_TARGETS.md",
@@ -881,6 +915,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/RELEASE_NOTES_V0_1_2.md",
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
+            "examples/evidence-court/redacted-real-world-bad-run.json",
             "quantagent/evidence_court.py",
             "quantagent/__init__.py",
             "quantagent/cli.py",
@@ -951,6 +986,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EVIDENCE_COURT_COMPARISON.md",
+            "docs/REDACTION_GUIDE.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/OUTREACH.md",
             "docs/OUTREACH_TARGETS.md",
@@ -964,6 +1000,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/RELEASE_NOTES_V0_1_2.md",
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
+            "examples/evidence-court/redacted-real-world-bad-run.json",
             "quantagent/evidence_court.py",
             "quantagent/__init__.py",
             "quantagent/cli.py",
@@ -1064,6 +1101,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EVIDENCE_COURT_COMPARISON.md",
+            "docs/REDACTION_GUIDE.md",
             "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/OUTREACH.md",
             "docs/OUTREACH_TARGETS.md",
@@ -1077,6 +1115,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/RELEASE_NOTES_V0_1_2.md",
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
+            "examples/evidence-court/redacted-real-world-bad-run.json",
             "quantagent/evidence_court.py",
             "quantagent/__init__.py",
             "quantagent/cli.py",
@@ -1252,6 +1291,46 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             with self.subTest(phrase=phrase):
                 self.assertNotIn(phrase, lower)
 
+    def test_redaction_guide_keeps_realistic_fixtures_shareable_without_overclaiming(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        readme = (root / "README.md").read_text(encoding="utf-8")
+        guide = (root / "docs" / "REDACTION_GUIDE.md").read_text(encoding="utf-8")
+        fixture = (root / "examples" / "evidence-court" / "redacted-real-world-bad-run.json").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("docs/REDACTION_GUIDE.md", readme)
+        self.assertIn("redaction guide", readme)
+        self.assertIn("mako evidence-court --input examples/evidence-court/redacted-real-world-bad-run.json", readme)
+        self.assertIn("mako evidence-court --input examples/evidence-court/redacted-real-world-bad-run.json", guide)
+        self.assertIn("[REDACTED_REPO]", guide)
+        self.assertIn("[REDACTED_LOG_EXCERPT]", guide)
+        self.assertIn("Evidence Court only audits the supplied record", guide)
+        self.assertIn("not native Claude/Codex/Cursor/Devin/CI", guide)
+        self.assertIn("does not prove tests actually ran outside", guide)
+        self.assertIn("does not claim broad benchmark or real-world repair accuracy", guide)
+        self.assertIn("[REDACTED_REPO]", fixture)
+        self.assertIn("[REDACTED_LOG_EXCERPT]", fixture)
+
+        forbidden = (
+            "real production incident",
+            "proves agents lie",
+            "native Claude ingestion",
+            "native Codex ingestion",
+            "proves tests ran outside",
+            "benchmark-realistic proof",
+            "unredacted customer data is safe",
+            "endorsed by",
+            "10k",
+        )
+        combined = f"{guide}\n{fixture}".lower()
+        for phrase in forbidden:
+            with self.subTest(phrase=phrase):
+                if phrase == "real production incident":
+                    self.assertIn("does not prove a real production incident", guide)
+                    continue
+                self.assertNotIn(phrase.lower(), combined)
+
     def test_launch_assets_keep_v0_1_claims_bounded(self) -> None:
         root = Path(__file__).resolve().parents[1]
         launch_post = (root / "docs" / "LAUNCH_POST.md").read_text(encoding="utf-8")
@@ -1262,6 +1341,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("public proof card", readme)
         self.assertIn("terminal demo visual", readme)
         self.assertIn("normal-tests comparison", readme)
+        self.assertIn("redaction guide", readme)
         self.assertIn("outreach templates", readme)
         self.assertIn("expert review brief", readme)
         self.assertIn("social card", readme)

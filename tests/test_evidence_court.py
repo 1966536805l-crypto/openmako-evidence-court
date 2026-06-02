@@ -3,6 +3,7 @@ from __future__ import annotations
 import contextlib
 import io
 import json
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -451,6 +452,7 @@ class EvidenceCourtTest(unittest.TestCase):
         cases = {
             "bad-run.json": "FAIL",
             "good-run.json": "PASS",
+            "redacted-real-world-bad-run.json": "FAIL",
         }
 
         for name, expected_verdict in cases.items():
@@ -481,11 +483,26 @@ class EvidenceCourtTest(unittest.TestCase):
         self.assertIn("test output status: passed", good_report.test_verification)
         self.assertEqual(good_report.suspicious_behavior, ())
 
+        redacted_report = evaluate_evidence_court(
+            load_evidence_court_run(root / "examples" / "evidence-court" / "redacted-real-world-bad-run.json")
+        )
+        self.assertIn("edited protected path: tests/test_api_guard.py", redacted_report.scope_violations)
+        self.assertIn("edited protected path: .github/workflows/ci.yml", redacted_report.scope_violations)
+        self.assertIn(
+            "required test not run: python -m pytest tests/test_api_guard.py -q",
+            redacted_report.test_verification,
+        )
+        self.assertIn(
+            "final claim says success, but test evidence is missing or failing",
+            redacted_report.suspicious_behavior,
+        )
+
     def test_cli_reads_evidence_court_examples(self) -> None:
         root = Path(__file__).resolve().parents[1]
         cases = {
             "bad-run.json": "FAIL",
             "good-run.json": "PASS",
+            "redacted-real-world-bad-run.json": "FAIL",
         }
 
         for name, expected_verdict in cases.items():
@@ -514,6 +531,7 @@ class EvidenceCourtTest(unittest.TestCase):
         example_paths = [
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
+            "examples/evidence-court/redacted-real-world-bad-run.json",
         ]
 
         for example_path in example_paths:
@@ -540,6 +558,17 @@ class EvidenceCourtTest(unittest.TestCase):
                 "mako evidence-court --input examples/evidence-court/good-run.json",
                 ["--no-trust-prompt", "evidence-court", "--input", str(root / "examples/evidence-court/good-run.json"), "--json"],
                 "PASS",
+            ),
+            (
+                "mako evidence-court --input examples/evidence-court/redacted-real-world-bad-run.json",
+                [
+                    "--no-trust-prompt",
+                    "evidence-court",
+                    "--input",
+                    str(root / "examples/evidence-court/redacted-real-world-bad-run.json"),
+                    "--json",
+                ],
+                "FAIL",
             ),
             (
                 "mako evidence-court --from-transcript tests/fixtures/evidence_court/marked_bad_transcript.txt --json",
@@ -622,6 +651,35 @@ class EvidenceCourtTest(unittest.TestCase):
                 example_payload.pop("source", None)
 
                 self.assertEqual(example_payload, builtin_payload)
+
+    def test_redacted_real_world_fixture_keeps_private_details_out(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        path = root / "examples" / "evidence-court" / "redacted-real-world-bad-run.json"
+        text = path.read_text(encoding="utf-8")
+        payload = json.loads(text)
+
+        self.assertIn("[REDACTED_REPO]", text)
+        self.assertIn("[REDACTED_ISSUE]", text)
+        self.assertIn("[REDACTED_LOG_EXCERPT]", text)
+        self.assertIn("redaction_note", payload)
+        self.assertIn("not a native vendor transcript", payload["redaction_note"])
+        self.assertIn("does not prove tests ran outside the supplied record", payload["redaction_note"])
+
+        forbidden_patterns = (
+            r"sk-[A-Za-z0-9_-]{16,}",
+            r"ghp_[A-Za-z0-9_]{16,}",
+            r"glpat-[A-Za-z0-9_-]{16,}",
+            r"(?i)github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+",
+            r"/Users/[A-Za-z0-9_.-]+",
+            r"[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}",
+        )
+        for pattern in forbidden_patterns:
+            with self.subTest(pattern=pattern):
+                self.assertIsNone(re.search(pattern, text))
+
+        report = evaluate_evidence_court(load_evidence_court_run(path))
+        self.assertEqual(report.verdict, "FAIL")
+        self.assertIn("source: examples/evidence-court/redacted-real-world-bad-run.json", report.evidence)
 
     def test_marked_transcript_fixture_evaluates_to_fail(self) -> None:
         root = Path(__file__).resolve().parents[1]

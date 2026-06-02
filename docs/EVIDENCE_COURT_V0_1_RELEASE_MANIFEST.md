@@ -41,6 +41,7 @@ Only these release files support the Evidence Court v0.1 public claim:
 - `docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md`
 - `docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md`
 - `docs/EVIDENCE_COURT_COMPARISON.md`
+- `docs/REDACTION_GUIDE.md`
 - `docs/EXPERT_REVIEW_BRIEF.md`
 - `docs/OUTREACH.md`
 - `docs/OUTREACH_TARGETS.md`
@@ -54,6 +55,7 @@ Only these release files support the Evidence Court v0.1 public claim:
 - `docs/RELEASE_NOTES_V0_1_2.md`
 - `examples/evidence-court/bad-run.json`
 - `examples/evidence-court/good-run.json`
+- `examples/evidence-court/redacted-real-world-bad-run.json`
 - `quantagent/evidence_court.py`
 - `quantagent/__init__.py`
 - `quantagent/cli.py`
@@ -99,8 +101,9 @@ After opening or updating the release PR, remote GitHub Actions must show
 "workflow wired locally".
 The remote run must upload the `evidence-court-smoke` artifact with
 `artifact-manifest.json`, `reviewer-quickstart.md`, `bad-run.md`,
-`fail-on-fail.json`, `good-run.json`, `marked-transcript.json`,
-`jsonl-events.json`, `mixed-source-rejection.txt`, and `smoke-summary.txt`.
+`redacted-real-world-bad-run.json`, `fail-on-fail.json`, `good-run.json`,
+`marked-transcript.json`, `jsonl-events.json`, `mixed-source-rejection.txt`,
+and `smoke-summary.txt`.
 
 Artifact content check:
 
@@ -110,6 +113,8 @@ Artifact content check:
 - `reviewer-quickstart.md` tells reviewers to open `bad-run.md` first and
   confirm `source: ...` in the generated reports.
 - `bad-run.md` shows `Verdict: FAIL`.
+- `redacted-real-world-bad-run.json` contains `"verdict": "FAIL"` and
+  `source: examples/evidence-court/redacted-real-world-bad-run.json`.
 - `fail-on-fail.json` contains `"verdict": "FAIL"` and is written only after `--fail-on fail` exits 1.
 - `good-run.json` contains `"verdict": "PASS"`.
 - `marked-transcript.json` contains `"verdict": "FAIL"`.
@@ -124,8 +129,9 @@ Artifact content check:
   expected verdicts, source provenance, and boundary text.
 
 The PR body must include the same 30-second reviewer path: `bad-run.md`,
-`fail-on-fail.json`, `artifact-manifest.json`, `reviewer-quickstart.md`,
-`jsonl-events.json`, and `mixed-source-rejection.txt`.
+`redacted-real-world-bad-run.json`, `fail-on-fail.json`,
+`artifact-manifest.json`, `reviewer-quickstart.md`, `jsonl-events.json`, and
+`mixed-source-rejection.txt`.
 
 Optional remote artifact download, only if GitHub CLI is installed and
 authenticated:

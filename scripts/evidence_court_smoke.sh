@@ -70,6 +70,15 @@ if [[ -n "${ARTIFACT_DIR}" ]]; then
 fi
 grep -q "## Verdict: FAIL" <<< "${bad_output}"
 
+echo "[evidence-court-smoke] redacted supplied record must fail"
+redacted_output="$("${PY}" -m quantagent.cli --no-trust-prompt evidence-court --input examples/evidence-court/redacted-real-world-bad-run.json --json)"
+if [[ -n "${ARTIFACT_DIR}" ]]; then
+  printf '%s\n' "${redacted_output}" > "${ARTIFACT_DIR}/redacted-real-world-bad-run.json"
+fi
+grep -q '"verdict": "FAIL"' <<< "${redacted_output}"
+grep -q 'source: examples/evidence-court/redacted-real-world-bad-run.json' <<< "${redacted_output}"
+grep -q 'required test not run: python -m pytest tests/test_api_guard.py -q' <<< "${redacted_output}"
+
 echo "[evidence-court-smoke] fail-on gate must block fail verdicts"
 set +e
 fail_on_output="$("${PY}" -m quantagent.cli --no-trust-prompt evidence-court --demo bad-run --fail-on fail --json 2>&1)"
@@ -156,6 +165,7 @@ if [[ -n "${ARTIFACT_DIR}" ]]; then
   "review_path": [
     "reviewer-quickstart.md",
     "bad-run.md",
+    "redacted-real-world-bad-run.json",
     "fail-on-fail.json",
     "good-run.json",
     "marked-transcript.json",
@@ -165,6 +175,7 @@ if [[ -n "${ARTIFACT_DIR}" ]]; then
   ],
   "expected_checks": {
     "bad-run.md": "## Verdict: FAIL",
+    "redacted-real-world-bad-run.json": "\"verdict\": \"FAIL\"",
     "fail-on-fail.json": "\"verdict\": \"FAIL\" and command exit code 1",
     "good-run.json": "\"verdict\": \"PASS\"",
     "marked-transcript.json": "\"verdict\": \"FAIL\"",
@@ -174,6 +185,7 @@ if [[ -n "${ARTIFACT_DIR}" ]]; then
   },
   "source_provenance_checks": {
     "bad-run.md": "source: bad-run-demo",
+    "redacted-real-world-bad-run.json": "source: examples/evidence-court/redacted-real-world-bad-run.json",
     "fail-on-fail.json": "source: bad-run-demo",
     "good-run.json": "source: good-run-demo",
     "marked-transcript.json": "source: tests/fixtures/evidence_court/marked_bad_transcript.txt",
@@ -195,14 +207,15 @@ Evidence Court is not another coding agent. It is a claim-vs-evidence gate for s
 
 1. Open `artifact-manifest.json`: it lists the safe claim, review files, expected checks, source provenance checks, artifact file SHA-256 hashes, and boundaries.
 2. Open `bad-run.md` first: the agent claims success, but Evidence Court returns `FAIL` because the supplied run record reports a protected test edit and does not report the required pytest command. Confirm it includes `source: bad-run-demo`.
-3. Open `fail-on-fail.json`: the same bad run is executed with `--fail-on fail`, and the smoke gate only writes this artifact after the command exits with code 1.
-4. Open `good-run.json`: the supplied run record stays in scope, reports the required pytest command, returns `"verdict": "PASS"`, and includes `source: good-run-demo`.
-5. Open `marked-transcript.json`: explicit marked transcript v0 input returns `"verdict": "FAIL"` and includes the fixture path as `source`.
-6. Open `jsonl-events.json`: explicit Evidence Court JSONL event stream input returns `"verdict": "FAIL"` and includes the generated JSONL path as `source`.
-7. Open `mixed-source-rejection.txt`: mixed JSON plus transcript plus JSONL inputs fail closed with `exit_code=2`.
-8. Open `smoke-summary.txt`: the smoke gate reports `Evidence Court smoke gate passed.`
+3. Open `redacted-real-world-bad-run.json`: a redacted supplied record returns `"verdict": "FAIL"` because it reports protected edits and does not report the required API guard pytest. Confirm it includes `source: examples/evidence-court/redacted-real-world-bad-run.json`.
+4. Open `fail-on-fail.json`: the same bad run is executed with `--fail-on fail`, and the smoke gate only writes this artifact after the command exits with code 1.
+5. Open `good-run.json`: the supplied run record stays in scope, reports the required pytest command, returns `"verdict": "PASS"`, and includes `source: good-run-demo`.
+6. Open `marked-transcript.json`: explicit marked transcript v0 input returns `"verdict": "FAIL"` and includes the fixture path as `source`.
+7. Open `jsonl-events.json`: explicit Evidence Court JSONL event stream input returns `"verdict": "FAIL"` and includes the generated JSONL path as `source`.
+8. Open `mixed-source-rejection.txt`: mixed JSON plus transcript plus JSONL inputs fail closed with `exit_code=2`.
+9. Open `smoke-summary.txt`: the smoke gate reports `Evidence Court smoke gate passed.`
 
-This artifact shows these fixtures: `bad-run` fails, `good-run` passes, marked transcript v0 input fails closed, explicit JSONL event input fails closed, and mixed input modes are rejected.
+This artifact shows these fixtures: `bad-run` fails, redacted supplied-record bad run fails, `good-run` passes, marked transcript v0 input fails closed, explicit JSONL event input fails closed, and mixed input modes are rejected.
 
 ## Boundary
 
@@ -221,10 +234,12 @@ reviewer-quickstart.md gives the 30-second review path.
 compile gate passed for quantagent/evidence_court.py, quantagent/cli.py, and focused tests.
 focused tests passed for tests/test_evidence_court.py.
 demo verdict gate checked bad-run FAIL and good-run PASS.
+redacted supplied-record gate checked redacted-real-world-bad-run FAIL.
 fail-on gate checked bad-run exits 1 with --fail-on fail.
 input-mode gate checked marked transcript FAIL, explicit JSONL events FAIL, and mixed JSON plus transcript plus JSONL rejection.
 release boundary gate checked the Evidence Court release set.
 bad-run.md must contain Verdict: FAIL.
+redacted-real-world-bad-run.json must contain "verdict": "FAIL".
 fail-on-fail.json must contain "verdict": "FAIL" and is only written after exit code 1.
 good-run.json must contain "verdict": "PASS".
 marked-transcript.json must contain "verdict": "FAIL".

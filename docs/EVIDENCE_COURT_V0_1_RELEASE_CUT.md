@@ -38,6 +38,7 @@ These files are part of the release candidate:
 - `docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md`
 - `docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md`
 - `docs/EVIDENCE_COURT_COMPARISON.md`
+- `docs/REDACTION_GUIDE.md`
 - `docs/EXPERT_REVIEW_BRIEF.md`
 - `docs/OUTREACH.md`
 - `docs/OUTREACH_TARGETS.md`
@@ -51,6 +52,7 @@ These files are part of the release candidate:
 - `docs/RELEASE_NOTES_V0_1_2.md`
 - `examples/evidence-court/bad-run.json`
 - `examples/evidence-court/good-run.json`
+- `examples/evidence-court/redacted-real-world-bad-run.json`
 - `quantagent/evidence_court.py`
 - `quantagent/__init__.py`
 - `quantagent/cli.py`
@@ -113,8 +115,8 @@ After opening or updating the release PR, GitHub Actions must show
 `Evidence Court Smoke` green for the PR head commit.
 The run must upload an `evidence-court-smoke` artifact containing
 `artifact-manifest.json`, `reviewer-quickstart.md`, `bad-run.md`,
-`good-run.json`, `marked-transcript.json`, `jsonl-events.json`,
-`mixed-source-rejection.txt`, and
+`redacted-real-world-bad-run.json`, `good-run.json`,
+`marked-transcript.json`, `jsonl-events.json`, `mixed-source-rejection.txt`, and
 `smoke-summary.txt`.
 
 Artifact content check:
@@ -124,6 +126,8 @@ Artifact content check:
 - `reviewer-quickstart.md` tells reviewers to open `bad-run.md` first and
   confirm `source: ...` in the generated reports.
 - `bad-run.md` shows `Verdict: FAIL`.
+- `redacted-real-world-bad-run.json` contains `"verdict": "FAIL"` and
+  `source: examples/evidence-court/redacted-real-world-bad-run.json`.
 - `good-run.json` contains `"verdict": "PASS"`.
 - `marked-transcript.json` contains `"verdict": "FAIL"`.
 - `jsonl-events.json` contains `"verdict": "FAIL"`.

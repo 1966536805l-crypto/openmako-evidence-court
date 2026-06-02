@@ -33,11 +33,12 @@ Expected demo behavior:
 ### 30-Second Reviewer Path
 Open these first:
 1. `bad-run.md`: the supplied record claims success but shows a protected test edit and missing reported required pytest.
-2. `fail-on-fail.json`: the same bad run under `--fail-on fail` exits 1 for CI/wrappers.
-3. `artifact-manifest.json`: safe claim, expected artifact checks, source provenance checks, artifact file SHA-256 hashes, and boundaries.
-4. `reviewer-quickstart.md`: copy-paste local/remote review path and source provenance checks.
-5. `jsonl-events.json`: explicit Evidence Court JSONL event-stream input.
-6. `mixed-source-rejection.txt`: mixed inputs fail closed with `exit_code=2`.
+2. `redacted-real-world-bad-run.json`: a redacted supplied record claims success but shows protected edits and a missing required API guard pytest.
+3. `fail-on-fail.json`: the same bad run under `--fail-on fail` exits 1 for CI/wrappers.
+4. `artifact-manifest.json`: safe claim, expected artifact checks, source provenance checks, artifact file SHA-256 hashes, and boundaries.
+5. `reviewer-quickstart.md`: copy-paste local/remote review path and source provenance checks.
+6. `jsonl-events.json`: explicit Evidence Court JSONL event-stream input.
+7. `mixed-source-rejection.txt`: mixed inputs fail closed with `exit_code=2`.
 
 ### Included In This Release Claim
 - `.github/ISSUE_TEMPLATE/technical-review-request.md`
@@ -51,6 +52,7 @@ Open these first:
 - `docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md`
 - `docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md`
 - `docs/EVIDENCE_COURT_COMPARISON.md`
+- `docs/REDACTION_GUIDE.md`
 - `docs/EXPERT_REVIEW_BRIEF.md`
 - `docs/OUTREACH.md`
 - `docs/OUTREACH_TARGETS.md`
@@ -64,6 +66,7 @@ Open these first:
 - `docs/RELEASE_NOTES_V0_1_2.md`
 - `examples/evidence-court/bad-run.json`
 - `examples/evidence-court/good-run.json`
+- `examples/evidence-court/redacted-real-world-bad-run.json`
 - `quantagent/evidence_court.py`
 - `quantagent/__init__.py`
 - `quantagent/cli.py`
@@ -107,12 +110,14 @@ sed -n '1,40p' /tmp/evidence-court-smoke/bad-run.md
 - [ ] GitHub Actions `Evidence Court Smoke` is green for the PR head commit.
 - [ ] GitHub Actions uploaded the `evidence-court-smoke` artifact containing
       `artifact-manifest.json`, `reviewer-quickstart.md`, `bad-run.md`,
-      `fail-on-fail.json`, `good-run.json`, `marked-transcript.json`,
-      `jsonl-events.json`, `mixed-source-rejection.txt`, and
-      `smoke-summary.txt`.
+      `redacted-real-world-bad-run.json`, `fail-on-fail.json`,
+      `good-run.json`, `marked-transcript.json`, `jsonl-events.json`,
+      `mixed-source-rejection.txt`, and `smoke-summary.txt`.
 - [ ] Artifact content check: `artifact-manifest.json` lists the safe claim,
       review path, expected checks, source provenance checks, artifact file SHA-256 hashes, and boundaries; `reviewer-quickstart.md` tells reviewers to
       open `bad-run.md` first; `bad-run.md` shows `Verdict: FAIL`;
+      `redacted-real-world-bad-run.json` shows `"verdict": "FAIL"` and
+      `source: examples/evidence-court/redacted-real-world-bad-run.json`;
       `good-run.json` shows `"verdict": "PASS"`; `marked-transcript.json`
       shows `"verdict": "FAIL"`; `jsonl-events.json` shows
       `"verdict": "FAIL"`; `mixed-source-rejection.txt` shows
