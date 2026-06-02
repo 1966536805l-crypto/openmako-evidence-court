@@ -1,17 +1,18 @@
 # Current Proof Status
 
-This page separates current local evidence from public remote evidence.
+This page separates pinned proof-anchor evidence from latest-main claims.
+It is not an automatically updated status page.
 
-## Current Head
+## Proof Anchor
 
 - Branch: `main`
-- Latest pushed commit checked locally: `cb1ab5e`
-- Commit subject: `docs: add redacted evidence court bad run`
-- Remote `main`: confirmed by `git ls-remote origin refs/heads/main`
+- Proof anchor commit: `cb1ab5e`
+- Proof anchor subject: `docs: add redacted evidence court bad run`
+- Remote `main` contained this commit when checked by `git ls-remote origin refs/heads/main`
 
 ## Local Evidence
 
-These checks passed locally for commit `cb1ab5e`:
+These checks passed locally for proof anchor commit `cb1ab5e`:
 
 ```bash
 python3 -m quantagent.cli --no-trust-prompt evidence-court --input examples/evidence-court/redacted-real-world-bad-run.json
@@ -32,7 +33,7 @@ Observed local results:
 
 ## Public Remote Evidence
 
-Remote CI evidence is confirmed for commit `cb1ab5e`.
+Remote CI evidence is confirmed for proof anchor commit `cb1ab5e`.
 
 Known facts:
 
@@ -53,6 +54,10 @@ Remote evidence URL:
 smoke run, and artifact digest. It is still useful as historical release
 evidence, but it does not prove the latest main commit or the redacted bad-run
 fixture.
+
+This page's proof anchor does not automatically prove later commits on `main`.
+After any new commit, use the newest visible `Evidence Court Smoke` run and
+artifact digest before claiming current remote CI evidence.
 
 ## Not Proven
 

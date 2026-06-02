@@ -205,7 +205,7 @@ audit_staged_claim_copy() {
   require_staged_contains "docs/REDACTION_GUIDE.md" "Evidence Court only audits the supplied record" || invalid=1
   require_staged_contains "docs/REDACTION_GUIDE.md" "does not prove tests actually ran outside" || invalid=1
   require_staged_contains "docs/REDACTION_GUIDE.md" "not native Claude/Codex/Cursor/Devin/CI" || invalid=1
-  require_staged_contains "docs/CURRENT_PROOF_STATUS.md" "Remote CI evidence is confirmed for commit" || invalid=1
+  require_staged_contains "docs/CURRENT_PROOF_STATUS.md" "Remote CI evidence is confirmed for proof anchor commit" || invalid=1
   require_staged_contains "docs/CURRENT_PROOF_STATUS.md" "sha256:7ec4b7b76b0486ebad593e2936bd083ab80e0eee65c628c80f4ea64852095eac" || invalid=1
   require_staged_contains "docs/CURRENT_PROOF_STATUS.md" "does not prove the latest main commit" || invalid=1
   require_staged_contains "docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md" "not an endorsement request" || invalid=1

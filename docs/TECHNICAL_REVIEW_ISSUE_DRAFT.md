@@ -36,7 +36,7 @@ Expected local behavior:
 - the redacted bad run flags protected edits and a missing required API guard pytest
 - `bash scripts/evidence_court_smoke.sh` passes locally
 
-Current remote evidence:
+Current proof-anchor evidence:
 
 - Evidence Court Smoke run: https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26836126047
 - Run status: `Success` for commit `cb1ab5e`

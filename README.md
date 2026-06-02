@@ -10,7 +10,7 @@ Agents often say "done", "fixed", or "tests passed" before the supplied record s
 Public proof: [docs/PUBLIC_PROOF.md](docs/PUBLIC_PROOF.md) binds the v0.1.2 claim
 to the tag, commit, smoke run, artifact digest, and 30-second reviewer path.
 Public technical feedback can use the [technical review issue template](../../issues/new?template=technical-review-request.md); opening that issue is a request for boundary feedback, not evidence of endorsement.
-Current local and remote proof status is tracked in
+Proof status and stale-proof boundaries are tracked in
 [docs/CURRENT_PROOF_STATUS.md](docs/CURRENT_PROOF_STATUS.md).
 
 Star this if you want a tiny CI-friendly gate that catches coding agents claiming "tests passed" without supplied evidence. Today: JSON records, marked transcript v0, and explicit JSONL events. Not claimed: native Claude/Codex/Cursor/CI log ingestion.
@@ -163,7 +163,7 @@ Until that PR-head remote run exists, use the local smoke gate above; do not cla
 ## Launch Assets
 
 - [public proof card](docs/PUBLIC_PROOF.md)
-- [current proof status](docs/CURRENT_PROOF_STATUS.md)
+- [proof status and stale-proof boundary](docs/CURRENT_PROOF_STATUS.md)
 - [terminal demo visual](docs/demo-terminal.svg)
 - [v0.1.2 release notes](docs/RELEASE_NOTES_V0_1_2.md)
 - [expert review brief](docs/EXPERT_REVIEW_BRIEF.md)
