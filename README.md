@@ -155,6 +155,7 @@ Until that PR-head remote run exists, use the local smoke gate above; do not cla
 - [expert review brief](docs/EXPERT_REVIEW_BRIEF.md)
 - [outreach templates](docs/OUTREACH.md)
 - [outreach target tracker](docs/OUTREACH_TARGETS.md)
+- [technical review request](docs/TECHNICAL_REVIEW_REQUEST.md)
 - [copyable launch post](docs/LAUNCH_POST.md)
 - [social card](docs/social-card.svg)
 

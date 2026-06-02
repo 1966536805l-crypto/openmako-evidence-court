@@ -401,6 +401,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/OUTREACH.md",
             "docs/OUTREACH_TARGETS.md",
+            "docs/TECHNICAL_REVIEW_REQUEST.md",
             "docs/PUBLIC_PROOF.md",
             "docs/demo-terminal.svg",
             "docs/LAUNCH_POST.md",
@@ -489,6 +490,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/OUTREACH.md",
             "docs/OUTREACH_TARGETS.md",
+            "docs/TECHNICAL_REVIEW_REQUEST.md",
             "docs/PUBLIC_PROOF.md",
             "docs/demo-terminal.svg",
             "docs/LAUNCH_POST.md",
@@ -849,6 +851,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/OUTREACH.md",
             "docs/OUTREACH_TARGETS.md",
+            "docs/TECHNICAL_REVIEW_REQUEST.md",
             "docs/PUBLIC_PROOF.md",
             "docs/demo-terminal.svg",
             "docs/LAUNCH_POST.md",
@@ -929,6 +932,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/OUTREACH.md",
             "docs/OUTREACH_TARGETS.md",
+            "docs/TECHNICAL_REVIEW_REQUEST.md",
             "docs/PUBLIC_PROOF.md",
             "docs/demo-terminal.svg",
             "docs/LAUNCH_POST.md",
@@ -1039,6 +1043,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EXPERT_REVIEW_BRIEF.md",
             "docs/OUTREACH.md",
             "docs/OUTREACH_TARGETS.md",
+            "docs/TECHNICAL_REVIEW_REQUEST.md",
             "docs/PUBLIC_PROOF.md",
             "docs/demo-terminal.svg",
             "docs/LAUNCH_POST.md",
@@ -1253,6 +1258,9 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("review-first outreach templates", release_notes)
         self.assertIn("v0.1.2 release notes", readme)
         self.assertIn("outreach templates", readme)
+        self.assertIn("technical review request", readme)
+        self.assertIn("TECHNICAL_REVIEW_REQUEST.md", outreach)
+        self.assertIn("technical boundary feedback", release_notes)
         self.assertIn("Reference green smoke run", outreach)
         self.assertIn("actions/runs/26832603411", outreach)
         self.assertIn("Reference smoke artifact digest", outreach)
@@ -1292,6 +1300,56 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             with self.subTest(phrase=phrase):
                 self.assertNotIn(phrase, outreach)
                 self.assertNotIn(phrase, release_notes)
+
+    def test_technical_review_request_is_bounded_and_actionable(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        review = (root / "docs" / "TECHNICAL_REVIEW_REQUEST.md").read_text(encoding="utf-8")
+        readme = (root / "README.md").read_text(encoding="utf-8")
+
+        self.assertIn("Technical Review Request", review)
+        self.assertIn("public request for technical review", review)
+        self.assertIn("not asking for endorsement or", review)
+        self.assertIn("Review Questions", review)
+        self.assertIn("Evidence Links", review)
+        self.assertIn("Quick Local Check", review)
+        self.assertIn("Boundaries", review)
+        self.assertIn("How To Respond", review)
+        self.assertIn("does not prove tests actually ran outside the supplied record", review)
+        self.assertIn("does not natively ingest Claude/Codex/Cursor/Devin/CI logs", review)
+        self.assertIn("docs/TECHNICAL_REVIEW_REQUEST.md", readme)
+
+        questions = re.findall(r"^\d+\. ", review, flags=re.MULTILINE)
+        self.assertEqual(len(questions), 3)
+        for phrase in (
+            "https://github.com/1966536805l-crypto/openmako-evidence-court",
+            "https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/PUBLIC_PROOF.md",
+            "https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/demo-terminal.svg",
+            "actions/runs/26833128837",
+            "sha256:e94758c63e3fe4e28f8ec65ef51c89e87395b2fb12f160e4dd1e4b1bb8ae283e",
+            "mako evidence-court --demo bad-run",
+            "Verdict: FAIL",
+            "docs/OUTREACH_TARGETS.md",
+            "not valid",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, review)
+
+        forbidden = (
+            "please retweet",
+            "10k",
+            "10000",
+            "guaranteed",
+            "native Claude ingestion is supported",
+            "native Codex ingestion is supported",
+            "endorsed by",
+            "reviewed by",
+            "adopted by",
+            "shared by",
+        )
+        normalized = review.lower()
+        for phrase in forbidden:
+            with self.subTest(phrase=phrase):
+                self.assertNotIn(phrase.lower(), normalized)
 
     def test_outreach_targets_are_candidates_and_bounded(self) -> None:
         root = Path(__file__).resolve().parents[1]
@@ -1375,8 +1433,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
 
         required = (
             "https://github.com/1966536805l-crypto/openmako-evidence-court",
-            "docs/PUBLIC_PROOF.md",
-            "docs/demo-terminal.svg",
+            "docs/technical_review_request.md",
             "not asking",
             "technical boundary feedback",
         )
@@ -1507,11 +1564,14 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
                 if status.strip() in {"sent", "replied", "shared"}:
                     self.assertRegex(sent_date.strip(), r"^2026-\d{2}-\d{2}$")
                     self.assertTrue(message_url.strip().startswith("`https://"))
+                    self.assertNotIn("/blob/main/docs/", message_url)
                 if status.strip() in {"replied", "shared"}:
                     self.assertRegex(reply_date.strip(), r"^2026-\d{2}-\d{2}$")
                     self.assertTrue(reply_url.strip().startswith("`https://"))
+                    self.assertNotIn("/blob/main/docs/", reply_url)
                 if status.strip() == "shared":
                     self.assertTrue(share_url.strip().startswith("`https://"))
+                    self.assertNotIn("/blob/main/docs/", share_url)
 
     def test_terminal_demo_visual_stays_bounded_and_renderable(self) -> None:
         root = Path(__file__).resolve().parents[1]

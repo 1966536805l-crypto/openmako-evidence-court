@@ -104,10 +104,9 @@ If the channel does not provide a public URL, do not mark the row as `sent`.
 ### 1. SWE-agent / mini-SWE-agent
 
 ```text
-Hi, I built a tiny v0.1.2 gate that checks whether a coding-agent "fixed/tests passed" claim is backed by its supplied run record: https://github.com/1966536805l-crypto/openmako-evidence-court
-From a SWE-Bench / mini-SWE-agent perspective, is this verdict boundary right?
-If the record misses the exact eval command, or edits protected tests, should that be FAIL or SUSPICIOUS?
-Proof card: docs/PUBLIC_PROOF.md. Demo: docs/demo-terminal.svg.
+Hi, I built a tiny v0.1.2 gate for checking whether a coding-agent "fixed/tests passed" claim is backed by its supplied run record: https://github.com/1966536805l-crypto/openmako-evidence-court
+From a SWE-Bench / mini-SWE-agent perspective, is this verdict boundary too strict, too weak, or useful?
+Review request: https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/TECHNICAL_REVIEW_REQUEST.md
 Not asking for endorsement or a share; I only want technical boundary feedback.
 ```
 
@@ -115,9 +114,8 @@ Not asking for endorsement or a share; I only want technical boundary feedback.
 
 ```text
 Hi, I built a small v0.1.2 audit gate for terminal coding-agent run records: https://github.com/1966536805l-crypto/openmako-evidence-court
-For an Aider-style workflow, what should be the minimum record before a "tests passed" claim is supportable?
-Is command history + edited files + test output enough, or should diff/protected-path data be required?
-Proof card: docs/PUBLIC_PROOF.md. Demo: docs/demo-terminal.svg.
+For an Aider-style workflow, what should the supplied record include before a "tests passed" claim is supportable?
+Review request: https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/TECHNICAL_REVIEW_REQUEST.md
 Not asking for endorsement or a share; I only want technical boundary feedback.
 ```
 

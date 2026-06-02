@@ -13,6 +13,8 @@ packages the public proof and demo assets into an immutable release.
   framework, CI/devtools, and evaluator audiences.
 - `docs/OUTREACH_TARGETS.md`: candidate outreach tracker; it is not evidence of
   endorsement, adoption, review, or sharing.
+- `docs/TECHNICAL_REVIEW_REQUEST.md`: public review request page; it asks for
+  technical boundary feedback and does not claim endorsement or sharing.
 
 ## Proven Scope
 

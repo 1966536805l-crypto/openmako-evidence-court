@@ -42,6 +42,7 @@ Only these release files support the Evidence Court v0.1 public claim:
 - `docs/EXPERT_REVIEW_BRIEF.md`
 - `docs/OUTREACH.md`
 - `docs/OUTREACH_TARGETS.md`
+- `docs/TECHNICAL_REVIEW_REQUEST.md`
 - `docs/PUBLIC_PROOF.md`
 - `docs/demo-terminal.svg`
 - `docs/LAUNCH_POST.md`
