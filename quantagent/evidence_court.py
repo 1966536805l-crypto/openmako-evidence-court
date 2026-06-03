@@ -634,6 +634,7 @@ def _test_output_has_pass(lowered: str) -> bool:
     if lowered == "ok" or re.search(r"(?m)^\s*ok\s*$", lowered):
         return True
     pass_patterns = (
+        r"(?m)^\s*ok\s+\S+",
         r"\b\d+\s+passed\b",
         r"\b(?:passed|pass)\s*[:=]\s*[1-9]\d*\b",
         r"\b(?:exit(?: code)?|returncode|status)\s*[:=]?\s*0\b",
