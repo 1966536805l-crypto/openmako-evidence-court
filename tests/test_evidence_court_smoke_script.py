@@ -1222,6 +1222,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("The bad demo is a supplied run record", readme)
         self.assertIn("This is the smallest evidence check: a bad supplied record says tests passed", readme)
         self.assertIn("protected test edit and no reported required pytest command", readme)
+        self.assertIn("test output status reason: no known pass/fail pattern matched", readme)
         self.assertIn("To block CI on this verdict, run the same command with `--fail-on fail`", readme)
         self.assertIn("the bad run exits 1 instead of report-only 0", readme)
         self.assertIn("## What Normal Tests Miss", readme)
@@ -1249,6 +1250,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("--fail-on fail", first_screen)
         demo_block = readme.split("## 10-Second Demo", 1)[1].split("## Quick Start", 1)[0]
         self.assertIn("mako evidence-court --demo bad-run", demo_block)
+        self.assertIn("test output status reason: no known pass/fail pattern matched", demo_block)
         self.assertIn("To block CI on this verdict", demo_block)
         self.assertNotIn("pip install", demo_block)
         quick_start = readme.split("## Quick Start", 1)[1].split("## What It Checks", 1)[0]

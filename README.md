@@ -9,8 +9,7 @@ Audit whether a coding agent's success claim is supported by a supplied run reco
 
 Agents often say "done", "fixed", or "tests passed" before the supplied record supports it. Evidence Court is not another coding agent, not a codegraph, not a token compressor, and not an agent skill library. It is a record auditor: given explicit run evidence, it reports whether the claim is supported.
 
-Public proof: [docs/PUBLIC_PROOF.md](docs/PUBLIC_PROOF.md) binds the v0.1.2 claim
-to the tag, commit, smoke run, artifact digest, and 30-second reviewer path.
+Public proof: [docs/PUBLIC_PROOF.md](docs/PUBLIC_PROOF.md) binds the v0.1.2 claim to the tag, commit, smoke run, artifact digest, and 30-second reviewer path.
 Public technical feedback can use the [technical review issue template](../../issues/new?template=technical-review-request.md); opening that issue is a request for boundary feedback, not evidence of endorsement.
 Proof status and stale-proof boundaries are tracked in
 [docs/CURRENT_PROOF_STATUS.md](docs/CURRENT_PROOF_STATUS.md).
@@ -27,6 +26,7 @@ mako evidence-court --demo bad-run
 # Claim: Done. The calculator bug is fixed and tests pass.
 # Evidence: edited protected path: tests/test_calculator.py
 # Evidence: required test not run: python -m pytest tests/test_calculator.py -q
+# Evidence: test output status reason: no known pass/fail pattern matched
 # Verdict: FAIL
 ```
 
