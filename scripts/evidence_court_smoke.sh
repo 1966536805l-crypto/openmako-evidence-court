@@ -108,6 +108,14 @@ if [[ -n "${ARTIFACT_DIR}" ]]; then
 fi
 grep -q '"verdict": "FAIL"' <<< "${transcript_output}"
 
+echo "[evidence-court-smoke] OpenMako AgentRunResult must fail closed"
+agent_run_result_output="$("${PY}" -m quantagent.cli --no-trust-prompt evidence-court --from-openmako-agent-run-result tests/fixtures/evidence_court/openmako_agent_run_result_bad.json --json)"
+if [[ -n "${ARTIFACT_DIR}" ]]; then
+  printf '%s\n' "${agent_run_result_output}" > "${ARTIFACT_DIR}/openmako-agent-run-result.json"
+fi
+grep -q '"verdict": "FAIL"' <<< "${agent_run_result_output}"
+grep -q '"required test not run: python -m pytest tests/test_calculator.py -q"' <<< "${agent_run_result_output}"
+
 jsonl_events_file="$(mktemp "${TMPDIR:-/tmp}/evidence-court-events.XXXXXX")"
 cat > "${jsonl_events_file}" <<'JSONL'
 {"event":"claimed_task","text":"Fix calculator.add; only calculator.py may be edited."}
@@ -161,7 +169,7 @@ if [[ -n "${ARTIFACT_DIR}" ]]; then
 {
   "artifact": "evidence-court-smoke",
   "version": "v0.1",
-  "safe_claim": "Evidence Court audits supplied JSON run records, explicit marked transcript v0 files, and explicit Evidence Court JSONL event streams for claim/evidence/scope/test mismatches.",
+  "safe_claim": "Evidence Court audits supplied JSON run records, OpenMako AgentRunResult JSON producer artifacts, explicit marked transcript v0 files, and explicit Evidence Court JSONL event streams for claim/evidence/scope/test mismatches.",
   "review_path": [
     "reviewer-quickstart.md",
     "bad-run.md",
@@ -169,6 +177,7 @@ if [[ -n "${ARTIFACT_DIR}" ]]; then
     "fail-on-fail.json",
     "good-run.json",
     "marked-transcript.json",
+    "openmako-agent-run-result.json",
     "jsonl-events.json",
     "mixed-source-rejection.txt",
     "smoke-summary.txt"
@@ -179,6 +188,7 @@ if [[ -n "${ARTIFACT_DIR}" ]]; then
     "fail-on-fail.json": "\"verdict\": \"FAIL\" and command exit code 1",
     "good-run.json": "\"verdict\": \"PASS\"",
     "marked-transcript.json": "\"verdict\": \"FAIL\"",
+    "openmako-agent-run-result.json": "\"verdict\": \"FAIL\"",
     "jsonl-events.json": "\"verdict\": \"FAIL\"",
     "mixed-source-rejection.txt": "exit_code=2",
     "smoke-summary.txt": "Evidence Court smoke gate passed."
@@ -189,6 +199,7 @@ if [[ -n "${ARTIFACT_DIR}" ]]; then
     "fail-on-fail.json": "source: bad-run-demo",
     "good-run.json": "source: good-run-demo",
     "marked-transcript.json": "source: tests/fixtures/evidence_court/marked_bad_transcript.txt",
+    "openmako-agent-run-result.json": "source: tests/fixtures/evidence_court/openmako_agent_run_result_bad.json",
     "jsonl-events.json": "source: "
   },
   "boundaries": [
@@ -211,19 +222,20 @@ Evidence Court is not another coding agent. It is a claim-vs-evidence gate for s
 4. Open `fail-on-fail.json`: the same bad run is executed with `--fail-on fail`, and the smoke gate only writes this artifact after the command exits with code 1.
 5. Open `good-run.json`: the supplied run record stays in scope, reports the required pytest command, returns `"verdict": "PASS"`, and includes `source: good-run-demo`.
 6. Open `marked-transcript.json`: explicit marked transcript v0 input returns `"verdict": "FAIL"` and includes the fixture path as `source`.
-7. Open `jsonl-events.json`: explicit Evidence Court JSONL event stream input returns `"verdict": "FAIL"` and includes the generated JSONL path as `source`.
-8. Open `mixed-source-rejection.txt`: mixed JSON plus transcript plus JSONL inputs fail closed with `exit_code=2`.
-9. Open `smoke-summary.txt`: the smoke gate reports `Evidence Court smoke gate passed.`
+7. Open `openmako-agent-run-result.json`: explicit OpenMako AgentRunResult input returns `"verdict": "FAIL"` and includes the fixture path as `source`.
+8. Open `jsonl-events.json`: explicit Evidence Court JSONL event stream input returns `"verdict": "FAIL"` and includes the generated JSONL path as `source`.
+9. Open `mixed-source-rejection.txt`: mixed JSON plus transcript plus JSONL inputs fail closed with `exit_code=2`.
+10. Open `smoke-summary.txt`: the smoke gate reports `Evidence Court smoke gate passed.`
 
-This artifact shows these fixtures: `bad-run` fails, redacted supplied-record bad run fails, `good-run` passes, marked transcript v0 input fails closed, explicit JSONL event input fails closed, and mixed input modes are rejected.
+This artifact shows these fixtures: `bad-run` fails, redacted supplied-record bad run fails, `good-run` passes, marked transcript v0 input fails closed, OpenMako AgentRunResult input fails closed, explicit JSONL event input fails closed, and mixed input modes are rejected.
 
 ## Boundary
 
-This artifact shows the smoke gate output for supplied JSON, marked transcript v0, and explicit Evidence Court JSONL event records. It does not prove native Claude/Codex/Cursor/Devin/CI log ingestion, and it does not prove tests really ran outside the supplied record.
+This artifact shows the smoke gate output for supplied JSON, OpenMako AgentRunResult producer artifacts, marked transcript v0, and explicit Evidence Court JSONL event records. It does not prove native Claude/Codex/Cursor/Devin/CI log ingestion, and it does not prove tests really ran outside the supplied record.
 
 It does not prove broad SWE repair, unknown NPM reasoning, or Desktop L4/L5 autonomy.
 
-Safe claim: Evidence Court v0.1 audits supplied JSON run records, explicit marked transcript v0 files, and explicit Evidence Court JSONL event streams for claim/evidence/scope/test mismatches.
+Safe claim: Evidence Court v0.1 audits supplied JSON run records, OpenMako AgentRunResult JSON producer artifacts, explicit marked transcript v0 files, and explicit Evidence Court JSONL event streams for claim/evidence/scope/test mismatches.
 EOF
   cat > "${ARTIFACT_DIR}/smoke-summary.txt" <<'EOF'
 Evidence Court smoke gate passed.
@@ -236,13 +248,14 @@ focused tests passed for tests/test_evidence_court.py.
 demo verdict gate checked bad-run FAIL and good-run PASS.
 redacted supplied-record gate checked redacted-real-world-bad-run FAIL.
 fail-on gate checked bad-run exits 1 with --fail-on fail.
-input-mode gate checked marked transcript FAIL, explicit JSONL events FAIL, and mixed JSON plus transcript plus JSONL rejection.
+input-mode gate checked marked transcript FAIL, OpenMako AgentRunResult FAIL, explicit JSONL events FAIL, and mixed JSON plus transcript plus JSONL rejection.
 release boundary gate checked the Evidence Court release set.
 bad-run.md must contain Verdict: FAIL.
 redacted-real-world-bad-run.json must contain "verdict": "FAIL".
 fail-on-fail.json must contain "verdict": "FAIL" and is only written after exit code 1.
 good-run.json must contain "verdict": "PASS".
 marked-transcript.json must contain "verdict": "FAIL".
+openmako-agent-run-result.json must contain "verdict": "FAIL".
 jsonl-events.json must contain "verdict": "FAIL".
 report artifacts must contain source provenance in their Evidence section.
 review-path artifacts must have SHA-256 hashes in artifact-manifest.json.

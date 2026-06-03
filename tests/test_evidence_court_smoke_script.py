@@ -179,6 +179,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
                 "jsonl-events.json",
                 "marked-transcript.json",
                 "mixed-source-rejection.txt",
+                "openmako-agent-run-result.json",
                 "redacted-real-world-bad-run.json",
                 "reviewer-quickstart.md",
                 "smoke-summary.txt",
@@ -189,6 +190,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             self.assertEqual(manifest["version"], "v0.1")
             self.assertIn("safe_claim", manifest)
             self.assertIn("supplied JSON run records", manifest["safe_claim"])
+            self.assertIn("OpenMako AgentRunResult JSON producer artifacts", manifest["safe_claim"])
             self.assertIn("explicit marked transcript v0 files", manifest["safe_claim"])
             self.assertIn("explicit Evidence Court JSONL event streams", manifest["safe_claim"])
             self.assertEqual(
@@ -199,6 +201,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
                     "fail-on-fail.json",
                     "good-run.json",
                     "marked-transcript.json",
+                    "openmako-agent-run-result.json",
                     "jsonl-events.json",
                     "mixed-source-rejection.txt",
                     "smoke-summary.txt",
@@ -209,6 +212,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             self.assertEqual('"verdict": "FAIL"', manifest["expected_checks"]["redacted-real-world-bad-run.json"])
             self.assertEqual('"verdict": "FAIL" and command exit code 1', manifest["expected_checks"]["fail-on-fail.json"])
             self.assertEqual('"verdict": "PASS"', manifest["expected_checks"]["good-run.json"])
+            self.assertEqual('"verdict": "FAIL"', manifest["expected_checks"]["openmako-agent-run-result.json"])
             self.assertEqual('"verdict": "FAIL"', manifest["expected_checks"]["jsonl-events.json"])
             self.assertEqual("source: bad-run-demo", manifest["source_provenance_checks"]["bad-run.md"])
             self.assertEqual(
@@ -220,6 +224,10 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             self.assertEqual(
                 "source: tests/fixtures/evidence_court/marked_bad_transcript.txt",
                 manifest["source_provenance_checks"]["marked-transcript.json"],
+            )
+            self.assertEqual(
+                "source: tests/fixtures/evidence_court/openmako_agent_run_result_bad.json",
+                manifest["source_provenance_checks"]["openmako-agent-run-result.json"],
             )
             self.assertEqual("source: ", manifest["source_provenance_checks"]["jsonl-events.json"])
             self.assertEqual(set(manifest["review_path"]), set(manifest["artifact_file_sha256"]))
@@ -245,6 +253,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             self.assertIn("supplied run record", quickstart)
             self.assertIn("Open `marked-transcript.json`", quickstart)
             self.assertIn("fixture path as `source`", quickstart)
+            self.assertIn("Open `openmako-agent-run-result.json`", quickstart)
+            self.assertIn("explicit OpenMako AgentRunResult input returns", quickstart)
             self.assertIn("Open `jsonl-events.json`", quickstart)
             self.assertIn("generated JSONL path as `source`", quickstart)
             self.assertIn("explicit Evidence Court JSONL event stream input returns", quickstart)
@@ -252,24 +262,28 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             self.assertIn("Open `smoke-summary.txt`", quickstart)
             self.assertIn("This artifact shows these fixtures", quickstart)
             self.assertIn("redacted supplied-record bad run fails", quickstart)
+            self.assertIn("OpenMako AgentRunResult input fails closed", quickstart)
             self.assertIn("explicit JSONL event input fails closed", quickstart)
             self.assertIn("mixed input modes are rejected", quickstart)
             self.assertIn("## Boundary", quickstart)
             self.assertIn("This artifact shows the smoke gate output", quickstart)
             self.assertNotIn("This artifact proves the smoke gate ran", quickstart)
+            self.assertIn("OpenMako AgentRunResult producer artifacts", quickstart)
             self.assertIn("explicit Evidence Court JSONL event records", quickstart)
             self.assertIn("does not prove native Claude/Codex/Cursor/Devin/CI log ingestion", quickstart)
             self.assertIn("does not prove tests really ran outside the supplied record", quickstart)
             self.assertIn("does not prove broad SWE repair", quickstart)
             self.assertIn("Safe claim: Evidence Court v0.1 audits supplied JSON run records", quickstart)
+            self.assertIn("OpenMako AgentRunResult JSON producer artifacts", quickstart)
             self.assertIn("explicit Evidence Court JSONL event streams", quickstart)
             self.assertIn("## Verdict: FAIL", (artifact_root / "bad-run.md").read_text(encoding="utf-8"))
             fail_on_json = (artifact_root / "fail-on-fail.json").read_text(encoding="utf-8")
             good_json = (artifact_root / "good-run.json").read_text(encoding="utf-8")
             marked_json = (artifact_root / "marked-transcript.json").read_text(encoding="utf-8")
+            agent_run_result_json = (artifact_root / "openmako-agent-run-result.json").read_text(encoding="utf-8")
             jsonl_json = (artifact_root / "jsonl-events.json").read_text(encoding="utf-8")
             redacted_json = (artifact_root / "redacted-real-world-bad-run.json").read_text(encoding="utf-8")
-            for report_json in (fail_on_json, good_json, marked_json, jsonl_json, redacted_json):
+            for report_json in (fail_on_json, good_json, marked_json, agent_run_result_json, jsonl_json, redacted_json):
                 self.assertIn('"schema_version": "evidence-court.report.v0.1"', report_json)
             self.assertIn('"verdict": "FAIL"', redacted_json)
             self.assertIn("source: examples/evidence-court/redacted-real-world-bad-run.json", redacted_json)
@@ -282,6 +296,13 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             self.assertIn("source: good-run-demo", good_json)
             self.assertIn('"verdict": "FAIL"', marked_json)
             self.assertIn("source: tests/fixtures/evidence_court/marked_bad_transcript.txt", marked_json)
+            self.assertIn('"verdict": "FAIL"', agent_run_result_json)
+            self.assertIn("source: tests/fixtures/evidence_court/openmako_agent_run_result_bad.json", agent_run_result_json)
+            self.assertIn("edited protected path: tests/test_calculator.py", agent_run_result_json)
+            self.assertIn(
+                "required test not run: python -m pytest tests/test_calculator.py -q",
+                agent_run_result_json,
+            )
             self.assertIn('"verdict": "FAIL"', jsonl_json)
             self.assertIn("source: ", jsonl_json)
             self.assertIn(
@@ -300,7 +321,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             self.assertIn("demo verdict gate checked bad-run FAIL and good-run PASS", summary)
             self.assertIn("redacted supplied-record gate checked redacted-real-world-bad-run FAIL.", summary)
             self.assertIn("fail-on gate checked bad-run exits 1 with --fail-on fail.", summary)
-            self.assertIn("input-mode gate checked marked transcript FAIL, explicit JSONL events FAIL", summary)
+            self.assertIn("input-mode gate checked marked transcript FAIL, OpenMako AgentRunResult FAIL", summary)
+            self.assertIn("explicit JSONL events FAIL", summary)
             self.assertIn("release boundary gate checked the Evidence Court release set", summary)
             self.assertIn("report artifacts must contain source provenance", summary)
             self.assertIn("review-path artifacts must have SHA-256 hashes", summary)

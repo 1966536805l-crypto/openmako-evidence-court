@@ -108,8 +108,8 @@ After opening or updating the release PR, remote GitHub Actions must show
 The remote run must upload the `evidence-court-smoke` artifact with
 `artifact-manifest.json`, `reviewer-quickstart.md`, `bad-run.md`,
 `redacted-real-world-bad-run.json`, `fail-on-fail.json`, `good-run.json`,
-`marked-transcript.json`, `jsonl-events.json`, `mixed-source-rejection.txt`,
-and `smoke-summary.txt`.
+`marked-transcript.json`, `openmako-agent-run-result.json`,
+`jsonl-events.json`, `mixed-source-rejection.txt`, and `smoke-summary.txt`.
 
 Artifact content check:
 
@@ -127,6 +127,8 @@ Artifact content check:
 - `fail-on-fail.json` contains `"verdict": "FAIL"` and is written only after `--fail-on fail` exits 1.
 - `good-run.json` contains `"verdict": "PASS"`.
 - `marked-transcript.json` contains `"verdict": "FAIL"`.
+- `openmako-agent-run-result.json` contains `"verdict": "FAIL"` and
+  `source: tests/fixtures/evidence_court/openmako_agent_run_result_bad.json`.
 - `jsonl-events.json` contains `"verdict": "FAIL"`.
 - `mixed-source-rejection.txt` contains `exit_code=2`.
 - report artifacts include `source: ...` in the Evidence section.
@@ -139,7 +141,8 @@ Artifact content check:
 
 The PR body must include the same 30-second reviewer path: `bad-run.md`,
 `redacted-real-world-bad-run.json`, `fail-on-fail.json`,
-`artifact-manifest.json`, `reviewer-quickstart.md`, `jsonl-events.json`, and
+`artifact-manifest.json`, `reviewer-quickstart.md`,
+`openmako-agent-run-result.json`, `jsonl-events.json`, and
 `mixed-source-rejection.txt`.
 
 Optional remote artifact download, only if GitHub CLI is installed and

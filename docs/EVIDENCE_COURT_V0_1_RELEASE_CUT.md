@@ -121,7 +121,8 @@ After opening or updating the release PR, GitHub Actions must show
 The run must upload an `evidence-court-smoke` artifact containing
 `artifact-manifest.json`, `reviewer-quickstart.md`, `bad-run.md`,
 `redacted-real-world-bad-run.json`, `good-run.json`,
-`marked-transcript.json`, `jsonl-events.json`, `mixed-source-rejection.txt`, and
+`marked-transcript.json`, `openmako-agent-run-result.json`,
+`jsonl-events.json`, `mixed-source-rejection.txt`, and
 `smoke-summary.txt`.
 
 Artifact content check:
@@ -135,6 +136,8 @@ Artifact content check:
   `source: examples/evidence-court/redacted-real-world-bad-run.json`.
 - `good-run.json` contains `"verdict": "PASS"`.
 - `marked-transcript.json` contains `"verdict": "FAIL"`.
+- `openmako-agent-run-result.json` contains `"verdict": "FAIL"` and
+  `source: tests/fixtures/evidence_court/openmako_agent_run_result_bad.json`.
 - `jsonl-events.json` contains `"verdict": "FAIL"`.
 - `mixed-source-rejection.txt` contains `exit_code=2`.
 - report artifacts include `source: ...` in the Evidence section.
