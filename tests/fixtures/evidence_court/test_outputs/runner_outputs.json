@@ -54,5 +54,75 @@
     "command": "python -m unittest",
     "expected_status": "failed",
     "output": "FAIL: test_add (test_calc.CalcTest)\nAssertionError: 0 != 1\n\nFAILED (failures=1)"
+  },
+  {
+    "id": "vitest_pass_summary",
+    "runner": "vitest",
+    "command": "npm test",
+    "expected_status": "passed",
+    "output": "✓ tests/sum.test.ts (3)\n\nTest Files  1 passed (1)\n     Tests  3 passed (3)\n  Duration  320ms"
+  },
+  {
+    "id": "vitest_fail_summary",
+    "runner": "vitest",
+    "command": "npm test",
+    "expected_status": "failed",
+    "output": "FAIL  tests/sum.test.ts > adds numbers\nAssertionError: expected 0 to be 1\n\nTest Files  1 failed (1)\n     Tests  1 failed | 2 passed (3)"
+  },
+  {
+    "id": "mocha_pass_summary",
+    "runner": "mocha",
+    "command": "npm test",
+    "expected_status": "passed",
+    "output": "  calculator\n    ✓ adds numbers\n    ✓ subtracts numbers\n\n  2 passing (8ms)"
+  },
+  {
+    "id": "mocha_fail_summary",
+    "runner": "mocha",
+    "command": "npm test",
+    "expected_status": "failed",
+    "output": "  calculator\n    1) adds numbers\n\n  0 passing (8ms)\n  1 failing\n\n  1) calculator adds numbers:\n     AssertionError: expected 0 to equal 1"
+  },
+  {
+    "id": "cargo_pass_summary",
+    "runner": "cargo",
+    "command": "cargo test",
+    "expected_status": "passed",
+    "output": "running 3 tests\ntest add ... ok\ntest subtract ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out"
+  },
+  {
+    "id": "cargo_fail_summary",
+    "runner": "cargo",
+    "command": "cargo test",
+    "expected_status": "failed",
+    "output": "running 3 tests\ntest add ... FAILED\n\nfailures:\n    add\n\ntest result: FAILED. 2 passed; 1 failed; 0 ignored"
+  },
+  {
+    "id": "maven_pass_summary",
+    "runner": "maven",
+    "command": "mvn test",
+    "expected_status": "passed",
+    "output": "[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0\n[INFO] BUILD SUCCESS"
+  },
+  {
+    "id": "maven_fail_summary",
+    "runner": "maven",
+    "command": "mvn test",
+    "expected_status": "failed",
+    "output": "[INFO] Tests run: 3, Failures: 1, Errors: 0, Skipped: 0\n[INFO] BUILD FAILURE"
+  },
+  {
+    "id": "gradle_pass_summary",
+    "runner": "gradle",
+    "command": "gradle test",
+    "expected_status": "passed",
+    "output": "BUILD SUCCESSFUL in 1s\n3 actionable tasks: 3 executed"
+  },
+  {
+    "id": "gradle_fail_summary",
+    "runner": "gradle",
+    "command": "gradle test",
+    "expected_status": "failed",
+    "output": "There were failing tests. See the report at: build/reports/tests/test/index.html\n\nBUILD FAILED in 1s"
   }
 ]
