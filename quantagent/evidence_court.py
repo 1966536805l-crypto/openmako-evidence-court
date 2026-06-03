@@ -10,6 +10,7 @@ from typing import Any, Mapping
 
 
 EVIDENCE_COURT_REPORT_SCHEMA_VERSION = "evidence-court.report.v0.1"
+OPENMAKO_AGENT_RUN_RESULT_SCHEMA_VERSION = "openmako.agent_run_result.v0"
 
 
 @dataclass(frozen=True)
@@ -74,6 +75,17 @@ def load_evidence_court_jsonl_events(path: str | Path) -> EvidenceCourtRun:
         events_path.read_text(encoding="utf-8"),
         source=str(path),
     )
+
+
+def load_openmako_agent_run_result(path: str | Path) -> EvidenceCourtRun:
+    input_path = Path(path).expanduser()
+    payload = json.loads(input_path.read_text(encoding="utf-8"))
+    if not isinstance(payload, Mapping):
+        raise ValueError("OpenMako AgentRunResult input must be a JSON object")
+    run = evidence_court_run_from_openmako_agent_run_result(payload)
+    if run.source:
+        return run
+    return replace(run, source=str(path))
 
 
 def evidence_court_run_from_transcript(text: str, *, source: str = "") -> EvidenceCourtRun:
@@ -154,6 +166,44 @@ def evidence_court_run_from_jsonl_events(text: str, *, source: str = "") -> Evid
         protected_paths=tuple(_dedupe(protected_paths)),
         required_tests=tuple(_dedupe(required_tests)),
         source=(source.strip() or "explicit-jsonl-events"),
+    )
+
+
+def evidence_court_run_from_openmako_agent_run_result(payload: Mapping[str, Any]) -> EvidenceCourtRun:
+    schema = _text_field(payload, "schema", aliases=("schema_version",))
+    if schema != OPENMAKO_AGENT_RUN_RESULT_SCHEMA_VERSION:
+        raise ValueError(
+            "OpenMako AgentRunResult schema must be "
+            f"`{OPENMAKO_AGENT_RUN_RESULT_SCHEMA_VERSION}`"
+        )
+
+    task = _mapping_field(payload, "task")
+    files = _mapping_field(payload, "files")
+    policy = _mapping_field(payload, "policy")
+    final = _mapping_field(payload, "final")
+    commands_value = payload.get("commands")
+    if commands_value is None:
+        commands_value = payload.get("commands_run")
+
+    return EvidenceCourtRun(
+        claimed_task=_mapping_text(task, "claimed_task", "text", "description")
+        or _text_field(payload, "claimed_task", aliases=("claim",)),
+        final_claim=_mapping_text(final, "final_claim", "message", "text")
+        or _text_field(payload, "final_claim"),
+        files_read=_string_tuple(files.get("read") or files.get("files_read"), field_name="files.read"),
+        files_edited=_string_tuple(files.get("edited") or files.get("files_edited"), field_name="files.edited"),
+        commands_run=_commands_tuple(commands_value, field_name="commands"),
+        test_output=_openmako_test_output(payload, commands_value),
+        allowed_edit_paths=_string_tuple(
+            policy.get("allowed_edit_paths") or policy.get("allowed_files"),
+            field_name="policy.allowed_edit_paths",
+        ),
+        protected_paths=_string_tuple(policy.get("protected_paths"), field_name="policy.protected_paths"),
+        required_tests=_commands_tuple(
+            policy.get("required_tests") or policy.get("required_commands"),
+            field_name="policy.required_tests",
+        ),
+        source=_text_field(payload, "source"),
     )
 
 
@@ -381,6 +431,40 @@ def _text_field(payload: Mapping[str, Any], field_name: str, *, aliases: tuple[s
     if not isinstance(value, str):
         raise ValueError(f"Evidence Court field `{actual_field}` must be a string")
     return value.strip()
+
+
+def _mapping_field(payload: Mapping[str, Any], field_name: str) -> Mapping[str, Any]:
+    value = payload.get(field_name)
+    if value is None:
+        return {}
+    if not isinstance(value, Mapping):
+        raise ValueError(f"OpenMako AgentRunResult field `{field_name}` must be a JSON object")
+    return value
+
+
+def _mapping_text(payload: Mapping[str, Any], *field_names: str) -> str:
+    for field_name in field_names:
+        value = payload.get(field_name)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return ""
+
+
+def _openmako_test_output(payload: Mapping[str, Any], commands_value: Any) -> str:
+    outputs: list[str] = []
+    top_level_output = payload.get("test_output")
+    if isinstance(top_level_output, str) and top_level_output.strip():
+        outputs.append(top_level_output.strip())
+    if isinstance(commands_value, (list, tuple)):
+        for command in commands_value:
+            if not isinstance(command, Mapping):
+                continue
+            for field_name in ("test_output", "output", "stdout", "stderr"):
+                value = command.get(field_name)
+                if isinstance(value, str) and value.strip():
+                    outputs.append(value.strip())
+                    break
+    return "\n".join(outputs).strip()
 
 
 def _string_tuple(value: Any, *, field_name: str) -> tuple[str, ...]:
