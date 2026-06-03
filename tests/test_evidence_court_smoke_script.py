@@ -385,7 +385,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
 
         self.assertIn("Evidence Court Smoke", text)
         self.assertIn("fetch-depth: 0", text)
-        self.assertIn("actions/setup-python@v5", text)
+        self.assertIn("actions/checkout@v6", text)
+        self.assertIn("actions/setup-python@v6", text)
         self.assertIn("python -m pip install --upgrade pip pytest", text)
         self.assertIn("EVIDENCE_COURT_BRANCH_DIFF_BASE:", text)
         self.assertIn("github.event_name == 'pull_request'", text)
@@ -399,7 +400,10 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             text,
         )
         self.assertNotIn("EVIDENCE_COURT_BRANCH_DIFF_BASE=origin/main", text)
-        self.assertIn("actions/upload-artifact@v4", text)
+        self.assertIn("actions/upload-artifact@v7", text)
+        self.assertNotIn("actions/checkout@v4", text)
+        self.assertNotIn("actions/setup-python@v5", text)
+        self.assertNotIn("actions/upload-artifact@v4", text)
         self.assertIn("name: evidence-court-smoke", text)
         self.assertIn("path: evidence-court-artifacts/", text)
         self.assertIn("if-no-files-found: error", text)
