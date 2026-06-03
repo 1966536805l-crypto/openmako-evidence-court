@@ -45,7 +45,7 @@ try:
     from .diagnostic_registry import load_diagnostic_registry, refresh_diagnostic_registry, render_diagnostic_registry
     from .demo_fix import render_fix_demo, run_fix_demo
     from .doctor import doctor_score, render_doctor, render_doctor_json, run_doctor
-    from .evidence_court import bad_run_demo, dumps_evidence_court_json, evaluate_evidence_court, good_run_demo, load_evidence_court_jsonl_events, load_evidence_court_run, load_evidence_court_transcript, render_evidence_court
+    from .evidence_court import bad_run_demo, dumps_evidence_court_json, evaluate_evidence_court, good_run_demo, load_evidence_court_jsonl_events, load_evidence_court_run, load_evidence_court_transcript, load_openmako_agent_run_result, render_evidence_court
     from .desktop_control import activate_app, click_grid_cell, front_window, frontmost_app, hotkey, latest_grid, pointer, screenshot, screenshot_grid, type_text
     from .desktop_agent import render_desktop_agent_result, run_desktop_agent
     from .desktop_guardian import render_desktop_guardian_result, run_desktop_guardian
@@ -228,7 +228,7 @@ except ModuleNotFoundError as exc:
     if not (exc.name or "").startswith("quantagent."):
         raise
     _FULL_CLI_IMPORT_ERROR = exc
-    from .evidence_court import bad_run_demo, dumps_evidence_court_json, evaluate_evidence_court, good_run_demo, load_evidence_court_jsonl_events, load_evidence_court_run, load_evidence_court_transcript, render_evidence_court
+    from .evidence_court import bad_run_demo, dumps_evidence_court_json, evaluate_evidence_court, good_run_demo, load_evidence_court_jsonl_events, load_evidence_court_run, load_evidence_court_transcript, load_openmako_agent_run_result, render_evidence_court
 
 
 def cmd_status(args: argparse.Namespace) -> int:
@@ -300,9 +300,21 @@ def cmd_agent_autopsy(args: argparse.Namespace) -> int:
 
 
 def cmd_evidence_court(args: argparse.Namespace) -> int:
-    source_count = sum(bool(value) for value in (args.demo, args.input, args.from_transcript, args.from_jsonl_events))
+    source_count = sum(
+        bool(value)
+        for value in (
+            args.demo,
+            args.input,
+            args.from_transcript,
+            args.from_jsonl_events,
+            args.from_openmako_agent_run_result,
+        )
+    )
     if source_count != 1:
-        print("evidence-court error: provide exactly one of --input RUN.json, --from-transcript PATH, --from-jsonl-events PATH, or --demo")
+        print(
+            "evidence-court error: provide exactly one of --input RUN.json, --from-transcript PATH, "
+            "--from-jsonl-events PATH, --from-openmako-agent-run-result PATH, or --demo"
+        )
         return 2
     if args.demo:
         if args.demo == "bad-run":
@@ -330,8 +342,17 @@ def cmd_evidence_court(args: argparse.Namespace) -> int:
         except (OSError, ValueError, json.JSONDecodeError) as exc:
             print(f"evidence-court error: {exc}")
             return 2
+    elif args.from_openmako_agent_run_result:
+        try:
+            run = load_openmako_agent_run_result(args.from_openmako_agent_run_result)
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            print(f"evidence-court error: {exc}")
+            return 2
     else:
-        print("evidence-court error: provide --input RUN.json, --from-transcript PATH, --from-jsonl-events PATH, --demo bad-run, or --demo good-run")
+        print(
+            "evidence-court error: provide --input RUN.json, --from-transcript PATH, --from-jsonl-events PATH, "
+            "--from-openmako-agent-run-result PATH, --demo bad-run, or --demo good-run"
+        )
         return 2
     report = evaluate_evidence_court(run)
     if args.json:
@@ -356,6 +377,11 @@ def _add_evidence_court_args(parser: argparse.ArgumentParser) -> None:
         "--from-jsonl-events",
         default="",
         help="Explicit Evidence Court JSONL events to convert into a run record; not native vendor log parsing",
+    )
+    parser.add_argument(
+        "--from-openmako-agent-run-result",
+        default="",
+        help="OpenMako AgentRunResult JSON producer artifact; not native vendor log parsing",
     )
     parser.add_argument("--demo", choices=["bad-run", "good-run"], default="", help="Run a built-in demo")
     parser.add_argument("--json", action="store_true")
