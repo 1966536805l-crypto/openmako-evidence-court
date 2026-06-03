@@ -37,8 +37,9 @@ Open these first:
 3. `fail-on-fail.json`: the same bad run under `--fail-on fail` exits 1 for CI/wrappers.
 4. `artifact-manifest.json`: safe claim, expected artifact checks, source provenance checks, artifact file SHA-256 hashes, and boundaries.
 5. `reviewer-quickstart.md`: copy-paste local/remote review path and source provenance checks.
-6. `jsonl-events.json`: explicit Evidence Court JSONL event-stream input.
-7. `mixed-source-rejection.txt`: mixed inputs fail closed with `exit_code=2`.
+6. `openmako-agent-run-result.json`: explicit OpenMako AgentRunResult producer-artifact input.
+7. `jsonl-events.json`: explicit Evidence Court JSONL event-stream input.
+8. `mixed-source-rejection.txt`: mixed inputs fail closed with `exit_code=2`.
 
 ### Included In This Release Claim
 - `.github/ISSUE_TEMPLATE/technical-review-request.md`
@@ -113,7 +114,8 @@ sed -n '1,40p' /tmp/evidence-court-smoke/bad-run.md
 - [ ] GitHub Actions uploaded the `evidence-court-smoke` artifact containing
       `artifact-manifest.json`, `reviewer-quickstart.md`, `bad-run.md`,
       `redacted-real-world-bad-run.json`, `fail-on-fail.json`,
-      `good-run.json`, `marked-transcript.json`, `jsonl-events.json`,
+      `good-run.json`, `marked-transcript.json`,
+      `openmako-agent-run-result.json`, `jsonl-events.json`,
       `mixed-source-rejection.txt`, and `smoke-summary.txt`.
 - [ ] Artifact content check: `artifact-manifest.json` lists the safe claim,
       review path, expected checks, source provenance checks, artifact file SHA-256 hashes, and boundaries; `reviewer-quickstart.md` tells reviewers to
@@ -121,7 +123,9 @@ sed -n '1,40p' /tmp/evidence-court-smoke/bad-run.md
       `redacted-real-world-bad-run.json` shows `"verdict": "FAIL"` and
       `source: examples/evidence-court/redacted-real-world-bad-run.json`;
       `good-run.json` shows `"verdict": "PASS"`; `marked-transcript.json`
-      shows `"verdict": "FAIL"`; `jsonl-events.json` shows
+      shows `"verdict": "FAIL"`; `openmako-agent-run-result.json` shows
+      `"verdict": "FAIL"` with `source: tests/fixtures/evidence_court/openmako_agent_run_result_bad.json`;
+      `jsonl-events.json` shows
       `"verdict": "FAIL"`; `mixed-source-rejection.txt` shows
       `exit_code=2`; report artifacts include `source: ...`; `artifact-manifest.json`
       includes SHA-256 hashes for every file in the review path; `smoke-summary.txt` shows

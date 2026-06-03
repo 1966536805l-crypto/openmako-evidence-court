@@ -157,7 +157,8 @@ sed -n '1,40p' /tmp/evidence-court-smoke/bad-run.md
 - [ ] GitHub Actions uploaded the `evidence-court-smoke` artifact containing
       `artifact-manifest.json`, `reviewer-quickstart.md`, `bad-run.md`,
       `redacted-real-world-bad-run.json`, `fail-on-fail.json`,
-      `good-run.json`, `marked-transcript.json`, `jsonl-events.json`,
+      `good-run.json`, `marked-transcript.json`,
+      `openmako-agent-run-result.json`, `jsonl-events.json`,
       `mixed-source-rejection.txt`, and `smoke-summary.txt`.
 - [ ] Artifact content check: `artifact-manifest.json` lists the safe claim,
       review path, expected checks, source provenance checks, artifact file SHA-256 hashes, and boundaries; `reviewer-quickstart.md` tells reviewers to
@@ -166,7 +167,9 @@ sed -n '1,40p' /tmp/evidence-court-smoke/bad-run.md
       `source: examples/evidence-court/redacted-real-world-bad-run.json`;
       `fail-on-fail.json` contains `"verdict": "FAIL"` and is
       written only after `--fail-on fail` exits 1; `good-run.json` shows `"verdict": "PASS"`;
-      `marked-transcript.json` shows `"verdict": "FAIL"`; `jsonl-events.json` shows `"verdict": "FAIL"`;
+      `marked-transcript.json` shows `"verdict": "FAIL"`; `openmako-agent-run-result.json`
+      shows `"verdict": "FAIL"` with `source: tests/fixtures/evidence_court/openmako_agent_run_result_bad.json`;
+      `jsonl-events.json` shows `"verdict": "FAIL"`;
       `mixed-source-rejection.txt` shows `exit_code=2`; report artifacts include `source: ...`;
       `artifact-manifest.json` includes SHA-256 hashes for every file in the review path;
       `smoke-summary.txt` shows
@@ -175,7 +178,8 @@ sed -n '1,40p' /tmp/evidence-court-smoke/bad-run.md
 
 The PR body must include the same 30-second reviewer path as the remote
 artifact: `bad-run.md`, `fail-on-fail.json`, `artifact-manifest.json`,
-`redacted-real-world-bad-run.json`, `reviewer-quickstart.md`, `jsonl-events.json`, and
+`redacted-real-world-bad-run.json`, `reviewer-quickstart.md`,
+`openmako-agent-run-result.json`, `jsonl-events.json`, and
 `mixed-source-rejection.txt`.
 
 Optional remote artifact download, only if GitHub CLI is installed and
