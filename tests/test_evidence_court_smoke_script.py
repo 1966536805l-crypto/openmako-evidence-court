@@ -1228,6 +1228,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("This is the smallest evidence check: a bad supplied record says tests passed", readme)
         self.assertIn("protected test edit and no reported required pytest command", readme)
         self.assertIn("test output status reason: no known pass/fail pattern matched", readme)
+        self.assertIn("[`examples/evidence-court/bad-run.report.json`](examples/evidence-court/bad-run.report.json)", readme)
         self.assertIn("To block CI on this verdict, run the same command with `--fail-on fail`", readme)
         self.assertIn("the bad run exits 1 instead of report-only 0", readme)
         self.assertIn("## What Normal Tests Miss", readme)
@@ -1311,6 +1312,11 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
 
         self.assertEqual(set(excerpt), {"schema_version", "verdict", "test_verification"})
         self.assertIn("excerpt, not the full report", section)
+        self.assertIn(
+            "[`examples/evidence-court/bad-run.report.json`](examples/evidence-court/bad-run.report.json)",
+            readme,
+        )
+        self.assertTrue((root / "examples" / "evidence-court" / "bad-run.report.json").exists())
 
         proc = subprocess.run(
             [sys.executable, "-m", "quantagent.cli", "--no-trust-prompt", "evidence-court", "--demo", "bad-run", "--json"],

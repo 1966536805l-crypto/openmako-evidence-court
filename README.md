@@ -96,6 +96,9 @@ Machine-readable bad-run excerpt from `mako evidence-court --demo bad-run --json
 }
 ```
 
+Full generated report fixture:
+[`examples/evidence-court/bad-run.report.json`](examples/evidence-court/bad-run.report.json).
+
 Try the same path with example records:
 
 ```bash
