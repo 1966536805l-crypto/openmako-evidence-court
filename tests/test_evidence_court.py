@@ -825,6 +825,43 @@ $ python -m pytest tests/test_calculator.py -q
         self.assertEqual(run.commands_run, ("python -m pytest tests/test_calculator.py -q",))
         self.assertEqual(report.scope_violations, ())
 
+    def test_marked_transcript_required_commands_alias_can_fail_missing_required_test(self) -> None:
+        run = evidence_court_run_from_transcript(
+            """
+[claimed_task]
+Fix calculator.add.
+[/claimed_task]
+[final_claim]
+Fixed. Tests pass.
+[/final_claim]
+[files_read]
+- calculator.py
+[/files_read]
+[files_edited]
+- calculator.py
+[/files_edited]
+[commands_run]
+$ python -m py_compile calculator.py
+[/commands_run]
+[test_output]
+No pytest output captured.
+[/test_output]
+[required_commands]
+$ python -m pytest tests/test_calculator.py -q
+[/required_commands]
+""",
+            source="inline-required-command-alias",
+        )
+
+        report = evaluate_evidence_court(run)
+
+        self.assertEqual(run.required_tests, ("python -m pytest tests/test_calculator.py -q",))
+        self.assertEqual(report.verdict, "FAIL")
+        self.assertIn(
+            "required test not run: python -m pytest tests/test_calculator.py -q",
+            report.test_verification,
+        )
+
     def test_marked_transcript_without_sections_is_rejected(self) -> None:
         with self.assertRaisesRegex(ValueError, "must use"):
             evidence_court_run_from_transcript("agent says done but no marked sections")

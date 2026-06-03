@@ -124,7 +124,7 @@ Current v0.1 supports structured JSON run records:
 | `final_claim` | The agent's final success claim |
 | `allowed_edit_paths` | Optional expected edit scope |
 | `protected_paths` | Optional paths that should not be changed |
-| `required_tests` | Optional commands that must appear in the run |
+| `required_tests` / `required_commands` | Optional commands that must appear in the run |
 | `source` | Optional source label for the run record |
 
 It does not yet natively ingest Claude Code, Codex, Cursor, Devin, or CI logs. Those adapters need separate parsers before the project can claim native support.
@@ -138,7 +138,9 @@ Evidence Court can also convert an explicitly marked transcript into the same ru
 mako evidence-court --from-transcript tests/fixtures/evidence_court/marked_bad_transcript.txt --json
 ```
 
-Marked transcript v0 uses `[section]...[/section]` blocks. It is not native vendor log parsing.
+Marked transcript v0 uses `[section]...[/section]` blocks. Use
+`[required_tests]` or `[required_commands]` for required test-command evidence.
+It is not native vendor log parsing.
 
 ## Explicit JSONL Events
 
