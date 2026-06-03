@@ -1266,6 +1266,38 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertNotIn("mako fix", readme)
         self.assertNotIn("Extreme Planner", readme)
 
+    def test_readme_bad_run_demo_excerpt_matches_cli_output(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        readme = (root / "README.md").read_text(encoding="utf-8")
+        demo_block = readme.split("## 10-Second Demo", 1)[1].split("## Quick Start", 1)[0]
+        demo_block = demo_block.split("```bash", 1)[1].split("```", 1)[0]
+        demo_lines = [line.strip() for line in demo_block.splitlines() if line.strip() and not line.startswith("```")]
+
+        self.assertIn("mako evidence-court --demo bad-run", demo_lines)
+        proc = subprocess.run(
+            [sys.executable, "-m", "quantagent.cli", "--no-trust-prompt", "evidence-court", "--demo", "bad-run"],
+            cwd=root,
+            text=True,
+            capture_output=True,
+            timeout=30,
+        )
+        cli_output = proc.stdout + proc.stderr
+        self.assertEqual(proc.returncode, 0, cli_output)
+
+        for line in demo_lines:
+            if line == "mako evidence-court --demo bad-run" or line.startswith("# CI gate:"):
+                continue
+            if line.startswith("# Claim: "):
+                self.assertIn(f"- {line.removeprefix('# Claim: ')}", cli_output)
+                continue
+            if line.startswith("# Evidence: "):
+                self.assertIn(line.removeprefix("# Evidence: "), cli_output)
+                continue
+            if line.startswith("# Verdict: "):
+                self.assertIn(f"## Verdict: {line.removeprefix('# Verdict: ')}", cli_output)
+                continue
+            self.fail(f"Unhandled README bad-run demo line: {line}")
+
     def test_comparison_page_shows_what_normal_tests_miss_without_overclaiming(self) -> None:
         root = Path(__file__).resolve().parents[1]
         readme = (root / "README.md").read_text(encoding="utf-8")
