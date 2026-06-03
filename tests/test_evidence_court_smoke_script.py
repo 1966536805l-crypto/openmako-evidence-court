@@ -1945,6 +1945,29 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         )
         rows = [row for row in tracking_rows if row[0] not in {"---", "Target"}]
         self.assertEqual(len(rows), 5)
+        tracked_status_by_target = {target.strip(): status.strip() for target, status, *_ in rows}
+        tracked_evidence_by_target = {
+            target.strip(): {
+                "message_url": message_url.strip(),
+                "reply_url": reply_url.strip(),
+                "share_url": share_url.strip(),
+            }
+            for target, status, sent_date, contact_url, message_url, reply_date, reply_url, share_url, variant, action, outcome in rows
+        }
+
+        target_list = targets.split("## Target List", maxsplit=1)[1].split("## First Batch", maxsplit=1)[0]
+        target_rows = re.findall(
+            r"^\| \d+ \| (?P<target>.+?) \| .+? \| (?P<status>candidate|drafted|sent|replied|shared|closed) \|$",
+            target_list,
+            flags=re.MULTILINE,
+        )
+        self.assertEqual(len(target_rows), 20)
+        for target, status in target_rows:
+            with self.subTest(target_list_status=target):
+                if status != "candidate":
+                    self.assertIn(target, tracked_status_by_target)
+                    self.assertEqual(tracked_status_by_target[target], status)
+
         for target, status, sent_date, contact_url, message_url, reply_date, reply_url, share_url, variant, action, outcome in rows:
             with self.subTest(target=target):
                 self.assertIn(status.strip(), {"candidate", "drafted", "sent", "replied", "shared", "closed"})
@@ -1960,6 +1983,14 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
                 if status.strip() == "shared":
                     self.assertTrue(share_url.strip().startswith("`https://"))
                     self._assert_not_self_hosted_third_party_evidence_url(share_url)
+        for target, status in tracked_status_by_target.items():
+            with self.subTest(tracked_target_status=target):
+                if status in {"sent", "replied", "shared"}:
+                    self.assertTrue(tracked_evidence_by_target[target]["message_url"].startswith("`https://"))
+                if status in {"replied", "shared"}:
+                    self.assertTrue(tracked_evidence_by_target[target]["reply_url"].startswith("`https://"))
+                if status == "shared":
+                    self.assertTrue(tracked_evidence_by_target[target]["share_url"].startswith("`https://"))
 
     def test_terminal_demo_visual_stays_bounded_and_renderable(self) -> None:
         root = Path(__file__).resolve().parents[1]
