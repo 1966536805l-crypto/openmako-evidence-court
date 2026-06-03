@@ -646,6 +646,7 @@ class EvidenceCourtTest(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         readme = (root / "README.md").read_text(encoding="utf-8")
         transcript_path = root / "tests" / "fixtures" / "evidence_court" / "marked_bad_transcript.txt"
+        agent_run_result_path = root / "tests" / "fixtures" / "evidence_court" / "openmako_agent_run_result_bad.json"
         cases = (
             (
                 "mako evidence-court --demo bad-run",
@@ -676,6 +677,17 @@ class EvidenceCourtTest(unittest.TestCase):
             (
                 "mako evidence-court --from-transcript tests/fixtures/evidence_court/marked_bad_transcript.txt --json",
                 ["--no-trust-prompt", "evidence-court", "--from-transcript", str(transcript_path), "--json"],
+                "FAIL",
+            ),
+            (
+                "mako evidence-court --from-openmako-agent-run-result tests/fixtures/evidence_court/openmako_agent_run_result_bad.json --json",
+                [
+                    "--no-trust-prompt",
+                    "evidence-court",
+                    "--from-openmako-agent-run-result",
+                    str(agent_run_result_path),
+                    "--json",
+                ],
                 "FAIL",
             ),
         )
@@ -736,6 +748,8 @@ class EvidenceCourtTest(unittest.TestCase):
         manifest = (root / "docs" / "EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md").read_text(encoding="utf-8")
 
         self.assertIn("explicit Evidence Court JSONL event streams", manifest)
+        self.assertIn("OpenMako AgentRunResult JSON producer artifacts", manifest)
+        self.assertIn("openmako.agent_run_result.v0", manifest)
         self.assertIn("native Claude/Codex/Cursor/Devin transcript ingestion", manifest)
         self.assertIn("GitHub Actions or CI log ingestion", manifest)
 

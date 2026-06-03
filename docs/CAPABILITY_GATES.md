@@ -10,6 +10,7 @@ a runnable command, test, or artifact check that supports it.
 | Capability claim | Current status | Required evidence | Not solved yet |
 | --- | --- | --- | --- |
 | Evidence Court audits supplied structured JSON agent-run records | v0.1 support | `python -m pytest -p no:cacheprovider tests/test_evidence_court.py -q`; `mako evidence-court --demo bad-run`; `mako evidence-court --demo good-run --json`; `bash scripts/evidence_court_smoke.sh` | Native Claude/Codex/Cursor/Devin/CI log ingestion |
+| OpenMako AgentRunResult JSON producer artifacts | v0.1 narrow adapter | `mako evidence-court --from-openmako-agent-run-result tests/fixtures/evidence_court/openmako_agent_run_result_bad.json --json`; fixture returns `FAIL` for missing required pytest and protected test edit | Native vendor log parsing; generic producer schema negotiation |
 | Marked transcript v0 conversion | v0.1 narrow adapter | `mako evidence-court --from-transcript tests/fixtures/evidence_court/marked_bad_transcript.txt --json`; mixed input modes return exit code 2 | Native vendor transcript parsing; duplicate/unclosed marker hardening |
 | Explicit Evidence Court JSONL event streams | v0.1 narrow adapter | `mako evidence-court --from-jsonl-events run.events.jsonl --json`; smoke artifact `jsonl-events.json` contains `"verdict": "FAIL"` | Native vendor event extraction; CI log parsing |
 | CI failure gate | v0.1 support | `mako evidence-court --demo bad-run --fail-on fail --json` exits 1; `scripts/evidence_court_smoke.sh` checks this path | Proving tests actually ran outside the supplied record |
@@ -20,6 +21,8 @@ a runnable command, test, or artifact check that supports it.
 Allowed wording:
 
 - "Evidence Court v0.1 audits supplied structured JSON run records."
+- "OpenMako AgentRunResult JSON producer artifacts are supported when the
+  supplied schema is `openmako.agent_run_result.v0`."
 - "Marked transcript v0 is an explicit marker format, not native vendor log
   parsing."
 - "Explicit Evidence Court JSONL event streams are supported when producers

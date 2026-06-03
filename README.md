@@ -14,7 +14,7 @@ Public technical feedback can use the [technical review issue template](../../is
 Proof status and stale-proof boundaries are tracked in
 [docs/CURRENT_PROOF_STATUS.md](docs/CURRENT_PROOF_STATUS.md).
 
-Star this if you want a tiny CI-friendly gate that catches coding agents claiming "tests passed" without supplied evidence. Today: JSON records, marked transcript v0, and explicit JSONL events. Not claimed: native Claude/Codex/Cursor/CI log ingestion.
+Star this if you want a tiny CI-friendly gate that catches coding agents claiming "tests passed" without supplied evidence. Today: JSON records, OpenMako AgentRunResult JSON producer artifacts, marked transcript v0, and explicit JSONL events. Not claimed: native Claude/Codex/Cursor/CI log ingestion.
 
 ![OpenMako Evidence Court bad-run demo](docs/demo-terminal.svg)
 
@@ -33,7 +33,7 @@ mako evidence-court --demo bad-run
 The bad demo is a supplied run record. This is the smallest evidence check: a bad supplied record says tests passed, but the record shows a protected test edit and no reported required pytest command.
 To block CI on this verdict, run the same command with `--fail-on fail`; the bad run exits 1 instead of report-only 0.
 Evidence Court does not inspect the real repository state or independently rerun tests. It checks whether the run record you supply contains enough evidence to support the final claim.
-Current v0.1 reads JSON run records, explicit marked transcript v0 files, and explicit Evidence Court JSONL event streams. It does not parse raw chat transcripts or native Claude/Codex/Cursor/Devin/CI logs.
+Current v0.1 reads JSON run records, OpenMako AgentRunResult JSON producer artifacts, explicit marked transcript v0 files, and explicit Evidence Court JSONL event streams. It does not parse raw chat transcripts or native Claude/Codex/Cursor/Devin/CI logs.
 
 ## What Normal Tests Miss
 
@@ -130,6 +130,20 @@ Current v0.1 supports structured JSON run records:
 
 It does not yet natively ingest Claude Code, Codex, Cursor, Devin, or CI logs. Those adapters need separate parsers before the project can claim native support.
 Test-output status uses corpus-backed patterns for sampled pytest, Jest, Go test, unittest, Vitest, Mocha, Cargo, Maven, and Gradle outputs. This is sampled runner output support, not a universal test-runner or CI-log parser.
+
+## OpenMako AgentRunResult
+
+OpenMako producers can supply the explicit AgentRunResult JSON shape:
+
+```bash
+mako evidence-court --from-openmako-agent-run-result tests/fixtures/evidence_court/openmako_agent_run_result_bad.json --json
+```
+
+The fixture intentionally fails: the final claim says tests pass, but the
+supplied artifact only reports `py_compile`, edits a protected test path, and
+omits the required pytest command. This path requires
+`"schema": "openmako.agent_run_result.v0"`.
+It is not native Claude/Codex/Cursor/Devin/CI log parsing.
 
 ## Marked Transcript v0
 
