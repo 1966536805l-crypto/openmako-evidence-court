@@ -306,6 +306,7 @@ expected_review_path = [
     "fail-on-fail.json",
     "good-run.json",
     "marked-transcript.json",
+    "openmako-agent-run-result.json",
     "jsonl-events.json",
     "mixed-source-rejection.txt",
     "smoke-summary.txt",
@@ -316,6 +317,7 @@ require(actual_files == expected_files, f"artifact file set mismatch: {sorted(ac
 require(manifest.get("artifact") == "evidence-court-smoke", "artifact manifest has wrong artifact name")
 require(manifest.get("version") == "v0.1", "artifact manifest has wrong version")
 require("supplied JSON run records" in manifest.get("safe_claim", ""), "artifact manifest missing safe claim")
+require("OpenMako AgentRunResult JSON producer artifacts" in manifest.get("safe_claim", ""), "artifact manifest missing AgentRunResult safe claim")
 require(manifest.get("review_path") == expected_review_path, "artifact manifest review_path mismatch")
 
 hashes = manifest.get("artifact_file_sha256")
@@ -335,6 +337,7 @@ require(
     "manifest missing fail-on-fail expected check",
 )
 require(expected_checks.get("good-run.json") == '"verdict": "PASS"', "manifest missing good-run expected check")
+require(expected_checks.get("openmako-agent-run-result.json") == '"verdict": "FAIL"', "manifest missing AgentRunResult expected check")
 require(expected_checks.get("jsonl-events.json") == '"verdict": "FAIL"', "manifest missing JSONL expected check")
 
 source_checks = manifest.get("source_provenance_checks", {})
@@ -349,6 +352,11 @@ require(source_checks.get("good-run.json") == "source: good-run-demo", "manifest
 require(
     source_checks.get("marked-transcript.json") == "source: tests/fixtures/evidence_court/marked_bad_transcript.txt",
     "manifest missing transcript source check",
+)
+require(
+    source_checks.get("openmako-agent-run-result.json")
+    == "source: tests/fixtures/evidence_court/openmako_agent_run_result_bad.json",
+    "manifest missing AgentRunResult source check",
 )
 require(source_checks.get("jsonl-events.json") == "source: ", "manifest missing JSONL source check")
 
@@ -383,6 +391,12 @@ content_checks = {
     "marked-transcript.json": [
         '"verdict": "FAIL"',
         "source: tests/fixtures/evidence_court/marked_bad_transcript.txt",
+    ],
+    "openmako-agent-run-result.json": [
+        '"verdict": "FAIL"',
+        "source: tests/fixtures/evidence_court/openmako_agent_run_result_bad.json",
+        "edited protected path: tests/test_calculator.py",
+        "required test not run: python -m pytest tests/test_calculator.py -q",
     ],
     "jsonl-events.json": [
         '"verdict": "FAIL"',
