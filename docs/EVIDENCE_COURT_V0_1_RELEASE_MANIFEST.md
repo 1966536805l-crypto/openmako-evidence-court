@@ -9,6 +9,7 @@ Evidence Court v0.1 is not a vendor log parser.
 Evidence Court v0.1 may claim support for:
 
 - supplied structured JSON run records
+- OpenMako AgentRunResult JSON producer artifacts with schema `openmako.agent_run_result.v0`
 - explicit marked transcript v0 files
 - explicit Evidence Court JSONL event streams
 - claim/evidence/scope/test/suspicion/verdict reporting from the supplied record

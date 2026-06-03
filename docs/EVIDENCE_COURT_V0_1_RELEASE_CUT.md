@@ -13,15 +13,15 @@ Allowed claim:
 
 ```text
 OpenMako Evidence Court v0.1 audits supplied structured JSON run records and
-explicit marked transcript v0 files, and explicit Evidence Court JSONL event
-streams, then reports claim evidence, scope
+OpenMako AgentRunResult JSON producer artifacts, explicit marked transcript v0
+files, and explicit Evidence Court JSONL event streams, then reports claim evidence, scope
 violations, test evidence from the supplied record, suspicious behavior, and
 PASS/SUSPICIOUS/FAIL verdicts.
 ```
 
 Do not claim native Claude Code, Codex, Cursor, Devin, GitHub Actions log, or CI
-transcript ingestion. Marked transcript v0 is an explicit marker format, not a
-vendor log parser.
+transcript ingestion. AgentRunResult is an explicit producer artifact. Marked
+transcript v0 is an explicit marker format. It is not a vendor log parser.
 
 ## Include In Evidence Court v0.1
 
