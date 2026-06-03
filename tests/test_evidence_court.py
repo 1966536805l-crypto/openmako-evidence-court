@@ -627,6 +627,19 @@ class EvidenceCourtTest(unittest.TestCase):
                 self.assertIn(f"mako evidence-court --input {example_path}", readme)
                 self.assertTrue((root / example_path).exists())
 
+    def test_readme_demo_states_record_auditor_boundary(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        readme = (root / "README.md").read_text(encoding="utf-8")
+        demo_section = readme.split("## 10-Second Demo", 1)[1].split("## What Normal Tests Miss", 1)[0]
+        boundary = (
+            "Evidence Court does not inspect the real repository state or independently rerun tests. "
+            "It checks whether the run record you supply contains enough evidence to support the final claim."
+        )
+
+        self.assertIn(boundary, demo_section)
+        self.assertIn("does not inspect the real repository state", demo_section)
+        self.assertIn("run record you supply", demo_section)
+
     def test_readme_evidence_court_commands_execute(self) -> None:
         root = Path(__file__).resolve().parents[1]
         readme = (root / "README.md").read_text(encoding="utf-8")

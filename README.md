@@ -32,6 +32,7 @@ mako evidence-court --demo bad-run
 
 The bad demo is a supplied run record. This is the smallest evidence check: a bad supplied record says tests passed, but the record shows a protected test edit and no reported required pytest command.
 To block CI on this verdict, run the same command with `--fail-on fail`; the bad run exits 1 instead of report-only 0.
+Evidence Court does not inspect the real repository state or independently rerun tests. It checks whether the run record you supply contains enough evidence to support the final claim.
 Current v0.1 reads JSON run records, explicit marked transcript v0 files, and explicit Evidence Court JSONL event streams. It does not parse raw chat transcripts or native Claude/Codex/Cursor/Devin/CI logs.
 
 ## What Normal Tests Miss
