@@ -609,13 +609,40 @@ def _test_output_status(output: str) -> str:
     lowered = output.lower().strip()
     if not lowered:
         return "missing"
-    failed_markers = ("assertionerror", "traceback", "error:", "failed", "failure")
-    passed_markers = (" passed", "passed ", " ok", "ok ", "exit 0", "0 failed")
-    if any(marker in lowered for marker in failed_markers) and "0 failed" not in lowered:
+    if _test_output_has_failure(lowered):
         return "failed"
-    if any(marker in lowered for marker in passed_markers) or lowered == "ok":
+    if _test_output_has_pass(lowered):
         return "passed"
     return "unknown"
+
+
+def _test_output_has_failure(lowered: str) -> bool:
+    failure_patterns = (
+        r"(?m)^\s*(?:failed|fail|error)(?:\s|:)",
+        r"(?m)^\s*=+\s*(?:failures|errors)\s*=+\s*$",
+        r"\b[1-9]\d*\s+(?:failed|failing|failures?|errors?)\b",
+        r"\b(?:failed|failing|failures?|errors?)\s*[:=]\s*[1-9]\d*\b",
+        r"\b(?:exit(?: code)?|returncode|status)\s*[:=]?\s*[1-9]\d*\b",
+        r"(?<!no )(?<!0 )\b(?:tests?|test run|pytest|unittest|command|process|subprocess)\s+failed\b",
+        r"(?m)^\s*traceback \(most recent call last\):",
+        r"\bassertionerror\b",
+    )
+    return any(re.search(pattern, lowered) for pattern in failure_patterns)
+
+
+def _test_output_has_pass(lowered: str) -> bool:
+    if lowered == "ok" or re.search(r"(?m)^\s*ok\s*$", lowered):
+        return True
+    pass_patterns = (
+        r"\b\d+\s+passed\b",
+        r"\b(?:passed|pass)\s*[:=]\s*[1-9]\d*\b",
+        r"\b(?:exit(?: code)?|returncode|status)\s*[:=]?\s*0\b",
+        r"\b0\s+(?:failed|failing|failures?|errors?)\b",
+        r"\b(?:failed|failing|failures?|errors?)\s*[:=]\s*0\b",
+        r"\bno\s+(?:failed|failing)\s+tests?\b",
+        r"\bno\s+tests?\s+(?:failed|failing)\b",
+    )
+    return any(re.search(pattern, lowered) for pattern in pass_patterns)
 
 
 def _looks_like_success_claim(claim: str) -> bool:

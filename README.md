@@ -3,9 +3,11 @@
 [![Evidence Court Smoke](https://github.com/1966536805l-crypto/openmako-evidence-court/actions/workflows/evidence-court.yml/badge.svg)](https://github.com/1966536805l-crypto/openmako-evidence-court/actions/workflows/evidence-court.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Audit whether a coding agent's success claim is supported by a supplied run record.
+Agent Evidence Harness for coding agents.
 
-Agents often say "done", "fixed", or "tests passed" before the supplied record supports it. Evidence Court is not another coding agent; it is a claim-vs-evidence gate that checks whether the record reports the required files, commands, test output, and scope.
+Audit whether a coding agent's success claim is supported by a supplied run record. Evidence Court is an anti-fake-progress gate and claim-vs-evidence gate: it compares a final claim against the files, commands, test output, and scope reported in that record.
+
+Agents often say "done", "fixed", or "tests passed" before the supplied record supports it. Evidence Court is not another coding agent, not a codegraph, not a token compressor, and not an agent skill library. It is a record auditor: given explicit run evidence, it reports whether the claim is supported.
 
 Public proof: [docs/PUBLIC_PROOF.md](docs/PUBLIC_PROOF.md) binds the v0.1.2 claim
 to the tag, commit, smoke run, artifact digest, and 30-second reviewer path.
