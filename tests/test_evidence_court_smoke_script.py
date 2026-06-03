@@ -1555,8 +1555,12 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("mako evidence-court --demo bad-run", brief)
         self.assertIn("Verdict: FAIL", brief)
         self.assertIn("Safe Quote", brief)
+        self.assertIn("examples/evidence-court/bad-run.report.json", brief)
+        self.assertIn("diff -u examples/evidence-court/bad-run.report.json -", brief)
+        self.assertIn("should produce no diff", brief)
         self.assertIn("Do Not Share If", brief)
         self.assertIn("GitHub Actions smoke gate is red", brief)
+        self.assertIn("full JSON report fixture no longer matches", brief)
         self.assertIn("native Claude/Codex/Cursor/Devin/CI log ingestion is supported", brief)
         self.assertIn("does not provide proof that tests actually ran outside", brief)
         self.assertIn("expert review brief", readme)
@@ -1653,6 +1657,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("Review Questions", review)
         self.assertIn("Evidence Links", review)
         self.assertIn("Quick Local Check", review)
+        self.assertIn("Machine-Readable Report Check", review)
         self.assertIn("Boundaries", review)
         self.assertIn("How To Respond", review)
         self.assertIn("does not prove tests actually ran outside the supplied record", review)
@@ -1685,6 +1690,11 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "actions/runs/26836126047",
             "sha256:7ec4b7b76b0486ebad593e2936bd083ab80e0eee65c628c80f4ea64852095eac",
             "mako evidence-court --demo bad-run",
+            "mako evidence-court --input examples/evidence-court/bad-run.json --json | diff -u examples/evidence-court/bad-run.report.json -",
+            "examples/evidence-court/bad-run.report.json",
+            '"schema_version": "evidence-court.report.v0.1"',
+            '"verdict": "FAIL"',
+            "test output status reason: no known pass/fail pattern matched",
             "Verdict: FAIL",
             "docs/OUTREACH_TARGETS.md",
             "not valid",

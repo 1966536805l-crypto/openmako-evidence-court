@@ -35,6 +35,9 @@ passed even though the supplied record lacks the required test command.
 - `README.md` shows the bad-run demo above the install path.
 - `docs/demo-terminal.svg` is a visual version of the same supplied-record demo.
 - `examples/evidence-court/bad-run.json` is the supplied failing run record.
+- `examples/evidence-court/bad-run.report.json` is the full generated JSON
+  report fixture; `mako evidence-court --input examples/evidence-court/bad-run.json --json | diff -u examples/evidence-court/bad-run.report.json -`
+  should produce no diff.
 - `docs/PUBLIC_PROOF.md` binds the shared claim to the tag, commit, smoke run,
   and artifact digest.
 - `bash scripts/evidence_court_smoke.sh` runs the local smoke gate.
@@ -44,6 +47,7 @@ passed even though the supplied record lacks the required test command.
 ## Do Not Share If
 
 - The GitHub Actions smoke gate is red for the commit being shared.
+- The full JSON report fixture no longer matches the current CLI output.
 - The post says native Claude/Codex/Cursor/Devin/CI log ingestion is supported.
 - The post says Evidence Court proves tests really ran outside the supplied
   record.
