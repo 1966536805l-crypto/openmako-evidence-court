@@ -76,7 +76,9 @@ Evidence Court reports from the supplied record:
 
 JSON reports include `schema_version: "evidence-court.report.v0.1"` so CI,
 wrappers, and review tooling can check the report contract before reading
-fields.
+fields. `test_verification` includes both `test output status` and a
+`test output status reason` line so reviewers can see the matched evidence
+instead of trusting a black-box status word.
 
 Try the same path with example records:
 
