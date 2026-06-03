@@ -1741,8 +1741,17 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
                 self.assertIn(f"`{status}`", targets)
 
         target_list = targets.split("## Target List", maxsplit=1)[1].split("## First Batch", maxsplit=1)[0]
-        target_rows = re.findall(r"^\| \d+ \| .+? \| candidate \|$", target_list, flags=re.MULTILINE)
+        target_rows = re.findall(
+            r"^\| \d+ \| (?P<target>.+?) \| .+? \| (?P<status>candidate|sent) \|$",
+            target_list,
+            flags=re.MULTILINE,
+        )
         self.assertEqual(len(target_rows), 20)
+        self.assertEqual(
+            [target for target, status in target_rows if status == "sent"],
+            ["SWE-agent / mini-SWE-agent", "SWE-bench"],
+        )
+        self.assertEqual(len([status for _, status in target_rows if status == "candidate"]), 18)
 
         urls = re.findall(r"`(https://[^`]+)`", target_list)
         self.assertEqual(len(urls), 20)
@@ -1760,6 +1769,17 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         ):
             with self.subTest(first_batch_target=first_batch_target):
                 self.assertIn(first_batch_target, targets)
+
+        tracker = targets.split("## Tracking Fields To Fill After Sending", maxsplit=1)[1].split(
+            "## Do Not Say", maxsplit=1
+        )[0]
+        for issue_url in (
+            "https://github.com/SWE-agent/mini-swe-agent/issues/848",
+            "https://github.com/SWE-bench/SWE-bench/issues/595",
+        ):
+            with self.subTest(issue_url=issue_url):
+                self.assertIn(issue_url, tracker)
+                self.assertIn("Public issue opened; no reply yet.", tracker)
 
         self.assertLess(
             targets.index("| 1 | SWE-agent / mini-SWE-agent |"),

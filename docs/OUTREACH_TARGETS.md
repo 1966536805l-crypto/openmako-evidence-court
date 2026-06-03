@@ -31,7 +31,7 @@ This file is not evidence of interest, adoption, endorsement, review, or sharing
 | Priority | Target | Bucket | Public source | Why it fits | Suggested channel | Template | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | OpenHands | coding-agent scaffold | `https://github.com/OpenHands/OpenHands` | Coding-agent builders care about run evidence, sandboxing, and SWE-Bench-style claims. | GitHub Discussions or community channel | Agent Framework Author | candidate |
-| 2 | SWE-agent / mini-SWE-agent | coding-agent scaffold | `https://github.com/SWE-agent/mini-swe-agent` | SWE-Bench-oriented agent maintainers are a direct fit for claim-vs-evidence checks. | GitHub Discussions or issue only if ecosystem discussion is welcome | Researcher / Evaluator | candidate |
+| 2 | SWE-agent / mini-SWE-agent | coding-agent scaffold | `https://github.com/SWE-agent/mini-swe-agent` | SWE-Bench-oriented agent maintainers are a direct fit for claim-vs-evidence checks. | GitHub issue question template | Researcher / Evaluator | sent |
 | 3 | Aider | coding assistant | `https://github.com/Aider-AI/aider` | Terminal coding-agent users understand test-claim gaps and CLI gates. | GitHub Discussions/community channel | CI / DevTools Engineer | candidate |
 | 4 | Cline | coding agent | `https://github.com/cline/cline` | Open-source IDE/CLI agent with human-in-the-loop workflows that could benefit from supplied-record audit language. | Public community channel, not unsolicited issue spam | Agent Framework Author | candidate |
 | 5 | Continue | coding assistant | `https://github.com/continuedev/continue` | IDE and CLI assistant ecosystem; useful target for honest run-record boundary feedback. | Community forum or public discussion | General AI Tooling Maintainer | candidate |
@@ -45,7 +45,7 @@ This file is not evidence of interest, adoption, endorsement, review, or sharing
 | 13 | OpenAI Agents SDK docs | agent SDK | `https://developers.openai.com/api/docs/guides/agents` | SDK users need artifact/run-record patterns; do not imply OpenAI endorsement. | Public forum or personal channel only | General AI Tooling Maintainer | candidate |
 | 14 | Pydantic AI | agent framework | `https://github.com/pydantic/pydantic-ai` | Typed agent framework; useful reviewer for schema and structured run-record design. | GitHub Discussions/community channel | General AI Tooling Maintainer | candidate |
 | 15 | Agno | agent platform SDK | `https://github.com/agno-agi/agno` | Agent platform SDK; good fit for supplied-record proof and guardrail review. | Community channel | General AI Tooling Maintainer | candidate |
-| 16 | SWE-bench | coding-agent benchmark | `https://github.com/SWE-bench/SWE-bench` | Benchmark maintainers understand success-claim evidence and test-result boundaries. | GitHub Discussions or academic contact channel | Researcher / Evaluator | candidate |
+| 16 | SWE-bench | coding-agent benchmark | `https://github.com/SWE-bench/SWE-bench` | Benchmark maintainers understand success-claim evidence and test-result boundaries. | GitHub issue question template | Researcher / Evaluator | sent |
 | 17 | Terminal-Bench | agent benchmark | `https://www.tbench.ai/` | Terminal-task benchmark community cares about command evidence and artifact verification. | Project/community channel | Researcher / Evaluator | candidate |
 | 18 | GitTaskBench | coding-agent benchmark | `https://github.com/QuantaAlpha/GitTaskBench` | Repository-level task benchmark; good fit for claim/evidence/scope checks. | GitHub issue only if feedback/tooling discussion is welcome | Researcher / Evaluator | candidate |
 | 19 | SWE-PolyBench | coding-agent benchmark | `https://github.com/amazon-science/SWE-PolyBench` | Multi-language repository benchmark; target for honest evaluation artifact discussion. | GitHub issue only if relevant | Researcher / Evaluator | candidate |
@@ -202,10 +202,10 @@ this public tracker.
 
 | Target | Status | Sent date | Contact URL | Message URL | Reply date | Reply URL | Share URL | Message variant | Action needed | Outcome |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| SWE-agent / mini-SWE-agent | candidate |  | `https://join.slack.com/t/swe-bench/shared_invite/zt-36pj9bu5s-o3_yXPZbaH2wVnxnss1EkQ` |  |  |  |  | Immediate #1 | Send first; record public message URL before changing status. |  |
+| SWE-agent / mini-SWE-agent | sent | 2026-06-03 | `https://github.com/SWE-agent/mini-swe-agent/issues/848` | `https://github.com/SWE-agent/mini-swe-agent/issues/848` |  |  |  | GitHub issue question template | Wait for technical boundary feedback; do not follow up unless they reply. | Public issue opened; no reply yet. |
 | Aider | candidate |  | `https://discord.gg/Y7X7bhMQFV` |  |  |  |  | Immediate #2 | Send second only after first message URL is recorded, or after one calendar day. |  |
 | OpenHands | candidate |  | `https://dub.sh/openhands` |  |  |  |  | First-Batch Draft | Wait until wording is tightened by a manual pass or external review. |  |
-| SWE-bench | candidate |  | `https://github.com/SWE-bench/SWE-bench/issues/new/choose` |  |  |  |  | First-Batch Draft | Use only if issue template fits evidence-boundary feedback. |  |
+| SWE-bench | sent | 2026-06-03 | `https://github.com/SWE-bench/SWE-bench/issues/595` | `https://github.com/SWE-bench/SWE-bench/issues/595` |  |  |  | GitHub issue question template | Wait for technical boundary feedback; do not follow up unless they reply. | Public issue opened; no reply yet. |
 | LangGraph | candidate |  | `https://forum.langchain.com` |  |  |  |  | First-Batch Draft | Wait; current v0.1 has no LangGraph trace adapter. |  |
 
 ## Do Not Say
