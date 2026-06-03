@@ -43,6 +43,12 @@ class EvidenceCourtReport:
         return asdict(self)
 
 
+@dataclass(frozen=True)
+class _TestOutputStatus:
+    status: str
+    reason: str
+
+
 def load_evidence_court_run(path: str | Path) -> EvidenceCourtRun:
     input_path = Path(path).expanduser()
     payload = json.loads(input_path.read_text(encoding="utf-8"))
@@ -280,10 +286,11 @@ def _test_verification(run: EvidenceCourtRun) -> list[str]:
         findings.append("test command observed: " + "; ".join(test_commands))
     else:
         findings.append("no test command observed")
-    output_status = _test_output_status(run.test_output)
-    if output_status == "missing" and test_commands and run.required_tests:
+    output_status = _test_output_status_result(run.test_output)
+    if output_status.status == "missing" and test_commands and run.required_tests:
         findings.append("required test output missing")
-    findings.append(f"test output status: {output_status}")
+    findings.append(f"test output status: {output_status.status}")
+    findings.append(f"test output status reason: {output_status.reason}")
     return findings
 
 
@@ -606,47 +613,71 @@ def _command_tokens(command: str) -> list[str]:
 
 
 def _test_output_status(output: str) -> str:
+    return _test_output_status_result(output).status
+
+
+def _test_output_status_result(output: str) -> _TestOutputStatus:
     lowered = output.lower().strip()
     if not lowered:
-        return "missing"
-    if _test_output_has_failure(lowered):
-        return "failed"
-    if _test_output_has_pass(lowered):
-        return "passed"
-    return "unknown"
+        return _TestOutputStatus("missing", "test output is empty")
+    failure_reason = _test_output_failure_reason(lowered)
+    if failure_reason:
+        return _TestOutputStatus("failed", f"matched failure pattern: {failure_reason}")
+    pass_reason = _test_output_pass_reason(lowered)
+    if pass_reason:
+        return _TestOutputStatus("passed", f"matched pass pattern: {pass_reason}")
+    return _TestOutputStatus("unknown", "no known pass/fail pattern matched")
 
 
 def _test_output_has_failure(lowered: str) -> bool:
+    return bool(_test_output_failure_reason(lowered))
+
+
+def _test_output_failure_reason(lowered: str) -> str:
     failure_patterns = (
-        r"(?m)^\s*(?:failed|fail|error)(?:\s|:)",
-        r"(?m)^\s*(?:\[[a-z]+\]\s*)?build (?:failed|failure)\b",
-        r"(?m)^\s*=+\s*(?:failures|errors)\s*=+\s*$",
-        r"\b[1-9]\d*\s+(?:failed|failing|failures?|errors?)\b",
-        r"\b(?:failed|failing|failures?|errors?)\s*[:=]\s*[1-9]\d*\b",
-        r"\b(?:exit(?: code)?|returncode|status)\s*[:=]?\s*[1-9]\d*\b",
-        r"(?<!no )(?<!0 )\b(?:tests?|test run|pytest|unittest|command|process|subprocess)\s+failed\b",
-        r"(?m)^\s*traceback \(most recent call last\):",
-        r"\bassertionerror\b",
+        ("line starts with fail/error", r"(?m)^\s*(?:failed|fail|error)(?:\s|:)"),
+        ("build failure summary", r"(?m)^\s*(?:\[[a-z]+\]\s*)?build (?:failed|failure)\b"),
+        ("failure section header", r"(?m)^\s*=+\s*(?:failures|errors)\s*=+\s*$"),
+        ("nonzero failure count", r"\b[1-9]\d*\s+(?:failed|failing|failures?|errors?)\b"),
+        ("nonzero failure assignment", r"\b(?:failed|failing|failures?|errors?)\s*[:=]\s*[1-9]\d*\b"),
+        ("nonzero exit status", r"\b(?:exit(?: code)?|returncode|status)\s*[:=]?\s*[1-9]\d*\b"),
+        (
+            "test command failed phrase",
+            r"(?<!no )(?<!0 )\b(?:tests?|test run|pytest|unittest|command|process|subprocess)\s+failed\b",
+        ),
+        ("python traceback", r"(?m)^\s*traceback \(most recent call last\):"),
+        ("assertion error", r"\bassertionerror\b"),
     )
-    return any(re.search(pattern, lowered) for pattern in failure_patterns)
+    return _first_matching_reason(lowered, failure_patterns)
 
 
 def _test_output_has_pass(lowered: str) -> bool:
+    return bool(_test_output_pass_reason(lowered))
+
+
+def _test_output_pass_reason(lowered: str) -> str:
     if lowered == "ok" or re.search(r"(?m)^\s*ok\s*$", lowered):
-        return True
+        return "ok line"
     pass_patterns = (
-        r"(?m)^\s*ok\s+\S+",
-        r"(?m)^\s*(?:\[[a-z]+\]\s*)?build success(?:ful)?\b",
-        r"\b\d+\s+passed\b",
-        r"\b[1-9]\d*\s+passing\b",
-        r"\b(?:passed|pass)\s*[:=]\s*[1-9]\d*\b",
-        r"\b(?:exit(?: code)?|returncode|status)\s*[:=]?\s*0\b",
-        r"\b0\s+(?:failed|failing|failures?|errors?)\b",
-        r"\b(?:failed|failing|failures?|errors?)\s*[:=]\s*0\b",
-        r"\bno\s+(?:failed|failing)\s+tests?\b",
-        r"\bno\s+tests?\s+(?:failed|failing)\b",
+        ("go test ok package line", r"(?m)^\s*ok\s+\S+"),
+        ("build success summary", r"(?m)^\s*(?:\[[a-z]+\]\s*)?build success(?:ful)?\b"),
+        ("nonzero passed count", r"\b\d+\s+passed\b"),
+        ("mocha passing count", r"\b[1-9]\d*\s+passing\b"),
+        ("nonzero pass assignment", r"\b(?:passed|pass)\s*[:=]\s*[1-9]\d*\b"),
+        ("zero exit status", r"\b(?:exit(?: code)?|returncode|status)\s*[:=]?\s*0\b"),
+        ("zero failure count", r"\b0\s+(?:failed|failing|failures?|errors?)\b"),
+        ("zero failure assignment", r"\b(?:failed|failing|failures?|errors?)\s*[:=]\s*0\b"),
+        ("no failed tests phrase", r"\bno\s+(?:failed|failing)\s+tests?\b"),
+        ("no tests failed phrase", r"\bno\s+tests?\s+(?:failed|failing)\b"),
     )
-    return any(re.search(pattern, lowered) for pattern in pass_patterns)
+    return _first_matching_reason(lowered, pass_patterns)
+
+
+def _first_matching_reason(lowered: str, patterns: tuple[tuple[str, str], ...]) -> str:
+    for reason, pattern in patterns:
+        if re.search(pattern, lowered):
+            return reason
+    return ""
 
 
 def _looks_like_success_claim(claim: str) -> bool:

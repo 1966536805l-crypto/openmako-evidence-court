@@ -61,6 +61,7 @@ class EvidenceCourtTest(unittest.TestCase):
         self.assertEqual(report.verdict, "PASS")
         self.assertEqual(report.scope_violations, ())
         self.assertIn("test output status: passed", report.test_verification)
+        self.assertIn("test output status reason: matched pass pattern: nonzero passed count", report.test_verification)
         self.assertEqual(report.suspicious_behavior, ())
 
     def test_success_claim_without_tests_is_suspicious(self) -> None:
@@ -117,6 +118,7 @@ class EvidenceCourtTest(unittest.TestCase):
 
         self.assertEqual(report.verdict, "FAIL")
         self.assertIn("test output status: failed", report.test_verification)
+        self.assertIn("test output status reason: matched failure pattern: line starts with fail/error", report.test_verification)
         self.assertIn(
             "final claim says success, but test evidence is missing or failing",
             report.suspicious_behavior,
@@ -194,6 +196,10 @@ class EvidenceCourtTest(unittest.TestCase):
                 report = evaluate_evidence_court(run)
 
                 self.assertIn(f"test output status: {case['expected_status']}", report.test_verification)
+                reason = next(
+                    item for item in report.test_verification if item.startswith("test output status reason: ")
+                )
+                self.assertRegex(reason, r"^test output status reason: matched (pass|failure) pattern: .+")
                 if case["expected_status"] == "failed":
                     self.assertEqual(report.verdict, "FAIL")
                 else:
@@ -214,6 +220,7 @@ class EvidenceCourtTest(unittest.TestCase):
 
         self.assertEqual(report.verdict, "FAIL")
         self.assertIn("required test output missing", report.test_verification)
+        self.assertIn("test output status reason: test output is empty", report.test_verification)
         self.assertIn("test command was recorded, but test output is missing", report.suspicious_behavior)
 
     def test_test_command_without_output_is_suspicious_without_required_tests(self) -> None:
@@ -355,6 +362,10 @@ class EvidenceCourtTest(unittest.TestCase):
                 "suspicious_behavior",
                 "verdict",
             },
+        )
+        self.assertTrue(
+            any(item.startswith("test output status reason: ") for item in payload["test_verification"]),
+            payload["test_verification"],
         )
 
     def test_cli_rejects_raw_non_json_log_input(self) -> None:
