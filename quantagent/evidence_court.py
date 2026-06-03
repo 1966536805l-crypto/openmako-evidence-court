@@ -89,7 +89,7 @@ def evidence_court_run_from_transcript(text: str, *, source: str = "") -> Eviden
         test_output=_section_text(sections, "test_output"),
         allowed_edit_paths=_section_list(sections, "allowed_edit_paths"),
         protected_paths=_section_list(sections, "protected_paths"),
-        required_tests=_section_command_list(sections, "required_tests"),
+        required_tests=_section_command_list_aliases(sections, "required_tests", "required_commands"),
         source=source.strip(),
     )
 
@@ -454,6 +454,13 @@ def _section_list(sections: Mapping[str, str], name: str) -> tuple[str, ...]:
 
 def _section_command_list(sections: Mapping[str, str], name: str) -> tuple[str, ...]:
     return tuple(_strip_command_marker(item) for item in _section_items(sections.get(name, "")))
+
+
+def _section_command_list_aliases(sections: Mapping[str, str], *names: str) -> tuple[str, ...]:
+    commands: list[str] = []
+    for name in names:
+        commands.extend(_section_command_list(sections, name))
+    return tuple(_dedupe(commands))
 
 
 def _jsonl_event_records(text: str) -> list[Mapping[str, Any]]:
