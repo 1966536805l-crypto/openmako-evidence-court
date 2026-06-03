@@ -1231,6 +1231,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("did the final claim go beyond the supplied test evidence?", readme)
         self.assertIn("It audits\nwhether the supplied record supports the agent's claim.", readme)
         self.assertIn("does not parse raw chat transcripts or native Claude/Codex/Cursor/Devin/CI logs", readme)
+        self.assertIn("sampled runner output support, not a universal test-runner or CI-log parser", readme)
         self.assertIn("# From a checkout of this repository:", readme)
         self.assertIn("This public repository contains the Evidence Court v0.1 release set only.", readme)
         self.assertIn("does not ship or claim the broader OpenMako agent runtime", readme)

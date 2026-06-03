@@ -107,6 +107,7 @@ Current v0.1 supports structured JSON run records:
 | `source` | Optional source label for the run record |
 
 It does not yet natively ingest Claude Code, Codex, Cursor, Devin, or CI logs. Those adapters need separate parsers before the project can claim native support.
+Test-output status uses corpus-backed patterns for sampled pytest, Jest, Go test, unittest, Vitest, Mocha, Cargo, Maven, and Gradle outputs. This is sampled runner output support, not a universal test-runner or CI-log parser.
 
 ## Marked Transcript v0
 

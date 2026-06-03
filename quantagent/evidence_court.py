@@ -619,6 +619,7 @@ def _test_output_status(output: str) -> str:
 def _test_output_has_failure(lowered: str) -> bool:
     failure_patterns = (
         r"(?m)^\s*(?:failed|fail|error)(?:\s|:)",
+        r"(?m)^\s*(?:\[[a-z]+\]\s*)?build (?:failed|failure)\b",
         r"(?m)^\s*=+\s*(?:failures|errors)\s*=+\s*$",
         r"\b[1-9]\d*\s+(?:failed|failing|failures?|errors?)\b",
         r"\b(?:failed|failing|failures?|errors?)\s*[:=]\s*[1-9]\d*\b",
@@ -635,7 +636,9 @@ def _test_output_has_pass(lowered: str) -> bool:
         return True
     pass_patterns = (
         r"(?m)^\s*ok\s+\S+",
+        r"(?m)^\s*(?:\[[a-z]+\]\s*)?build success(?:ful)?\b",
         r"\b\d+\s+passed\b",
+        r"\b[1-9]\d*\s+passing\b",
         r"\b(?:passed|pass)\s*[:=]\s*[1-9]\d*\b",
         r"\b(?:exit(?: code)?|returncode|status)\s*[:=]?\s*0\b",
         r"\b0\s+(?:failed|failing|failures?|errors?)\b",
