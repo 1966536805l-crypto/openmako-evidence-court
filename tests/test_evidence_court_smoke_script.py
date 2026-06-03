@@ -1298,6 +1298,35 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
                 continue
             self.fail(f"Unhandled README bad-run demo line: {line}")
 
+    def test_readme_json_report_excerpt_matches_cli_output(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        readme = (root / "README.md").read_text(encoding="utf-8")
+        section = readme.split("Machine-readable bad-run excerpt", 1)[1].split("Try the same path", 1)[0]
+        excerpt = json.loads(section.split("```json", 1)[1].split("```", 1)[0])
+
+        self.assertEqual(set(excerpt), {"schema_version", "verdict", "test_verification"})
+        self.assertIn("excerpt, not the full report", section)
+
+        proc = subprocess.run(
+            [sys.executable, "-m", "quantagent.cli", "--no-trust-prompt", "evidence-court", "--demo", "bad-run", "--json"],
+            cwd=root,
+            text=True,
+            capture_output=True,
+            timeout=30,
+        )
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        cli_payload = json.loads(proc.stdout)
+
+        self.assertEqual(excerpt["schema_version"], cli_payload["schema_version"])
+        self.assertEqual(excerpt["verdict"], cli_payload["verdict"])
+        self.assertEqual(excerpt["test_verification"], cli_payload["test_verification"])
+        self.assertEqual(excerpt["schema_version"], "evidence-court.report.v0.1")
+        self.assertEqual(excerpt["verdict"], "FAIL")
+        self.assertIn(
+            "test output status reason: no known pass/fail pattern matched",
+            excerpt["test_verification"],
+        )
+
     def test_comparison_page_shows_what_normal_tests_miss_without_overclaiming(self) -> None:
         root = Path(__file__).resolve().parents[1]
         readme = (root / "README.md").read_text(encoding="utf-8")

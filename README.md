@@ -80,6 +80,22 @@ fields. `test_verification` includes both `test output status` and a
 `test output status reason` line so reviewers can see the matched evidence
 instead of trusting a black-box status word.
 
+Machine-readable bad-run excerpt from `mako evidence-court --demo bad-run --json`
+(excerpt, not the full report):
+
+```json
+{
+  "schema_version": "evidence-court.report.v0.1",
+  "verdict": "FAIL",
+  "test_verification": [
+    "required test not run: python -m pytest tests/test_calculator.py -q",
+    "no test command observed",
+    "test output status: unknown",
+    "test output status reason: no known pass/fail pattern matched"
+  ]
+}
+```
+
 Try the same path with example records:
 
 ```bash
