@@ -447,6 +447,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/RELEASE_NOTES_V0_1_1.md",
             "docs/RELEASE_NOTES_V0_1_2.md",
             "examples/evidence-court/bad-run.json",
+            "examples/evidence-court/bad-run.report.json",
             "examples/evidence-court/good-run.json",
             "examples/evidence-court/redacted-real-world-bad-run.json",
             "quantagent/evidence_court.py",
@@ -545,6 +546,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/RELEASE_NOTES_V0_1_1.md",
             "docs/RELEASE_NOTES_V0_1_2.md",
             "examples/evidence-court/bad-run.json",
+            "examples/evidence-court/bad-run.report.json",
             "examples/evidence-court/good-run.json",
             "examples/evidence-court/redacted-real-world-bad-run.json",
             "quantagent/evidence_court.py",
@@ -922,6 +924,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/RELEASE_NOTES_V0_1_1.md",
             "docs/RELEASE_NOTES_V0_1_2.md",
             "examples/evidence-court/bad-run.json",
+            "examples/evidence-court/bad-run.report.json",
             "examples/evidence-court/good-run.json",
             "examples/evidence-court/redacted-real-world-bad-run.json",
             "quantagent/evidence_court.py",
@@ -1010,6 +1013,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/RELEASE_NOTES_V0_1_1.md",
             "docs/RELEASE_NOTES_V0_1_2.md",
             "examples/evidence-court/bad-run.json",
+            "examples/evidence-court/bad-run.report.json",
             "examples/evidence-court/good-run.json",
             "examples/evidence-court/redacted-real-world-bad-run.json",
             "quantagent/evidence_court.py",
@@ -1128,6 +1132,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/RELEASE_NOTES_V0_1_1.md",
             "docs/RELEASE_NOTES_V0_1_2.md",
             "examples/evidence-court/bad-run.json",
+            "examples/evidence-court/bad-run.report.json",
             "examples/evidence-court/good-run.json",
             "examples/evidence-court/redacted-real-world-bad-run.json",
             "quantagent/evidence_court.py",
@@ -1326,6 +1331,42 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "test output status reason: no known pass/fail pattern matched",
             excerpt["test_verification"],
         )
+
+    def test_bad_run_report_fixture_matches_cli_json_output(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        report_path = root / "examples" / "evidence-court" / "bad-run.report.json"
+        input_path = "examples/evidence-court/bad-run.json"
+        report = json.loads(report_path.read_text(encoding="utf-8"))
+
+        proc = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "quantagent.cli",
+                "--no-trust-prompt",
+                "evidence-court",
+                "--input",
+                input_path,
+                "--json",
+            ],
+            cwd=root,
+            text=True,
+            capture_output=True,
+            timeout=30,
+        )
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertEqual(report, json.loads(proc.stdout))
+        self.assertEqual(report["schema_version"], "evidence-court.report.v0.1")
+        self.assertEqual(report["verdict"], "FAIL")
+        self.assertIn("source: examples/evidence-court/bad-run.json", report["evidence"])
+        self.assertIn(
+            "test output status reason: no known pass/fail pattern matched",
+            report["test_verification"],
+        )
+
+        manifest = (root / "docs" / "EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md").read_text(encoding="utf-8")
+        self.assertIn("examples/evidence-court/bad-run.report.json", manifest)
+        self.assertIn("full generated JSON report fixture", manifest)
 
     def test_comparison_page_shows_what_normal_tests_miss_without_overclaiming(self) -> None:
         root = Path(__file__).resolve().parents[1]

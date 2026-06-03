@@ -53,6 +53,7 @@ These files are part of the release candidate:
 - `docs/RELEASE_NOTES_V0_1_1.md`
 - `docs/RELEASE_NOTES_V0_1_2.md`
 - `examples/evidence-court/bad-run.json`
+- `examples/evidence-court/bad-run.report.json`
 - `examples/evidence-court/good-run.json`
 - `examples/evidence-court/redacted-real-world-bad-run.json`
 - `quantagent/evidence_court.py`
