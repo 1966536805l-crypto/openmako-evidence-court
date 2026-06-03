@@ -51,6 +51,19 @@ Expected visible result:
 Verdict: FAIL
 ```
 
+## Machine-Readable Report Check
+
+The repository also includes a full generated JSON report fixture for the bad
+run. To check that the fixture still matches the CLI output:
+
+```bash
+mako evidence-court --input examples/evidence-court/bad-run.json --json | diff -u examples/evidence-court/bad-run.report.json -
+```
+
+Expected result: no diff. The fixture should include
+`"schema_version": "evidence-court.report.v0.1"`, `"verdict": "FAIL"`, and
+`test output status reason: no known pass/fail pattern matched`.
+
 ## Boundaries
 
 - This does not prove tests actually ran outside the supplied record.
