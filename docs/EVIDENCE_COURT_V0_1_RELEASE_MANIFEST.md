@@ -56,6 +56,7 @@ Only these release files support the Evidence Court v0.1 public claim:
 - `docs/RELEASE_NOTES_V0_1_1.md`
 - `docs/RELEASE_NOTES_V0_1_2.md`
 - `examples/evidence-court/bad-run.json`
+- `examples/evidence-court/bad-run.report.json`
 - `examples/evidence-court/good-run.json`
 - `examples/evidence-court/redacted-real-world-bad-run.json`
 - `quantagent/evidence_court.py`
@@ -116,6 +117,9 @@ Artifact content check:
 - `reviewer-quickstart.md` tells reviewers to open `bad-run.md` first and
   confirm `source: ...` in the generated reports.
 - `bad-run.md` shows `Verdict: FAIL`.
+- `bad-run.report.json` is a full generated JSON report fixture for
+  `examples/evidence-court/bad-run.json` and contains
+  `"schema_version": "evidence-court.report.v0.1"` and `"verdict": "FAIL"`.
 - `redacted-real-world-bad-run.json` contains `"verdict": "FAIL"` and
   `source: examples/evidence-court/redacted-real-world-bad-run.json`.
 - `fail-on-fail.json` contains `"verdict": "FAIL"` and is written only after `--fail-on fail` exits 1.
