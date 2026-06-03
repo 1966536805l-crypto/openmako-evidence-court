@@ -1,0 +1,58 @@
+[
+  {
+    "id": "pytest_pass_with_xfail",
+    "runner": "pytest",
+    "command": "python -m pytest tests/test_calculator.py -q",
+    "expected_status": "passed",
+    "output": "....x\n3 passed, 1 xfailed in 0.02s"
+  },
+  {
+    "id": "pytest_failed_assertion",
+    "runner": "pytest",
+    "command": "python -m pytest tests/test_calculator.py -q",
+    "expected_status": "failed",
+    "output": "FAILED tests/test_calculator.py::test_add - AssertionError\n1 failed, 2 passed in 0.02s"
+  },
+  {
+    "id": "jest_pass_summary",
+    "runner": "jest",
+    "command": "npm test",
+    "expected_status": "passed",
+    "output": "PASS  ./sum.test.js\nTests:       3 passed, 3 total\nSnapshots:   0 total\nTime:        0.5 s"
+  },
+  {
+    "id": "jest_fail_summary",
+    "runner": "jest",
+    "command": "npm test",
+    "expected_status": "failed",
+    "output": "FAIL  ./sum.test.js\nTests:       1 failed, 2 passed, 3 total\nSnapshots:   0 total\nTime:        0.5 s"
+  },
+  {
+    "id": "go_test_pass_package",
+    "runner": "go test",
+    "command": "go test ./...",
+    "expected_status": "passed",
+    "output": "?    example.com/project      [no test files]\nok   example.com/project/calc 0.003s"
+  },
+  {
+    "id": "go_test_fail_package",
+    "runner": "go test",
+    "command": "go test ./...",
+    "expected_status": "failed",
+    "output": "--- FAIL: TestAdd (0.00s)\n    calc_test.go:10: got 0\nFAIL\nFAIL\texample.com/project/calc\t0.003s"
+  },
+  {
+    "id": "unittest_pass_ok",
+    "runner": "unittest",
+    "command": "python -m unittest",
+    "expected_status": "passed",
+    "output": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.001s\n\nOK"
+  },
+  {
+    "id": "unittest_fail_summary",
+    "runner": "unittest",
+    "command": "python -m unittest",
+    "expected_status": "failed",
+    "output": "FAIL: test_add (test_calc.CalcTest)\nAssertionError: 0 != 1\n\nFAILED (failures=1)"
+  }
+]

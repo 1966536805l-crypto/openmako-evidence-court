@@ -174,6 +174,31 @@ class EvidenceCourtTest(unittest.TestCase):
                 self.assertEqual(report.verdict, "FAIL")
                 self.assertIn("test output status: failed", report.test_verification)
 
+    def test_runner_output_corpus_maps_to_expected_status(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        corpus_path = root / "tests" / "fixtures" / "evidence_court" / "test_outputs" / "runner_outputs.json"
+        cases = json.loads(corpus_path.read_text(encoding="utf-8"))
+
+        for case in cases:
+            with self.subTest(case=case["id"], runner=case["runner"]):
+                run = EvidenceCourtRun(
+                    claimed_task="Fix calculator.add.",
+                    final_claim="Fixed. Tests pass.",
+                    files_read=("calculator.py", "tests/test_calculator.py"),
+                    files_edited=("calculator.py",),
+                    commands_run=(case["command"],),
+                    test_output=case["output"],
+                    required_tests=(case["command"],),
+                )
+
+                report = evaluate_evidence_court(run)
+
+                self.assertIn(f"test output status: {case['expected_status']}", report.test_verification)
+                if case["expected_status"] == "failed":
+                    self.assertEqual(report.verdict, "FAIL")
+                else:
+                    self.assertEqual(report.verdict, "PASS")
+
     def test_required_test_command_without_output_fails(self) -> None:
         run = EvidenceCourtRun(
             claimed_task="Fix calculator.add.",

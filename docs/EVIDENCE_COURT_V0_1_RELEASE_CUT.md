@@ -61,6 +61,7 @@ These files are part of the release candidate:
 - `scripts/evidence_court_release_set.sh`
 - `scripts/evidence_court_smoke.sh`
 - `tests/fixtures/evidence_court/marked_bad_transcript.txt`
+- `tests/fixtures/evidence_court/test_outputs/runner_outputs.json`
 - `tests/test_evidence_court.py`
 - `tests/test_evidence_court_smoke_script.py`
 
