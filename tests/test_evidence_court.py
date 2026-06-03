@@ -122,6 +122,58 @@ class EvidenceCourtTest(unittest.TestCase):
             report.suspicious_behavior,
         )
 
+    def test_passing_test_output_with_non_failure_failed_words_passes(self) -> None:
+        cases = (
+            "3 passed, 1 xfailed in 0.02s",
+            "failed=0 passed=3",
+            "0 failed, 3 passed",
+            "No tests failed.\n3 passed in 0.02s",
+            "previously failed case is now fixed\n3 passed in 0.02s",
+        )
+
+        for test_output in cases:
+            with self.subTest(test_output=test_output):
+                run = EvidenceCourtRun(
+                    claimed_task="Fix calculator.add.",
+                    final_claim="Fixed. Tests pass.",
+                    files_read=("calculator.py", "tests/test_calculator.py"),
+                    files_edited=("calculator.py",),
+                    commands_run=("python -m pytest tests/test_calculator.py -q",),
+                    test_output=test_output,
+                    required_tests=("python -m pytest tests/test_calculator.py -q",),
+                )
+
+                report = evaluate_evidence_court(run)
+
+                self.assertEqual(report.verdict, "PASS")
+                self.assertIn("test output status: passed", report.test_verification)
+
+    def test_failing_test_output_patterns_still_fail(self) -> None:
+        cases = (
+            "1 failed, 2 passed in 0.02s",
+            "failed=1 passed=2",
+            "FAILED tests/test_calculator.py::test_add - AssertionError",
+            "FAILED (failures=1)",
+            "returncode 1\n3 passed in 0.02s",
+        )
+
+        for test_output in cases:
+            with self.subTest(test_output=test_output):
+                run = EvidenceCourtRun(
+                    claimed_task="Fix calculator.add.",
+                    final_claim="Fixed. Tests pass.",
+                    files_read=("calculator.py", "tests/test_calculator.py"),
+                    files_edited=("calculator.py",),
+                    commands_run=("python -m pytest tests/test_calculator.py -q",),
+                    test_output=test_output,
+                    required_tests=("python -m pytest tests/test_calculator.py -q",),
+                )
+
+                report = evaluate_evidence_court(run)
+
+                self.assertEqual(report.verdict, "FAIL")
+                self.assertIn("test output status: failed", report.test_verification)
+
     def test_required_test_command_without_output_fails(self) -> None:
         run = EvidenceCourtRun(
             claimed_task="Fix calculator.add.",
