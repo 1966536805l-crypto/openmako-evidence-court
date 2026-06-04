@@ -2140,6 +2140,11 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("claiming \"tests passed\" without supplied evidence", readme)
         self.assertIn("Not claimed: native", readme)
         self.assertIn("issues/new?template=technical-review-request.md", outreach)
+        self.assertIn("## First Public Ask", outreach)
+        self.assertIn("docs/social-card.svg", outreach)
+        self.assertIn("test.required_not_run", outreach)
+        self.assertIn("is this reason-code gate useful, or is a required evidence field missing?", outreach)
+        self.assertIn("not stars, endorsement, adoption,\nor a repost", outreach)
         self.assertIn("TECHNICAL_REVIEW_REQUEST.md", outreach)
         self.assertIn("technical boundary feedback", release_notes)
         self.assertIn("Current proof status", outreach)
@@ -2154,6 +2159,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("v0.1.2", launch_post)
         self.assertIn("releases/tag/v0.1.2", launch_post)
         for section in (
+            "First Public Ask",
             "General AI Tooling Maintainer",
             "Agent Framework Author",
             "CI / DevTools Engineer",

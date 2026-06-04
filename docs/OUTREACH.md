@@ -8,11 +8,36 @@ The goal is to ask for a quick technical review first, not to imply endorsement.
 - Repo: `https://github.com/1966536805l-crypto/openmako-evidence-court`
 - Public proof: `https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/PUBLIC_PROOF.md`
 - Demo visual: `https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/demo-terminal.svg`
+- Social card: `https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/social-card.svg`
 - Technical review request: `https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/TECHNICAL_REVIEW_REQUEST.md`
 - Open public technical review issue: `https://github.com/1966536805l-crypto/openmako-evidence-court/issues/new?template=technical-review-request.md`
 - Release: `https://github.com/1966536805l-crypto/openmako-evidence-court/releases/tag/v0.1.2`
 - Current proof status: `https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/CURRENT_PROOF_STATUS.md`
 - Open the proof-status page before trusting or repeating remote CI evidence. It lists the current proof-anchor commit, public Evidence Court Smoke run, artifact digest, and stale-proof boundary.
+
+## First Public Ask
+
+Use this as the first public post or DM when no external reviewer has replied
+yet. It asks for one technical boundary check, not stars, endorsement, adoption,
+or a repost.
+
+```text
+Coding agents often say "tests passed" before the supplied run record supports it.
+
+OpenMako Evidence Court checks one narrow thing:
+does the supplied record support the final success claim?
+
+Demo card:
+https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/social-card.svg
+
+The bad demo fails on the exact CI reason code:
+test.required_not_run
+
+Question for agent/tooling people:
+is this reason-code gate useful, or is a required evidence field missing?
+
+Boundary: audits supplied records only. Not native Claude/Codex/Cursor/CI log ingestion, and not proof tests ran outside the supplied record.
+```
 
 ## General AI Tooling Maintainer
 
