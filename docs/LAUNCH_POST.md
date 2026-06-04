@@ -26,6 +26,7 @@ does not prove tests ran outside the supplied record.
 
 Repo: https://github.com/1966536805l-crypto/openmako-evidence-court
 Release: https://github.com/1966536805l-crypto/openmako-evidence-court/releases/tag/v0.1.2
+Current proof status: https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/CURRENT_PROOF_STATUS.md
 ```
 
 ## Review Path
@@ -33,8 +34,9 @@ Release: https://github.com/1966536805l-crypto/openmako-evidence-court/releases/
 1. Open the repository.
 2. Check the green `Evidence Court Smoke` workflow.
 3. Open the `v0.1.2` tag.
-4. Run `mako evidence-court --demo bad-run`.
-5. Read `docs/EXPERT_REVIEW_BRIEF.md`.
+4. Open `docs/CURRENT_PROOF_STATUS.md` before trusting remote CI evidence.
+5. Run `mako evidence-court --demo bad-run`.
+6. Read `docs/EXPERT_REVIEW_BRIEF.md`.
 
 ## Do Not Say
 
