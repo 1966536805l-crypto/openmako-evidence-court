@@ -1991,7 +1991,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("Recommended Send Order", targets)
         self.assertIn("future concrete technical review", targets)
         self.assertIn("Trend-Watch Targets", targets)
-        self.assertIn("current reason-code branch has public PR-head CI", targets)
+        self.assertIn("current main has public green CI evidence", targets)
         self.assertIn("Hermes Agent", targets)
         self.assertIn("OpenClaw", targets)
         self.assertIn("opencode", targets)
@@ -2140,9 +2140,11 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         for phrase in (
             "current main",
             "Refresh the commit and CI run",
+            "git ls-remote origin refs/heads/main",
+            "latest successful public `Evidence Court Smoke` run for that exact",
             "Repo: https://github.com/1966536805l-crypto/openmako-evidence-court",
-            "Main commit: f95c65d03b786fc2bdfb02316a234f7c80bd64ae",
-            "CI: https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26949712362",
+            "Main commit: <MAIN_SHA>",
+            "CI: <RUN_URL>",
             "Artifact digest: not included here",
             "verify public Actions artifact metadata before claiming artifact contents",
             "agent_runtime",
@@ -2168,8 +2170,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "native ingestion is supported",
             "reviewed by",
             "pull/27",
-            "<pr_head_sha>",
-            "<run_url>",
+            "f95c65d03b786fc2bdfb02316a234f7c80bd64ae",
+            "actions/runs/26949712362",
             "<artifact_digest>",
             "5974ee3578fbca48ee1dd794701936285314188f",
             "actions/runs/26947581663",

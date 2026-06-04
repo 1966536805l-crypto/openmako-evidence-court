@@ -80,9 +80,9 @@ than sending weak messages to all 20.
 
 ## Trend-Watch Targets
 
-Do not send these before the current reason-code branch has public PR-head CI
-evidence or at least one first-batch reply. They are high-reach local-agent
-projects, so weak wording would look like promotion instead of technical review.
+Do not send these before current main has public green CI evidence or at least
+one first-batch reply. They are high-reach local-agent projects, so weak wording
+would look like promotion instead of technical review.
 
 | Target | Trend signal | Specific ask | Boundary to keep |
 | --- | --- | --- | --- |
@@ -122,13 +122,17 @@ immediately before sending. Do not add an artifact digest unless the public
 Actions artifact metadata is visible at send time. Do not mark this packet as
 sent until the actual message has a public URL.
 
+Fill `<MAIN_SHA>` from `git ls-remote origin refs/heads/main` and `<RUN_URL>`
+from the latest successful public `Evidence Court Smoke` run for that exact
+commit.
+
 ### Current Main Evidence Packet
 
 ```text
 I added current-main evidence for the supplied-record boundary:
 Repo: https://github.com/1966536805l-crypto/openmako-evidence-court
-Main commit: f95c65d03b786fc2bdfb02316a234f7c80bd64ae
-CI: https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26949712362
+Main commit: <MAIN_SHA>
+CI: <RUN_URL>
 Artifact digest: not included here; verify public Actions artifact metadata before claiming artifact contents.
 
 The current run-record schema preserves optional metadata like agent_runtime,
