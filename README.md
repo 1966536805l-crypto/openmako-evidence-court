@@ -72,6 +72,7 @@ Evidence Court reports from the supplied record:
 - Evidence
 - Scope violations
 - Test evidence from the supplied record
+- Structured test-output status and reason
 - Suspicious behavior
 - Machine-readable reason codes
 - Verdict: PASS / SUSPICIOUS / FAIL
@@ -81,6 +82,9 @@ wrappers, and review tooling can check the report contract before reading
 fields. `test_verification` includes both `test output status` and a
 `test output status reason` line so reviewers can see the matched evidence
 instead of trusting a black-box status word.
+`test_output_status` and `test_output_status_reason` expose the same sampled
+test-output classification as stable JSON fields for CI wrappers and review
+bots that should not parse prose lines.
 `reason_codes` gives CI wrappers stable categories such as
 `test.required_not_run`, `scope.protected_path_edited`, and
 `suspicious.success_claim_without_test_evidence` without parsing prose strings.

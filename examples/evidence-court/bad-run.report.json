@@ -33,6 +33,8 @@
     "test output exists, but no test command was recorded",
     "success was claimed despite scope violations"
   ],
+  "test_output_status": "unknown",
+  "test_output_status_reason": "no known pass/fail pattern matched",
   "test_verification": [
     "required test not run: python -m pytest tests/test_calculator.py -q",
     "no test command observed",

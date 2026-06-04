@@ -13,6 +13,7 @@ Evidence Court v0.1 may claim support for:
 - explicit marked transcript v0 files
 - explicit Evidence Court JSONL event streams
 - claim/evidence/scope/test/suspicion/verdict reporting from the supplied record
+- structured `test_output_status` and `test_output_status_reason` fields derived from the supplied record
 - machine-readable reason codes derived from the supplied record
 - JSON report schema marker `evidence-court.report.v0.1`
 - local smoke gate and focused regression tests
@@ -23,6 +24,7 @@ Evidence Court v0.1 must not claim support for:
 - native Claude/Codex/Cursor/Devin transcript ingestion
 - GitHub Actions or CI log ingestion
 - proof that tests actually ran outside the supplied record
+- proof that a structured test-output status came from evidence outside the supplied record
 - proof that a reason code came from evidence outside the supplied record
 - broad SWE-style repository repair
 - unknown NPM package reasoning
@@ -123,7 +125,8 @@ Artifact content check:
 - `bad-run.md` shows `Verdict: FAIL`.
 - `bad-run.report.json` is a full generated JSON report fixture for
   `examples/evidence-court/bad-run.json` and contains
-  `"schema_version": "evidence-court.report.v0.1"` and `"verdict": "FAIL"`.
+  `"schema_version": "evidence-court.report.v0.1"`, `"verdict": "FAIL"`,
+  and `"test_output_status": "unknown"`.
 - `redacted-real-world-bad-run.json` contains `"verdict": "FAIL"` and
   `source: examples/evidence-court/redacted-real-world-bad-run.json`.
 - `fail-on-fail.json` contains `"verdict": "FAIL"` and is written only after `--fail-on fail` exits 1.

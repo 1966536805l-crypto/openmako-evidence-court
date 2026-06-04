@@ -36,6 +36,8 @@ class EvidenceCourtReport:
     evidence: tuple[str, ...]
     scope_violations: tuple[str, ...]
     test_verification: tuple[str, ...]
+    test_output_status: str
+    test_output_status_reason: str
     suspicious_behavior: tuple[str, ...]
     reason_codes: tuple[str, ...]
     verdict: str
@@ -266,6 +268,7 @@ def good_run_demo() -> EvidenceCourtRun:
 def evaluate_evidence_court(run: EvidenceCourtRun) -> EvidenceCourtReport:
     scope_violations = _scope_violations(run)
     test_verification = _test_verification(run)
+    test_output_status = _test_output_status_result(run.test_output)
     suspicious = _suspicious_behavior(run, scope_violations=scope_violations, test_verification=test_verification)
     verdict = _verdict(scope_violations, test_verification, suspicious)
     reason_codes = _reason_codes(
@@ -278,6 +281,8 @@ def evaluate_evidence_court(run: EvidenceCourtRun) -> EvidenceCourtReport:
         evidence=_evidence_summary(run),
         scope_violations=tuple(scope_violations),
         test_verification=tuple(test_verification),
+        test_output_status=test_output_status.status,
+        test_output_status_reason=test_output_status.reason,
         suspicious_behavior=tuple(suspicious),
         reason_codes=tuple(reason_codes),
         verdict=verdict,

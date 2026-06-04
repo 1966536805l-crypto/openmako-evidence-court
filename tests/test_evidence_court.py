@@ -42,6 +42,8 @@ class EvidenceCourtTest(unittest.TestCase):
             "final claim says success, but test evidence is missing or failing",
             report.suspicious_behavior,
         )
+        self.assertEqual(report.test_output_status, "unknown")
+        self.assertEqual(report.test_output_status_reason, "no known pass/fail pattern matched")
         self.assertIn("edited file was not listed as read: tests/test_calculator.py", report.suspicious_behavior)
         self.assertIn("test output exists, but no test command was recorded", report.suspicious_behavior)
         self.assertEqual(
@@ -80,6 +82,8 @@ class EvidenceCourtTest(unittest.TestCase):
         self.assertIn("test output status reason: matched pass pattern: nonzero passed count", report.test_verification)
         self.assertEqual(report.suspicious_behavior, ())
         self.assertEqual(report.reason_codes, ())
+        self.assertEqual(report.test_output_status, "passed")
+        self.assertEqual(report.test_output_status_reason, "matched pass pattern: nonzero passed count")
 
     def test_success_claim_without_tests_is_suspicious(self) -> None:
         run = EvidenceCourtRun(
@@ -376,11 +380,15 @@ class EvidenceCourtTest(unittest.TestCase):
                 "evidence",
                 "scope_violations",
                 "test_verification",
+                "test_output_status",
+                "test_output_status_reason",
                 "suspicious_behavior",
                 "reason_codes",
                 "verdict",
             },
         )
+        self.assertEqual(payload["test_output_status"], "unknown")
+        self.assertEqual(payload["test_output_status_reason"], "no known pass/fail pattern matched")
         self.assertTrue(
             any(item.startswith("test output status reason: ") for item in payload["test_verification"]),
             payload["test_verification"],
