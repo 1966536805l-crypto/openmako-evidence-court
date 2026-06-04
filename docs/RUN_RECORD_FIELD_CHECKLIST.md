@@ -65,6 +65,18 @@ but only its claim/evidence/scope/test logic affects the verdict. Metadata
 fields do not prove sandboxing, approvals, native log ingestion, real test
 execution, external review, adoption, endorsement, or share readiness.
 
+For protected-path edits, Evidence Court can emit narrow metadata-gap reason
+codes when the supplied record omits approval or sandbox-boundary context:
+
+- `approval.protected_edit_missing`: a protected path was edited without
+  supplied positive approval evidence for that path.
+- `sandbox.boundary_missing_for_protected_edit`: a protected path was edited
+  without supplied sandbox-boundary metadata.
+
+These codes do not verify real approvals, real sandbox enforcement, native log
+ingestion, or runtime behavior outside the supplied record. They only make the
+missing approval/sandbox boundary explicit for reviewers and CI wrappers.
+
 Evidence Court v0.1 does not natively ingest Hermes Agent, OpenClaw, opencode,
 OpenHands, SWE-agent, Aider, Open SWE, LangGraph, Claude, Codex, Cursor, Devin,
 GitHub Actions, or CI logs. Those would need separate adapters and tests before
