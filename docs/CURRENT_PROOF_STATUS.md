@@ -7,8 +7,8 @@ It is not an automatically updated status page.
 ## Latest Verified Main Proof Anchor
 
 - Branch: `main`
-- Latest verified main proof anchor commit: `d642dae33bd59540974478a643707f65d53bf272`
-- Latest verified main proof anchor subject: `docs: sharpen technical review reason-code gate`
+- Latest verified main proof anchor commit: `467bc9ba96318cbed5bccfa63167b87efb6a7c13`
+- Latest verified main proof anchor subject: `packaging: add discovery metadata`
 - Remote `main` contained this commit when checked by `git ls-remote origin refs/heads/main`.
 - This anchor can trail the newest remote `main` commit. Re-check Actions before
   repeating any claim about the current remote head.
@@ -16,19 +16,19 @@ It is not an automatically updated status page.
 ## Local Evidence
 
 These checks passed locally for latest verified main proof anchor commit
-`d642dae`:
+`467bc9b`:
 
 ```bash
 python3 -m pytest tests/test_evidence_court.py tests/test_evidence_court_smoke_script.py -q
-bash scripts/evidence_court_smoke.sh --artifact-dir /tmp/openmako-evidence-court-smoke-current-main-d642dae
-bash scripts/evidence_court_release_set.sh --verify-artifact-dir /tmp/openmako-evidence-court-smoke-current-main-d642dae
-EVIDENCE_COURT_RUN_URL=https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26964515571 \
+bash scripts/evidence_court_smoke.sh --artifact-dir /tmp/openmako-evidence-court-smoke-current-main-467bc9b
+bash scripts/evidence_court_release_set.sh --verify-artifact-dir /tmp/openmako-evidence-court-smoke-current-main-467bc9b
+EVIDENCE_COURT_RUN_URL=https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26967812515 \
   bash scripts/evidence_court_release_set.sh --render-current-main-review-packet
 ```
 
 Observed local results:
 
-- full local test suite reported `101 passed`
+- smoke script focused test slice reported `62 passed`
 - smoke gate reported `Evidence Court smoke gate passed.`
 - local artifact verifier reported `Evidence Court artifact dir verified`
 - `artifact-manifest.json` SHA-256:
@@ -43,21 +43,21 @@ Observed local results:
 ## Public Remote Evidence
 
 Remote CI evidence is confirmed for latest verified main proof anchor commit
-`d642dae`.
+`467bc9b`.
 
 Known facts:
 
-- The commit page for `d642dae` is publicly visible.
-- The public Actions run `26964515571` was triggered by push on `main`.
-- The public Actions run shows commit `d642dae`.
+- The commit page for `467bc9b` is publicly visible.
+- The public Actions run `26967812515` was triggered by push on `main`.
+- The public Actions run shows commit `467bc9b`.
 - The public Actions run shows Status `Success`.
 - The public job `evidence-court-smoke` shows `completed successfully`.
 - The public Actions run uploaded one `evidence-court-smoke` artifact.
 - Public artifact digest:
-  `sha256:8f41b80e4b54a5ca15752b83b3a272b686ff9d59ed7f6c5ce53f85dfba1b1fc9`.
+  `sha256:b753e0563d63ca5c0f9c1850b67a13ec9fb2f8f53e5591b9260a93d77561332e`.
 
 Remote evidence URL:
-`https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26964515571`
+`https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26967812515`
 
 ## Historical Release Proof Boundary
 

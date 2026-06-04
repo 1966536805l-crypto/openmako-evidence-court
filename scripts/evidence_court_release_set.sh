@@ -231,7 +231,7 @@ audit_staged_claim_copy() {
   require_staged_contains "docs/REDACTION_GUIDE.md" "does not prove tests actually ran outside" || invalid=1
   require_staged_contains "docs/REDACTION_GUIDE.md" "not native Claude/Codex/Cursor/Devin/CI" || invalid=1
   require_staged_contains "docs/CURRENT_PROOF_STATUS.md" "Remote CI evidence is confirmed for latest verified main proof anchor commit" || invalid=1
-  require_staged_contains "docs/CURRENT_PROOF_STATUS.md" "sha256:8f41b80e4b54a5ca15752b83b3a272b686ff9d59ed7f6c5ce53f85dfba1b1fc9" || invalid=1
+  require_staged_contains "docs/CURRENT_PROOF_STATUS.md" "sha256:b753e0563d63ca5c0f9c1850b67a13ec9fb2f8f53e5591b9260a93d77561332e" || invalid=1
   require_staged_contains "docs/CURRENT_PROOF_STATUS.md" "does not automatically prove current or later main commits" || invalid=1
   require_staged_contains "docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md" "not an endorsement request" || invalid=1
   require_staged_contains "docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md" "Do not treat this draft as a sent review request" || invalid=1
