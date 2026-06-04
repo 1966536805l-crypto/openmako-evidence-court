@@ -36,7 +36,7 @@ This file is not evidence of interest, adoption, endorsement, review, or sharing
 | 4 | Cline | coding agent | `https://github.com/cline/cline` | Open-source IDE/CLI agent with human-in-the-loop workflows that could benefit from supplied-record audit language. | Public community channel, not unsolicited issue spam | Agent Framework Author | candidate |
 | 5 | Continue | coding assistant | `https://github.com/continuedev/continue` | IDE and CLI assistant ecosystem; useful target for honest run-record boundary feedback. | Community forum or public discussion | General AI Tooling Maintainer | candidate |
 | 6 | LangGraph | agent framework | `https://github.com/langchain-ai/langgraph` | Agent orchestration maintainers care about state, observability, and eval traces. | LangChain forum or GitHub Discussions | General AI Tooling Maintainer | candidate |
-| 7 | LangChain Open SWE | coding agent | `https://github.com/langchain-ai/open-swe` | Open-source asynchronous coding-agent project; direct evidence-gate fit. | GitHub Discussions/community channel | Agent Framework Author | candidate |
+| 7 | LangChain Open SWE | coding agent | `https://github.com/langchain-ai/open-swe` | Open-source asynchronous coding-agent project; direct evidence-gate fit. | GitHub Discussions General category | Agent Framework Author | drafted |
 | 8 | LangChain Deep Agents | agent harness | `https://github.com/langchain-ai/deepagents` | Harness-level agent builders can review whether Evidence Court fits agent artifacts. | LangChain forum | Agent Framework Author | candidate |
 | 9 | Microsoft AutoGen | multi-agent framework | `https://github.com/microsoft/autogen` | Multi-agent framework with benchmark/devtool history; useful boundary reviewer despite maintenance mode. | GitHub Discussions if active, otherwise no issue | General AI Tooling Maintainer | candidate |
 | 10 | CrewAI | multi-agent framework | `https://github.com/crewAIInc/crewAI` | Large multi-agent community; supplied-run evidence could fit crew execution reporting. | Community forum/GitHub discussion | Agent Framework Author | candidate |
@@ -163,6 +163,48 @@ Review request: https://github.com/1966536805l-crypto/openmako-evidence-court/bl
 Not asking for endorsement or a share; I only want technical boundary feedback.
 ```
 
+### 3. LangChain Open SWE
+
+Title:
+
+```text
+Boundary check: minimum supplied-record fields before "fixed/tests passed" claims
+```
+
+Body:
+
+```text
+I built a narrow claim-vs-evidence gate for supplied coding-agent run records:
+https://github.com/1966536805l-crypto/openmako-evidence-court
+
+Current main evidence:
+- Commit: 20b3360ffe20c551961edfaae2ec6c9f236c0b2c
+- CI: https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26951223320
+- Field checklist: https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/RUN_RECORD_FIELD_CHECKLIST.md
+
+Open SWE is close to the workflow I want feedback from: internal coding agents,
+sandboxed execution, PR creation, and human-visible artifacts.
+
+Technical boundary question:
+before an agent says "fixed and tests passed", is this minimum supplied-record
+shape useful, or is a required field missing?
+
+- final claim
+- task boundary
+- files read/edited
+- commands run
+- required test/eval command
+- supplied test output
+- protected paths
+- approval/sandbox/tool-call metadata as context only
+- public artifact URLs when available
+
+Boundary: Evidence Court only audits explicit supplied records. It does not
+natively ingest Open SWE/LangGraph logs, does not prove real test execution
+outside the record, and does not claim adoption, endorsement, integration, or a
+share. I am asking for technical boundary criticism only.
+```
+
 ## First-Batch Send Drafts
 
 ### OpenHands
@@ -249,6 +291,7 @@ this public tracker.
 | SWE-agent / mini-SWE-agent | sent | 2026-06-03 | `https://github.com/SWE-agent/mini-swe-agent/issues/848` | `https://github.com/SWE-agent/mini-swe-agent/issues/848` |  |  |  | GitHub issue question template | Wait for technical boundary feedback; do not follow up unless they reply. | Public issue opened; no reply yet. |
 | Aider | candidate |  | `https://discord.gg/Y7X7bhMQFV` |  |  |  |  | Immediate #2 | Send second only after first message URL is recorded, or after one calendar day. |  |
 | OpenHands | candidate |  | `https://dub.sh/openhands` |  |  |  |  | First-Batch Draft | Wait until wording is tightened by a manual pass or external review. |  |
+| LangChain Open SWE | drafted |  | `https://github.com/langchain-ai/open-swe/discussions/new?category=general` |  |  |  |  | Immediate #3 | Ready to submit to the General Discussion category after final third-party posting confirmation; do not mark `sent` without the discussion URL. | Draft prepared from current-main CI evidence and run-record field checklist. |
 | SWE-bench | sent | 2026-06-03 | `https://github.com/SWE-bench/SWE-bench/issues/595` | `https://github.com/SWE-bench/SWE-bench/issues/595` |  |  |  | GitHub issue question template | Wait for technical boundary feedback; do not follow up unless they reply. | Public issue opened; no reply yet. |
 | LangGraph | candidate |  | `https://forum.langchain.com` |  |  |  |  | First-Batch Draft | Wait; current v0.1 has no LangGraph trace adapter. |  |
 

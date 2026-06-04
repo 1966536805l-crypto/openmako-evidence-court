@@ -2062,7 +2062,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
 
         target_list = targets.split("## Target List", maxsplit=1)[1].split("## First Batch", maxsplit=1)[0]
         target_rows = re.findall(
-            r"^\| \d+ \| (?P<target>.+?) \| .+? \| (?P<status>candidate|sent) \|$",
+            r"^\| \d+ \| (?P<target>.+?) \| .+? \| (?P<status>candidate|drafted|sent) \|$",
             target_list,
             flags=re.MULTILINE,
         )
@@ -2071,7 +2071,11 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             [target for target, status in target_rows if status == "sent"],
             ["SWE-agent / mini-SWE-agent", "SWE-bench"],
         )
-        self.assertEqual(len([status for _, status in target_rows if status == "candidate"]), 21)
+        self.assertEqual(
+            [target for target, status in target_rows if status == "drafted"],
+            ["LangChain Open SWE"],
+        )
+        self.assertEqual(len([status for _, status in target_rows if status == "candidate"]), 20)
 
         urls = re.findall(r"`(https://[^`]+)`", target_list)
         self.assertEqual(len(urls), 23)
@@ -2086,6 +2090,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "Aider",
             "LangGraph",
             "SWE-bench",
+            "LangChain Open SWE",
         ):
             with self.subTest(first_batch_target=first_batch_target):
                 self.assertIn(first_batch_target, targets)
@@ -2112,10 +2117,13 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         for issue_url in (
             "https://github.com/SWE-agent/mini-swe-agent/issues/848",
             "https://github.com/SWE-bench/SWE-bench/issues/595",
+            "https://github.com/langchain-ai/open-swe/discussions/new?category=general",
         ):
             with self.subTest(issue_url=issue_url):
                 self.assertIn(issue_url, tracker)
-                self.assertIn("Public issue opened; no reply yet.", tracker)
+        self.assertIn("Public issue opened; no reply yet.", tracker)
+        self.assertIn("Ready to submit to the General Discussion category", tracker)
+        self.assertIn("do not mark `sent` without the discussion URL", tracker)
 
         self.assertLess(
             targets.index("| 1 | SWE-agent / mini-SWE-agent |"),
@@ -2154,6 +2162,12 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             flags=re.MULTILINE | re.DOTALL,
         )
         self.assertEqual([name for name, _ in messages], ["SWE-agent / mini-SWE-agent", "Aider"])
+        self.assertIn("### 3. LangChain Open SWE", packet)
+        self.assertIn("Boundary check: minimum supplied-record fields", packet)
+        self.assertIn("20b3360ffe20c551961edfaae2ec6c9f236c0b2c", packet)
+        self.assertIn("actions/runs/26951223320", packet)
+        self.assertIn("docs/RUN_RECORD_FIELD_CHECKLIST.md", packet)
+        self.assertIn("does not claim adoption, endorsement, integration, or a\nshare", packet)
 
         required = (
             "https://github.com/1966536805l-crypto/openmako-evidence-court",
@@ -2335,7 +2349,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             flags=re.MULTILINE,
         )
         rows = [row for row in tracking_rows if row[0] not in {"---", "Target"}]
-        self.assertEqual(len(rows), 5)
+        self.assertEqual(len(rows), 6)
         tracked_status_by_target = {target.strip(): status.strip() for target, status, *_ in rows}
         tracked_evidence_by_target = {
             target.strip(): {
@@ -2367,6 +2381,11 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
                     self.assertRegex(sent_date.strip(), r"^2026-\d{2}-\d{2}$")
                     self.assertTrue(message_url.strip().startswith("`https://"))
                     self._assert_not_self_hosted_third_party_evidence_url(message_url)
+                if status.strip() == "drafted":
+                    self.assertEqual("", sent_date.strip())
+                    self.assertEqual("", message_url.strip())
+                    self.assertEqual("", reply_url.strip())
+                    self.assertEqual("", share_url.strip())
                 if status.strip() in {"replied", "shared"}:
                     self.assertRegex(reply_date.strip(), r"^2026-\d{2}-\d{2}$")
                     self.assertTrue(reply_url.strip().startswith("`https://"))
