@@ -1832,8 +1832,9 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
 
         self.assertIn("docs/CURRENT_PROOF_STATUS.md", readme)
         self.assertIn("docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md", readme)
-        self.assertIn("Remote CI evidence is confirmed for current main proof anchor commit `5836afa`", proof_status)
+        self.assertIn("Remote CI evidence is confirmed for latest verified main proof anchor commit\n`5836afa`", proof_status)
         self.assertIn("not an automatically updated status page", proof_status)
+        self.assertIn("This anchor can trail the newest remote `main` commit", proof_status)
         self.assertIn("actions/runs/26958891388", proof_status)
         self.assertIn("completed successfully", proof_status)
         self.assertIn("sha256:e039d6c99b3cf02309fe4633e902f2e0d3a59a4faf40f404b4309c49dddba6e0", proof_status)

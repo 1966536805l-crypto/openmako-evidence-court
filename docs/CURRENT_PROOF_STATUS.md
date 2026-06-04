@@ -1,18 +1,22 @@
 # Current Proof Status
 
-This page separates current-main proof evidence from historical release proof.
+This page separates the latest verified main proof anchor from historical
+release proof.
 It is not an automatically updated status page.
 
-## Current Main Proof Anchor
+## Latest Verified Main Proof Anchor
 
 - Branch: `main`
-- Current main proof anchor commit: `5836afa6d844348d22433229f2c295023d35d178`
-- Current main proof anchor subject: `outreach: render current main review packet`
+- Latest verified main proof anchor commit: `5836afa6d844348d22433229f2c295023d35d178`
+- Latest verified main proof anchor subject: `outreach: render current main review packet`
 - Remote `main` contained this commit when checked by `git ls-remote origin refs/heads/main`.
+- This anchor can trail the newest remote `main` commit. Re-check Actions before
+  repeating any claim about the current remote head.
 
 ## Local Evidence
 
-These checks passed locally for current main proof anchor commit `5836afa`:
+These checks passed locally for latest verified main proof anchor commit
+`5836afa`:
 
 ```bash
 python3 -m pytest tests/test_evidence_court.py tests/test_evidence_court_smoke_script.py -q
@@ -34,7 +38,8 @@ Observed local results:
 
 ## Public Remote Evidence
 
-Remote CI evidence is confirmed for current main proof anchor commit `5836afa`.
+Remote CI evidence is confirmed for latest verified main proof anchor commit
+`5836afa`.
 
 Known facts:
 
@@ -56,7 +61,7 @@ Remote evidence URL:
 smoke run, and artifact digest. It remains historical release evidence, but it
 does not automatically prove the latest main commit after `5836afa`.
 
-This page's current main proof anchor does not automatically prove later commits on `main`.
+This page's latest verified main proof anchor does not automatically prove later commits on `main`.
 After any new commit, use the newest visible `Evidence Court Smoke` run and
 artifact digest before claiming current remote CI evidence.
 
