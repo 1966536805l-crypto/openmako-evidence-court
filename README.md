@@ -64,6 +64,13 @@ For CI or wrappers, add `--fail-on fail` to return exit code 1 on `FAIL`, or
 `--fail-on suspicious` to return exit code 1 on `FAIL` and `SUSPICIOUS`.
 Without `--fail-on`, Evidence Court keeps the old report-only behavior and
 returns 0 for completed audits.
+To gate on one exact machine-readable category, repeat
+`--fail-on-reason-code CODE`. For example, this exits 1 only when the supplied
+record is missing the required test command:
+
+```bash
+mako evidence-court --input examples/evidence-court/bad-run.json --fail-on-reason-code test.required_not_run --json
+```
 
 ## What It Checks
 

@@ -15,6 +15,7 @@ Evidence Court v0.1 may claim support for:
 - claim/evidence/scope/test/suspicion/verdict reporting from the supplied record
 - structured `test_output_status` and `test_output_status_reason` fields derived from the supplied record
 - machine-readable reason codes derived from the supplied record
+- CI failure gating by exact machine-readable reason code from the supplied record
 - JSON report schema marker `evidence-court.report.v0.1`
 - local smoke gate and focused regression tests
 - GitHub Actions workflow wiring
@@ -26,6 +27,7 @@ Evidence Court v0.1 must not claim support for:
 - proof that tests actually ran outside the supplied record
 - proof that a structured test-output status came from evidence outside the supplied record
 - proof that a reason code came from evidence outside the supplied record
+- proof that a reason-code CI gate independently observed repository state or external logs
 - broad SWE-style repository repair
 - unknown NPM package reasoning
 - Desktop L4/L5 autonomy
@@ -97,6 +99,7 @@ Run before release:
 ```bash
 bash scripts/evidence_court_smoke.sh
 bash scripts/evidence_court_smoke.sh --artifact-dir /tmp/evidence-court-smoke
+mako evidence-court --demo bad-run --fail-on-reason-code test.required_not_run --json
 bash scripts/evidence_court_release_set.sh --check
 bash scripts/evidence_court_release_set.sh --check-branch-diff main
 bash scripts/evidence_court_release_set.sh --check-staged-release-set

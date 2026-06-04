@@ -363,6 +363,8 @@ def cmd_evidence_court(args: argparse.Namespace) -> int:
         return 1
     if args.fail_on == "suspicious" and report.verdict in {"FAIL", "SUSPICIOUS"}:
         return 1
+    if set(args.fail_on_reason_code).intersection(report.reason_codes):
+        return 1
     return 0
 
 
@@ -390,6 +392,13 @@ def _add_evidence_court_args(parser: argparse.ArgumentParser) -> None:
         choices=["never", "fail", "suspicious"],
         default="never",
         help="Return exit code 1 for matching verdicts: fail blocks FAIL; suspicious blocks FAIL and SUSPICIOUS",
+    )
+    parser.add_argument(
+        "--fail-on-reason-code",
+        action="append",
+        default=[],
+        metavar="CODE",
+        help="Return exit code 1 when the JSON report contains this exact reason code; may be repeated",
     )
     parser.set_defaults(func=cmd_evidence_court)
 

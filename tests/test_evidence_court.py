@@ -320,6 +320,48 @@ class EvidenceCourtTest(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertEqual(payload["verdict"], "FAIL")
 
+    def test_cli_fail_on_reason_code_turns_matching_code_into_ci_failure(self) -> None:
+        stdout = io.StringIO()
+
+        with contextlib.redirect_stdout(stdout):
+            code = main(
+                [
+                    "--no-trust-prompt",
+                    "evidence-court",
+                    "--demo",
+                    "bad-run",
+                    "--fail-on-reason-code",
+                    "test.required_not_run",
+                    "--json",
+                ]
+            )
+
+        payload = json.loads(stdout.getvalue())
+        self.assertEqual(code, 1)
+        self.assertEqual(payload["verdict"], "FAIL")
+        self.assertIn("test.required_not_run", payload["reason_codes"])
+
+    def test_cli_fail_on_reason_code_ignores_non_matching_codes(self) -> None:
+        stdout = io.StringIO()
+
+        with contextlib.redirect_stdout(stdout):
+            code = main(
+                [
+                    "--no-trust-prompt",
+                    "evidence-court",
+                    "--demo",
+                    "good-run",
+                    "--fail-on-reason-code",
+                    "test.required_not_run",
+                    "--json",
+                ]
+            )
+
+        payload = json.loads(stdout.getvalue())
+        self.assertEqual(code, 0)
+        self.assertEqual(payload["verdict"], "PASS")
+        self.assertEqual(payload["reason_codes"], [])
+
     def test_cli_fail_on_suspicious_blocks_suspicious_verdicts(self) -> None:
         with tempfile.TemporaryDirectory(prefix="evidence court ") as tmp:
             path = Path(tmp) / "run.json"
@@ -730,6 +772,33 @@ class EvidenceCourtTest(unittest.TestCase):
                     self.assertEqual(json.loads(rendered)["verdict"], expected_verdict)
                 else:
                     self.assertIn(f"## Verdict: {expected_verdict}", rendered)
+
+    def test_readme_reason_code_gate_command_executes(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        readme = (root / "README.md").read_text(encoding="utf-8")
+        command = (
+            "mako evidence-court --input examples/evidence-court/bad-run.json "
+            "--fail-on-reason-code test.required_not_run --json"
+        )
+        stdout = io.StringIO()
+
+        self.assertIn(command, readme)
+        with contextlib.redirect_stdout(stdout):
+            code = main(
+                [
+                    "--no-trust-prompt",
+                    "evidence-court",
+                    "--input",
+                    str(root / "examples/evidence-court/bad-run.json"),
+                    "--fail-on-reason-code",
+                    "test.required_not_run",
+                    "--json",
+                ]
+            )
+
+        payload = json.loads(stdout.getvalue())
+        self.assertEqual(code, 1)
+        self.assertIn("test.required_not_run", payload["reason_codes"])
 
     def test_readme_jsonl_event_command_executes(self) -> None:
         root = Path(__file__).resolve().parents[1]

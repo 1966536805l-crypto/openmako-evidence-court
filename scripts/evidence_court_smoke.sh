@@ -94,6 +94,18 @@ if [[ -n "${ARTIFACT_DIR}" ]]; then
 fi
 grep -q '"verdict": "FAIL"' <<< "${fail_on_output}"
 
+echo "[evidence-court-smoke] reason-code gate must block matching fail codes"
+set +e
+reason_code_output="$("${PY}" -m quantagent.cli --no-trust-prompt evidence-court --demo bad-run --fail-on-reason-code test.required_not_run --json 2>&1)"
+reason_code_exit=$?
+set -e
+if [[ "${reason_code_exit}" -ne 1 ]]; then
+  echo "expected --fail-on-reason-code test.required_not_run to exit 1 for bad-run, got ${reason_code_exit}" >&2
+  echo "${reason_code_output}" >&2
+  exit 1
+fi
+grep -q '"test.required_not_run"' <<< "${reason_code_output}"
+
 echo "[evidence-court-smoke] good demo must pass"
 good_output="$("${PY}" -m quantagent.cli --no-trust-prompt evidence-court --demo good-run --json)"
 if [[ -n "${ARTIFACT_DIR}" ]]; then
