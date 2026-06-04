@@ -230,6 +230,14 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
                 manifest["source_provenance_checks"]["openmako-agent-run-result.json"],
             )
             self.assertEqual("source: ", manifest["source_provenance_checks"]["jsonl-events.json"])
+            self.assertEqual(
+                "mako evidence-court --input <run-record.json> --fail-on-reason-code test.required_not_run --json",
+                manifest["ci_policy_recipe"]["required_test_gate"],
+            )
+            self.assertEqual(
+                "exits 1 when the supplied record omits the required test command",
+                manifest["ci_policy_recipe"]["effect"],
+            )
             self.assertEqual(set(manifest["review_path"]), set(manifest["artifact_file_sha256"]))
             for artifact_name, digest in manifest["artifact_file_sha256"].items():
                 with self.subTest(artifact_name=artifact_name):
@@ -265,6 +273,9 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             self.assertIn("OpenMako AgentRunResult input fails closed", quickstart)
             self.assertIn("explicit JSONL event input fails closed", quickstart)
             self.assertIn("mixed input modes are rejected", quickstart)
+            self.assertIn("## CI Policy Recipe", quickstart)
+            self.assertIn("--fail-on-reason-code test.required_not_run", quickstart)
+            self.assertIn("does not rerun tests or parse native CI logs", quickstart)
             self.assertIn("## Boundary", quickstart)
             self.assertIn("This artifact shows the smoke gate output", quickstart)
             self.assertNotIn("This artifact proves the smoke gate ran", quickstart)
@@ -321,6 +332,10 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             self.assertIn("demo verdict gate checked bad-run FAIL and good-run PASS", summary)
             self.assertIn("redacted supplied-record gate checked redacted-real-world-bad-run FAIL.", summary)
             self.assertIn("fail-on gate checked bad-run exits 1 with --fail-on fail.", summary)
+            self.assertIn(
+                "reason-code gate checked bad-run exits 1 with --fail-on-reason-code test.required_not_run.",
+                summary,
+            )
             self.assertIn("input-mode gate checked marked transcript FAIL, OpenMako AgentRunResult FAIL", summary)
             self.assertIn("explicit JSONL events FAIL", summary)
             self.assertIn("release boundary gate checked the Evidence Court release set", summary)

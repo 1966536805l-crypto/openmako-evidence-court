@@ -360,6 +360,18 @@ require(
 )
 require(source_checks.get("jsonl-events.json") == "source: ", "manifest missing JSONL source check")
 
+ci_policy_recipe = manifest.get("ci_policy_recipe", {})
+require(
+    ci_policy_recipe.get("required_test_gate")
+    == "mako evidence-court --input <run-record.json> --fail-on-reason-code test.required_not_run --json",
+    "manifest missing required-test CI policy recipe",
+)
+require(
+    ci_policy_recipe.get("effect")
+    == "exits 1 when the supplied record omits the required test command",
+    "manifest missing CI policy recipe effect",
+)
+
 boundaries = set(manifest.get("boundaries", []))
 require("No native Claude/Codex/Cursor/Devin/CI log ingestion claim." in boundaries, "manifest missing native-ingestion boundary")
 require("No proof that tests ran outside the supplied record." in boundaries, "manifest missing supplied-record boundary")
@@ -371,6 +383,9 @@ content_checks = {
         "Open `bad-run.md` first",
         "Open `redacted-real-world-bad-run.json`",
         "artifact file SHA-256 hashes",
+        "## CI Policy Recipe",
+        "--fail-on-reason-code test.required_not_run",
+        "does not rerun tests or parse native CI logs",
         "does not prove native Claude/Codex/Cursor/Devin/CI log ingestion",
     ],
     "bad-run.md": [
@@ -405,6 +420,7 @@ content_checks = {
     "mixed-source-rejection.txt": ["exit_code=2"],
     "smoke-summary.txt": [
         "Evidence Court smoke gate passed.",
+        "reason-code gate checked bad-run exits 1 with --fail-on-reason-code test.required_not_run.",
         "review-path artifacts must have SHA-256 hashes",
     ],
 }

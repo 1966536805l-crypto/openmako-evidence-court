@@ -214,6 +214,10 @@ if [[ -n "${ARTIFACT_DIR}" ]]; then
     "openmako-agent-run-result.json": "source: tests/fixtures/evidence_court/openmako_agent_run_result_bad.json",
     "jsonl-events.json": "source: "
   },
+  "ci_policy_recipe": {
+    "required_test_gate": "mako evidence-court --input <run-record.json> --fail-on-reason-code test.required_not_run --json",
+    "effect": "exits 1 when the supplied record omits the required test command"
+  },
   "boundaries": [
     "No native Claude/Codex/Cursor/Devin/CI log ingestion claim.",
     "No proof that tests ran outside the supplied record.",
@@ -241,6 +245,16 @@ Evidence Court is not another coding agent. It is a claim-vs-evidence gate for s
 
 This artifact shows these fixtures: `bad-run` fails, redacted supplied-record bad run fails, `good-run` passes, marked transcript v0 input fails closed, OpenMako AgentRunResult input fails closed, explicit JSONL event input fails closed, and mixed input modes are rejected.
 
+## CI Policy Recipe
+
+To block one concrete failure class instead of parsing prose, run:
+
+```bash
+mako evidence-court --input <run-record.json> --fail-on-reason-code test.required_not_run --json
+```
+
+This exits 1 when the supplied record contains `test.required_not_run`. It still audits only the supplied record; it does not rerun tests or parse native CI logs.
+
 ## Boundary
 
 This artifact shows the smoke gate output for supplied JSON, OpenMako AgentRunResult producer artifacts, marked transcript v0, and explicit Evidence Court JSONL event records. It does not prove native Claude/Codex/Cursor/Devin/CI log ingestion, and it does not prove tests really ran outside the supplied record.
@@ -260,6 +274,7 @@ focused tests passed for tests/test_evidence_court.py.
 demo verdict gate checked bad-run FAIL and good-run PASS.
 redacted supplied-record gate checked redacted-real-world-bad-run FAIL.
 fail-on gate checked bad-run exits 1 with --fail-on fail.
+reason-code gate checked bad-run exits 1 with --fail-on-reason-code test.required_not_run.
 input-mode gate checked marked transcript FAIL, OpenMako AgentRunResult FAIL, explicit JSONL events FAIL, and mixed JSON plus transcript plus JSONL rejection.
 release boundary gate checked the Evidence Court release set.
 bad-run.md must contain Verdict: FAIL.
