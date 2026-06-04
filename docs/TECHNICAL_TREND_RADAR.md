@@ -9,10 +9,24 @@ not evidence of endorsement, adoption, integration, or review.
 | --- | --- | --- | --- |
 | Hermes Agent | `https://github.com/NousResearch/hermes-agent` | Local agent gateway with subagents, memory, multi-channel entry points, and multiple coding-agent backends. | Keep Evidence Court as a post-run supplied-record auditor that can receive a small handoff artifact from fast local-agent sessions. |
 | OpenClaw | `https://github.com/openclaw/openclaw` | Local-first coding-agent workflow with gateway, sandbox, approvals, and human-controlled execution themes. | Keep explicit approval/sandbox boundary fields visible and flag missing supplied metadata around protected-path edits. |
-| opencode | `https://github.com/sst/opencode` | Terminal/TUI coding-agent workflow where command history and final claims are close together. | Make the reason-code CI recipe obvious for terminal users: missing required test command should fail with a stable machine-readable reason. |
+| opencode | `https://github.com/anomalyco/opencode` | Terminal/TUI coding-agent workflow where command history and final claims are close together. | Make the reason-code CI recipe obvious for terminal users: missing required test command should fail with a stable machine-readable reason. |
 | OpenHands | `https://github.com/OpenHands/OpenHands` | Software-development agent platform with local, CLI, SDK, and evaluation-facing workflows. | Use the standalone run-record field checklist to map commands, edits, tests, protected paths, and final claims without claiming native ingestion. |
 | SWE-agent / mini-SWE-agent | `https://github.com/SWE-agent/mini-swe-agent` | Small linear trajectory agent and SWE-Bench-oriented evaluation flow. | Treat exact eval command, patch scope, protected-file edits, and supplied output as first-class evidence fields. |
 | Aider | `https://github.com/Aider-AI/aider` | Terminal pair-programming agent centered on local git edits, tests, and lint commands. | Keep the record shape friendly to terminal sessions: command list, edited files, diff/protected-path summary, test output status, and final claim. |
+
+## Fresh Source Receipts
+
+These receipts record why each trend is actionable. They are not proof that any
+listed project uses, reviewed, endorsed, integrated, or shared Evidence Court.
+
+| Project | Source checked | Current useful signal | Evidence Court response |
+| --- | --- | --- | --- |
+| Hermes Agent | `https://github.com/NousResearch/hermes-agent` | Public README emphasizes terminal/CLI use, subagents, memory, community channels, and research trajectories. | Keep supplied records compact enough for local sessions and trajectory exports. |
+| OpenClaw | `https://github.com/openclaw/openclaw` and `https://github.com/openclaw/openclaw/blob/main/docs/tools/exec-approvals.md` | Public docs emphasize sandboxed exec, approvals, allowlists, and gateway/node host boundaries. | Keep approval and sandbox fields as context, and keep protected-edit metadata-gap reason codes narrow. |
+| opencode | `https://github.com/anomalyco/opencode` and `https://opencode.ai/docs/` | Public docs position it as an open source AI coding agent with terminal, desktop, and IDE surfaces. | Keep terminal CI examples short and do not claim native opencode ingestion. |
+| OpenHands | `https://github.com/OpenHands/OpenHands` | Public README points to CLI, local, SDK, cloud, Slack, and evaluation-adjacent workflows. | Keep reviewer handoff links public and source-bound. |
+| SWE-agent / mini-SWE-agent | `https://github.com/SWE-agent/mini-swe-agent` | Public README emphasizes a minimal trajectory agent and SWE-Bench verified evaluation context. | Keep exact eval/test command and supplied trajectory evidence first-class. |
+| Aider | `https://github.com/Aider-AI/aider` | Public README and docs emphasize terminal pair programming, local git edits, community, lint, and tests. | Keep command history, edited files, diff summary, and test output fields easy to fill. |
 
 ## Hot Trend Ranking
 
@@ -25,6 +39,22 @@ This ranking is a build-order input, not a market-size claim.
 | 3 | CI and benchmark communities need machine-readable failure categories, not prose-only verdicts. | A terminal user can understand a FAIL line, but CI wrappers need stable categories like `test.required_not_run`. | Keep exact reason-code gates prominent and avoid adding fuzzy "agent quality" scores. |
 | 4 | Trace and artifact exports are safer than vendor-log scraping for v0.1. | Native logs differ by product and can change quickly; explicit exports let reviewers see the source boundary. | Prefer explicit JSON/JSONL/marked-record examples and reviewer artifacts over native Hermes/OpenClaw/opencode parsers. |
 | 5 | Public proof artifacts matter more than broad claims. | Reviewers can verify a digest, artifact file, and reason-code command faster than they can audit a broad autonomy claim. | Keep proof cards, artifact manifests, SHA-256 hashes, and stale-proof warnings in the launch path. |
+
+## Star-Readiness Lessons
+
+High-reach coding-agent projects tend to make the first proof path short,
+terminal-friendly, source-linked, and bounded by visible safety rules. Evidence
+Court's growth path should copy those mechanics without copying their claims:
+
+1. One command should show the failure mode before a reviewer reads the docs.
+2. The first public link should point to a fresh proof-status page, not a stale
+   launch claim.
+3. Safety and permission fields should be explicit, but never overclaimed as
+   real sandbox or approval proof.
+4. Outreach should ask for one technical boundary criticism before asking for
+   any share.
+5. Every sent/replied/shared state needs a public URL before it enters the
+   tracker.
 
 ## Product Bet
 
@@ -109,4 +139,6 @@ or real sandbox enforcement.
 
 Use `docs/RUN_RECORD_FIELD_CHECKLIST.md` as the next technical-review handoff.
 Do not build native Hermes/OpenClaw/opencode/OpenHands/Aider adapters until an
-external reviewer confirms the supplied-record fields are clear enough.
+external reviewer confirms the supplied-record fields are clear enough. Do not
+scale trend-watch outreach until the issue #5 re-check has a public posted URL
+or another first-batch target replies with a public URL.

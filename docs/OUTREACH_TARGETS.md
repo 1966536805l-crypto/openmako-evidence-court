@@ -52,7 +52,7 @@ This file is not evidence of interest, adoption, endorsement, review, or sharing
 | 20 | SWE-Bench-CL | continual-learning benchmark | `https://github.com/thomasjoshi/agents-never-forget` | Continual coding-agent benchmark; useful reviewer for trajectory and evidence reuse boundaries. | GitHub discussion/issue only if appropriate | Researcher / Evaluator | candidate |
 | 21 | Hermes Agent | local agent / gateway | `https://github.com/NousResearch/hermes-agent` | High-visibility local agent/gateway project with Codex, Claude Code, OpenClaw, memory, and subagent themes; useful for checking whether Evidence Court's supplied-record boundary fits fast-moving local-agent workflows. | Public community channel or GitHub Discussions if active; no unsolicited issue spam | Agent Framework Author | candidate |
 | 22 | OpenClaw | local agent / gateway | `https://github.com/openclaw/openclaw` | Local-first gateway/sandbox/approval-style agent workflow; useful for feedback on run-record fields around tool calls, permission boundaries, and final success claims. | Public community channel or GitHub Discussions if active; no unsolicited issue spam | Agent Framework Author | candidate |
-| 23 | opencode | terminal coding agent | `https://github.com/sst/opencode` | Fast terminal/TUI coding-agent ecosystem; useful target for the new reason-code CI recipe and command-history evidence boundary. | Public community channel or GitHub Discussions if active; no unsolicited issue spam | CI / DevTools Engineer | candidate |
+| 23 | opencode | terminal coding agent | `https://github.com/anomalyco/opencode` | Fast terminal/TUI coding-agent ecosystem; useful target for the new reason-code CI recipe and command-history evidence boundary. | Public community channel or GitHub Discussions if active; no unsolicited issue spam | CI / DevTools Engineer | candidate |
 
 ## First Batch
 
@@ -88,7 +88,7 @@ would look like promotion instead of technical review.
 | --- | --- | --- | --- |
 | Hermes Agent | Local agent/gateway, memory, subagents, and cross-provider workflows. | Would a supplied Evidence Court run record be useful as a lightweight post-run audit artifact for local-agent sessions? | Evidence Court does not ingest Hermes/OpenClaw native logs; it only audits explicit supplied records. |
 | OpenClaw | Local gateway, sandboxing, approvals, and human-controlled agent execution. | What fields should represent approval/tool-call boundaries before a final "done" claim is supportable? | No affiliation, adoption, integration, or sandbox proof is claimed. |
-| opencode | Terminal/TUI coding-agent workflow and command-history evidence. | Is the `--fail-on-reason-code test.required_not_run` CI recipe understandable enough for a terminal-agent user? | It is a CI wrapper recipe for supplied records, not native opencode ingestion. |
+| opencode | Terminal/TUI coding-agent workflow and command-history evidence; `sst/opencode` redirects to `anomalyco/opencode`. | Is the `--fail-on-reason-code test.required_not_run` CI recipe understandable enough for a terminal-agent user? | It is a CI wrapper recipe for supplied records, not native opencode ingestion. |
 
 ## First-Batch Contact URLs
 

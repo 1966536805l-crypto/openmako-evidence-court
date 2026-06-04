@@ -224,7 +224,9 @@ audit_staged_claim_copy() {
   require_staged_contains "docs/RUN_RECORD_FIELD_CHECKLIST.md" 'only its claim/evidence/scope/test logic affects the verdict' || invalid=1
   require_staged_contains "docs/RUN_RECORD_FIELD_CHECKLIST.md" "does not natively ingest Hermes Agent, OpenClaw, opencode" || invalid=1
   require_staged_contains "docs/TECHNICAL_TREND_RADAR.md" "not evidence of endorsement, adoption, integration, or review" || invalid=1
+  require_staged_contains "docs/TECHNICAL_TREND_RADAR.md" "Fresh Source Receipts" || invalid=1
   require_staged_contains "docs/TECHNICAL_TREND_RADAR.md" "does not natively ingest Hermes, OpenClaw, opencode" || invalid=1
+  require_staged_contains "docs/OUTREACH_TARGETS.md" "https://github.com/anomalyco/opencode" || invalid=1
   require_staged_contains "docs/REDACTION_GUIDE.md" "Evidence Court only audits the supplied record" || invalid=1
   require_staged_contains "docs/REDACTION_GUIDE.md" "does not prove tests actually ran outside" || invalid=1
   require_staged_contains "docs/REDACTION_GUIDE.md" "not native Claude/Codex/Cursor/Devin/CI" || invalid=1
