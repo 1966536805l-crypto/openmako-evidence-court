@@ -50,6 +50,9 @@ This file is not evidence of interest, adoption, endorsement, review, or sharing
 | 18 | GitTaskBench | coding-agent benchmark | `https://github.com/QuantaAlpha/GitTaskBench` | Repository-level task benchmark; good fit for claim/evidence/scope checks. | GitHub issue only if feedback/tooling discussion is welcome | Researcher / Evaluator | candidate |
 | 19 | SWE-PolyBench | coding-agent benchmark | `https://github.com/amazon-science/SWE-PolyBench` | Multi-language repository benchmark; target for honest evaluation artifact discussion. | GitHub issue only if relevant | Researcher / Evaluator | candidate |
 | 20 | SWE-Bench-CL | continual-learning benchmark | `https://github.com/thomasjoshi/agents-never-forget` | Continual coding-agent benchmark; useful reviewer for trajectory and evidence reuse boundaries. | GitHub discussion/issue only if appropriate | Researcher / Evaluator | candidate |
+| 21 | Hermes Agent | local agent / gateway | `https://github.com/NousResearch/hermes-agent` | High-visibility local agent/gateway project with Codex, Claude Code, OpenClaw, memory, and subagent themes; useful for checking whether Evidence Court's supplied-record boundary fits fast-moving local-agent workflows. | Public community channel or GitHub Discussions if active; no unsolicited issue spam | Agent Framework Author | candidate |
+| 22 | OpenClaw | local agent / gateway | `https://github.com/openclaw/openclaw` | Local-first gateway/sandbox/approval-style agent workflow; useful for feedback on run-record fields around tool calls, permission boundaries, and final success claims. | Public community channel or GitHub Discussions if active; no unsolicited issue spam | Agent Framework Author | candidate |
+| 23 | opencode | terminal coding agent | `https://github.com/sst/opencode` | Fast terminal/TUI coding-agent ecosystem; useful target for the new reason-code CI recipe and command-history evidence boundary. | Public community channel or GitHub Discussions if active; no unsolicited issue spam | CI / DevTools Engineer | candidate |
 
 ## First Batch
 
@@ -74,6 +77,18 @@ than sending weak messages to all 20.
 | 3 | OpenHands | Largest reach, but the community is broader and noisier; send after the wording is tightened by at least one external review or manual pass. |
 | 4 | SWE-bench | Highest potential evaluation relevance, but less likely to convert directly into user stars than an agent-tool community. |
 | 5 | LangGraph | Large agent ecosystem, but current v0.1 has no LangGraph trace adapter; ask only about future explicit JSONL event mapping. |
+
+## Trend-Watch Targets
+
+Do not send these before the current reason-code branch has public PR-head CI
+evidence or at least one first-batch reply. They are high-reach local-agent
+projects, so weak wording would look like promotion instead of technical review.
+
+| Target | Trend signal | Specific ask | Boundary to keep |
+| --- | --- | --- | --- |
+| Hermes Agent | Local agent/gateway, memory, subagents, and cross-provider workflows. | Would a supplied Evidence Court run record be useful as a lightweight post-run audit artifact for local-agent sessions? | Evidence Court does not ingest Hermes/OpenClaw native logs; it only audits explicit supplied records. |
+| OpenClaw | Local gateway, sandboxing, approvals, and human-controlled agent execution. | What fields should represent approval/tool-call boundaries before a final "done" claim is supportable? | No affiliation, adoption, integration, or sandbox proof is claimed. |
+| opencode | Terminal/TUI coding-agent workflow and command-history evidence. | Is the `--fail-on-reason-code test.required_not_run` CI recipe understandable enough for a terminal-agent user? | It is a CI wrapper recipe for supplied records, not native opencode ingestion. |
 
 ## First-Batch Contact URLs
 

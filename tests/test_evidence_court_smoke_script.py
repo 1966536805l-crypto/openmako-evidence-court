@@ -1784,6 +1784,11 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("Start with five targets before scaling", targets)
         self.assertIn("Recommended Send Order", targets)
         self.assertIn("future concrete technical review", targets)
+        self.assertIn("Trend-Watch Targets", targets)
+        self.assertIn("current reason-code branch has public PR-head CI", targets)
+        self.assertIn("Hermes Agent", targets)
+        self.assertIn("OpenClaw", targets)
+        self.assertIn("opencode", targets)
         self.assertIn("Highest potential evaluation relevance", targets)
         self.assertIn("Do Not Say", targets)
 
@@ -1797,15 +1802,15 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             target_list,
             flags=re.MULTILINE,
         )
-        self.assertEqual(len(target_rows), 20)
+        self.assertEqual(len(target_rows), 23)
         self.assertEqual(
             [target for target, status in target_rows if status == "sent"],
             ["SWE-agent / mini-SWE-agent", "SWE-bench"],
         )
-        self.assertEqual(len([status for _, status in target_rows if status == "candidate"]), 18)
+        self.assertEqual(len([status for _, status in target_rows if status == "candidate"]), 21)
 
         urls = re.findall(r"`(https://[^`]+)`", target_list)
-        self.assertEqual(len(urls), 20)
+        self.assertEqual(len(urls), 23)
         for url in urls:
             with self.subTest(url=url):
                 self.assertNotIn(" ", url)
@@ -1820,6 +1825,22 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         ):
             with self.subTest(first_batch_target=first_batch_target):
                 self.assertIn(first_batch_target, targets)
+
+        trend_watch = targets.split("## Trend-Watch Targets", maxsplit=1)[1].split(
+            "## First-Batch Contact URLs",
+            maxsplit=1,
+        )[0]
+        for phrase in (
+            "Hermes Agent",
+            "OpenClaw",
+            "opencode",
+            "high-reach local-agent",
+            "does not ingest Hermes/OpenClaw native logs",
+            "--fail-on-reason-code test.required_not_run",
+            "No affiliation, adoption, integration, or sandbox proof is claimed.",
+        ):
+            with self.subTest(trend_watch_phrase=phrase):
+                self.assertIn(phrase, trend_watch)
 
         tracker = targets.split("## Tracking Fields To Fill After Sending", maxsplit=1)[1].split(
             "## Do Not Say", maxsplit=1
@@ -2012,7 +2033,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             target_list,
             flags=re.MULTILINE,
         )
-        self.assertEqual(len(target_rows), 20)
+        self.assertEqual(len(target_rows), 23)
         for target, status in target_rows:
             with self.subTest(target_list_status=target):
                 if status != "candidate":
