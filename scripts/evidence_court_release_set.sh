@@ -36,6 +36,7 @@ INCLUDE_PATHS=(
   "examples/evidence-court/bad-run.report.json"
   "examples/evidence-court/good-run.json"
   "examples/evidence-court/redacted-real-world-bad-run.json"
+  "examples/evidence-court/run-record.schema.json"
   "quantagent/evidence_court.py"
   "quantagent/__init__.py"
   "quantagent/cli.py"

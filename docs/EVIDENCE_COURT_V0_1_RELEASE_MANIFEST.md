@@ -9,6 +9,7 @@ Evidence Court v0.1 is not a vendor log parser.
 Evidence Court v0.1 may claim support for:
 
 - supplied structured JSON run records
+- permissive supplied JSON run-record schema at `examples/evidence-court/run-record.schema.json`
 - OpenMako AgentRunResult JSON producer artifacts with schema `openmako.agent_run_result.v0`
 - explicit marked transcript v0 files
 - explicit Evidence Court JSONL event streams
@@ -66,6 +67,7 @@ Only these release files support the Evidence Court v0.1 public claim:
 - `examples/evidence-court/bad-run.report.json`
 - `examples/evidence-court/good-run.json`
 - `examples/evidence-court/redacted-real-world-bad-run.json`
+- `examples/evidence-court/run-record.schema.json`
 - `quantagent/evidence_court.py`
 - `quantagent/__init__.py`
 - `quantagent/cli.py`

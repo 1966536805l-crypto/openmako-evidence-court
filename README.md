@@ -130,6 +130,12 @@ coding-agent run into a public supplied-record fixture.
 
 Current v0.1 supports structured JSON run records:
 
+Adapter authors can start from the permissive schema at
+[`examples/evidence-court/run-record.schema.json`](examples/evidence-court/run-record.schema.json).
+It documents the explicit supplied-record fields that the v0.1 loader reads,
+including command-object forms and aliases such as `claim`, `allowed_files`, and
+`required_commands`. It is not a native vendor-log schema.
+
 | Field | Meaning |
 | --- | --- |
 | `claimed_task` | What the agent was asked to do |

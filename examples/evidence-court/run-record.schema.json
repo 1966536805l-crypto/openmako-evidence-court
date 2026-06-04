@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/examples/evidence-court/run-record.schema.json",
+  "title": "Evidence Court supplied JSON run record v0.1",
+  "description": "Permissive schema for explicit supplied run records audited by Evidence Court v0.1. This is not a native Claude/Codex/Cursor/Devin/CI log schema.",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "claimed_task": {
+      "type": "string",
+      "description": "What the agent was asked to do."
+    },
+    "claim": {
+      "type": "string",
+      "description": "Alias for claimed_task."
+    },
+    "final_claim": {
+      "type": "string",
+      "description": "The agent's final success claim."
+    },
+    "files_read": {
+      "$ref": "#/$defs/stringOrStringArray"
+    },
+    "files_edited": {
+      "$ref": "#/$defs/stringOrStringArray"
+    },
+    "commands_run": {
+      "$ref": "#/$defs/commandOrCommandArray"
+    },
+    "test_output": {
+      "type": "string"
+    },
+    "allowed_edit_paths": {
+      "$ref": "#/$defs/stringOrStringArray"
+    },
+    "allowed_files": {
+      "$ref": "#/$defs/stringOrStringArray",
+      "description": "Alias for allowed_edit_paths."
+    },
+    "protected_paths": {
+      "$ref": "#/$defs/stringOrStringArray"
+    },
+    "required_tests": {
+      "$ref": "#/$defs/commandOrCommandArray"
+    },
+    "required_commands": {
+      "$ref": "#/$defs/commandOrCommandArray",
+      "description": "Alias for required_tests."
+    },
+    "source": {
+      "type": "string",
+      "description": "Optional provenance label for the supplied record."
+    }
+  },
+  "$defs": {
+    "stringOrStringArray": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "command": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "command": {
+              "type": "string"
+            },
+            "cmd": {
+              "type": "string"
+            },
+            "argv": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "test_output": {
+              "type": "string"
+            },
+            "output": {
+              "type": "string"
+            },
+            "stdout": {
+              "type": "string"
+            },
+            "stderr": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "commandOrCommandArray": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/command"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/command"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -591,6 +591,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "examples/evidence-court/bad-run.report.json",
             "examples/evidence-court/good-run.json",
             "examples/evidence-court/redacted-real-world-bad-run.json",
+            "examples/evidence-court/run-record.schema.json",
             "quantagent/evidence_court.py",
             "quantagent/__init__.py",
             "quantagent/cli.py",
@@ -618,6 +619,10 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
                 self.assertIn(f"`{path}`", text)
 
         self.assertIn("Only these release files support", text)
+        self.assertIn(
+            "permissive supplied JSON run-record schema at `examples/evidence-court/run-record.schema.json`",
+            text,
+        )
         self.assertIn("must not support the Evidence Court v0.1 public claim", normalized)
         self.assertIn("native Claude/Codex/Cursor/Devin transcript ingestion", text)
         self.assertIn("GitHub Actions or CI log ingestion", text)
@@ -664,6 +669,63 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             text,
         )
         self.assertIn("sed -n '1,80p' /tmp/evidence-court-smoke/artifact-manifest.json", text)
+
+    def test_supplied_run_record_schema_matches_loader_boundary(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        schema_path = root / "examples" / "evidence-court" / "run-record.schema.json"
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        readme = (root / "README.md").read_text(encoding="utf-8")
+        manifest = (root / "docs" / "EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md").read_text(encoding="utf-8")
+
+        self.assertEqual(schema["$schema"], "https://json-schema.org/draft/2020-12/schema")
+        self.assertEqual(schema["title"], "Evidence Court supplied JSON run record v0.1")
+        self.assertTrue(schema["additionalProperties"])
+        self.assertIn("not a native Claude/Codex/Cursor/Devin/CI log schema", schema["description"])
+
+        properties = schema["properties"]
+        for field in (
+            "claimed_task",
+            "claim",
+            "final_claim",
+            "files_read",
+            "files_edited",
+            "commands_run",
+            "test_output",
+            "allowed_edit_paths",
+            "allowed_files",
+            "protected_paths",
+            "required_tests",
+            "required_commands",
+            "source",
+        ):
+            with self.subTest(field=field):
+                self.assertIn(field, properties)
+
+        command_text = json.dumps(schema["$defs"]["command"], sort_keys=True)
+        for field in ("command", "cmd", "argv", "test_output", "output", "stdout", "stderr"):
+            with self.subTest(command_field=field):
+                self.assertIn(field, command_text)
+
+        for example_name in ("bad-run.json", "good-run.json", "redacted-real-world-bad-run.json"):
+            with self.subTest(example_name=example_name):
+                payload = json.loads((root / "examples" / "evidence-court" / example_name).read_text(encoding="utf-8"))
+                for field in ("claimed_task", "final_claim", "files_read", "files_edited", "commands_run"):
+                    self.assertIn(field, payload)
+
+        self.assertIn("examples/evidence-court/run-record.schema.json", readme)
+        self.assertIn("examples/evidence-court/run-record.schema.json", manifest)
+        forbidden = (
+            "native Claude ingestion is supported",
+            "native Codex ingestion is supported",
+            "native CI log ingestion is supported",
+            "endorsed by",
+            "10k",
+            "10000",
+        )
+        combined = json.dumps(schema, ensure_ascii=False) + "\n" + readme + "\n" + manifest
+        for phrase in forbidden:
+            with self.subTest(phrase=phrase):
+                self.assertNotIn(phrase, combined)
 
     def test_launch_packet_keeps_public_claims_bounded(self) -> None:
         root = Path(__file__).resolve().parents[1]
@@ -975,6 +1037,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "examples/evidence-court/bad-run.report.json",
             "examples/evidence-court/good-run.json",
             "examples/evidence-court/redacted-real-world-bad-run.json",
+            "examples/evidence-court/run-record.schema.json",
             "quantagent/evidence_court.py",
             "quantagent/__init__.py",
             "quantagent/cli.py",
@@ -1065,6 +1128,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "examples/evidence-court/bad-run.report.json",
             "examples/evidence-court/good-run.json",
             "examples/evidence-court/redacted-real-world-bad-run.json",
+            "examples/evidence-court/run-record.schema.json",
             "quantagent/evidence_court.py",
             "quantagent/__init__.py",
             "quantagent/cli.py",
@@ -1185,6 +1249,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "examples/evidence-court/bad-run.report.json",
             "examples/evidence-court/good-run.json",
             "examples/evidence-court/redacted-real-world-bad-run.json",
+            "examples/evidence-court/run-record.schema.json",
             "quantagent/evidence_court.py",
             "quantagent/__init__.py",
             "quantagent/cli.py",
@@ -1289,6 +1354,9 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("did the final claim go beyond the supplied test evidence?", readme)
         self.assertIn("It audits\nwhether the supplied record supports the agent's claim.", readme)
         self.assertIn("does not parse raw chat transcripts or native Claude/Codex/Cursor/Devin/CI logs", readme)
+        self.assertIn("examples/evidence-court/run-record.schema.json", readme)
+        self.assertIn("Adapter authors can start from the permissive schema", readme)
+        self.assertIn("It is not a native vendor-log schema.", readme)
         self.assertIn("sampled runner output support, not a universal test-runner or CI-log parser", readme)
         self.assertIn("# From a checkout of this repository:", readme)
         self.assertIn("This public repository contains the Evidence Court v0.1 release set only.", readme)
