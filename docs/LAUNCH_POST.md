@@ -29,6 +29,11 @@ does not prove tests ran outside the supplied record.
 Shareable one-liner:
 Evidence Court checks whether a coding agent's supplied run record supports its "tests passed" claim.
 
+30-second share block:
+OpenMako Evidence Court is a small CI-friendly record auditor for coding-agent "tests passed" claims.
+Try: mako evidence-court --input examples/evidence-court/bad-run.json --fail-on-reason-code test.required_not_run --json
+Boundary: audits supplied records only; not native Claude/Codex/Cursor/CI log ingestion and not proof tests ran outside the record.
+
 Repo: https://github.com/1966536805l-crypto/openmako-evidence-court
 Release: https://github.com/1966536805l-crypto/openmako-evidence-court/releases/tag/v0.1.2
 Current proof status: https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/CURRENT_PROOF_STATUS.md

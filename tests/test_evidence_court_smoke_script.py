@@ -1929,10 +1929,19 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("terminal demo visual", readme)
         self.assertIn("## Why Star Or Share", readme)
         self.assertIn("Shareable one-liner", readme)
+        self.assertIn("30-second share block", readme)
         self.assertIn(
             "Evidence Court checks whether a coding agent's supplied run record supports its \"tests passed\" claim.",
             readme,
         )
+        for phrase in (
+            "OpenMako Evidence Court is a small CI-friendly record auditor",
+            "mako evidence-court --input examples/evidence-court/bad-run.json --fail-on-reason-code test.required_not_run --json",
+            "Boundary: audits supplied records only; not native Claude/Codex/Cursor/CI log ingestion",
+            "not proof tests ran outside the record",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, readme)
         self.assertLess(readme.index("## 10-Second Demo"), readme.index("## Why Star Or Share"))
         self.assertLess(readme.index("## Why Star Or Share"), readme.index("## What Normal Tests Miss"))
         self.assertIn("normal-tests comparison", readme)
@@ -1959,10 +1968,19 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("explicit Evidence Court JSONL event streams", launch_post)
         self.assertIn("Current proof status:", launch_post)
         self.assertIn("Shareable one-liner:", launch_post)
+        self.assertIn("30-second share block:", launch_post)
         self.assertIn(
             "Evidence Court checks whether a coding agent's supplied run record supports its \"tests passed\" claim.",
             launch_post,
         )
+        for phrase in (
+            "OpenMako Evidence Court is a small CI-friendly record auditor",
+            "mako evidence-court --input examples/evidence-court/bad-run.json --fail-on-reason-code test.required_not_run --json",
+            "Boundary: audits supplied records only; not native Claude/Codex/Cursor/CI log ingestion",
+            "not proof tests ran outside the record",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, launch_post)
         self.assertIn("docs/CURRENT_PROOF_STATUS.md", launch_post)
         self.assertIn("Open `docs/CURRENT_PROOF_STATUS.md` before trusting remote CI evidence", launch_post)
         self.assertIn("reason-codes.json", launch_post)
