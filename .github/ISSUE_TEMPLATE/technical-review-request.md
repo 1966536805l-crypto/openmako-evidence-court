@@ -31,6 +31,8 @@ shows a protected test edit and no reported required pytest command.
 3. Before claiming native Claude/Codex/Cursor/Devin/CI or framework-log
    ingestion, what adapter evidence should be required beyond this supplied
    JSON/marked-transcript/explicit-JSONL v0.1 support?
+4. Is `--fail-on-reason-code test.required_not_run` a clear enough CI wrapper
+   signal for this narrow missing-required-test-command failure?
 
 ## Evidence Links
 
@@ -41,7 +43,7 @@ shows a protected test edit and no reported required pytest command.
 
 Open `docs/CURRENT_PROOF_STATUS.md` before trusting or repeating remote CI
 evidence. It lists the current proof-anchor commit, public Evidence Court Smoke
-run, artifact digest, and stale-proof boundary.
+run, artifact digest, reason-code artifact files, and stale-proof boundary.
 
 ## Quick Local Check
 
@@ -57,6 +59,16 @@ Expected visible result:
 ```text
 Verdict: FAIL
 ```
+
+## Reason-Code Gate Check
+
+```bash
+mako evidence-court --input examples/evidence-court/bad-run.json --fail-on-reason-code test.required_not_run --json
+```
+
+Expected result: exit code 1 with `test.required_not_run` in the JSON
+`reason_codes` list. This still audits only the supplied record; it does not
+rerun tests.
 
 ## Boundaries
 

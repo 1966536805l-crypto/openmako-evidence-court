@@ -235,6 +235,7 @@ audit_staged_claim_copy() {
   require_staged_contains "docs/CURRENT_PROOF_STATUS.md" "does not automatically prove current or later main commits" || invalid=1
   require_staged_contains "docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md" "not an endorsement request" || invalid=1
   require_staged_contains "docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md" "Do not treat this draft as a sent review request" || invalid=1
+  require_staged_contains "docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md" "--fail-on-reason-code test.required_not_run" || invalid=1
   require_staged_contains "docs/EXPERT_REVIEW_BRIEF.md" "Do Not Share If" || invalid=1
   require_staged_contains "docs/OUTREACH.md" "Do Not Say" || invalid=1
   require_staged_contains "docs/OUTREACH.md" "does not natively ingest Claude/Codex/Cursor/CI logs" || invalid=1
@@ -242,8 +243,10 @@ audit_staged_claim_copy() {
   require_staged_contains "docs/OUTREACH_TARGETS.md" "Start with five targets before scaling" || invalid=1
   require_staged_contains "docs/TECHNICAL_REVIEW_REQUEST.md" "not an endorsement request" || invalid=1
   require_staged_contains "docs/TECHNICAL_REVIEW_REQUEST.md" "Review Questions" || invalid=1
+  require_staged_contains "docs/TECHNICAL_REVIEW_REQUEST.md" "--fail-on-reason-code test.required_not_run" || invalid=1
   require_staged_contains ".github/ISSUE_TEMPLATE/technical-review-request.md" "not an endorsement request" || invalid=1
   require_staged_contains ".github/ISSUE_TEMPLATE/technical-review-request.md" "Review Questions" || invalid=1
+  require_staged_contains ".github/ISSUE_TEMPLATE/technical-review-request.md" "--fail-on-reason-code test.required_not_run" || invalid=1
   require_staged_contains "docs/EXPERT_REVIEW_BRIEF.md" "does not provide proof that tests actually ran outside" || invalid=1
   require_staged_contains "docs/EXPERT_REVIEW_BRIEF.md" "reason-codes.json" || invalid=1
   require_staged_contains "docs/LAUNCH_POST.md" "reason-codes.json" || invalid=1

@@ -1886,6 +1886,9 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("Open `docs/CURRENT_PROOF_STATUS.md` before trusting remote CI claims", issue_draft)
         self.assertIn("Current proof status", issue_draft)
         self.assertIn("Open before trusting remote CI evidence", issue_draft)
+        self.assertIn("--fail-on-reason-code test.required_not_run", issue_draft)
+        self.assertIn("reason-codes.json", issue_draft)
+        self.assertIn("reason-codes.md", issue_draft)
         self.assertIn("docs/CURRENT_PROOF_STATUS.md", issue_draft)
         self.assertIn("Do not copy a run URL or digest from this draft without re-opening that page", issue_draft)
         self.assertIn("It does not have third-party endorsement from this issue being opened", issue_draft)
@@ -2101,6 +2104,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("Evidence Links", review)
         self.assertIn("Quick Local Check", review)
         self.assertIn("Machine-Readable Report Check", review)
+        self.assertIn("Reason-Code Gate Check", review)
         self.assertIn("Boundaries", review)
         self.assertIn("How To Respond", review)
         self.assertIn("does not prove tests actually ran outside the supplied record", review)
@@ -2111,11 +2115,12 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("not evidence that anyone has reviewed", issue_template)
         self.assertIn("only creates a public request URL", issue_template)
         self.assertIn("not `replied` or", issue_template)
+        self.assertIn("Reason-Code Gate Check", issue_template)
 
         questions = re.findall(r"^\d+\. ", review, flags=re.MULTILINE)
-        self.assertEqual(len(questions), 3)
+        self.assertEqual(len(questions), 4)
         template_questions = re.findall(r"^\d+\. ", issue_template, flags=re.MULTILINE)
-        self.assertEqual(len(template_questions), 3)
+        self.assertEqual(len(template_questions), 4)
         review_runs = re.findall(r"actions/runs/(\d+)", review)
         outreach_runs = re.findall(r"actions/runs/(\d+)", outreach)
         template_runs = re.findall(r"actions/runs/(\d+)", issue_template)
@@ -2138,12 +2143,15 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/demo-terminal.svg",
             "https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/CURRENT_PROOF_STATUS.md",
             "Open `docs/CURRENT_PROOF_STATUS.md` before trusting or repeating remote CI",
-            "artifact digest, and stale-proof boundary",
+            "artifact digest, reason-code artifact files, and stale-proof boundary",
             "mako evidence-court --demo bad-run",
+            "mako evidence-court --input examples/evidence-court/bad-run.json --fail-on-reason-code test.required_not_run --json",
             "mako evidence-court --input examples/evidence-court/bad-run.json --json | diff -u examples/evidence-court/bad-run.report.json -",
             "examples/evidence-court/bad-run.report.json",
             '"schema_version": "evidence-court.report.v0.1"',
             '"verdict": "FAIL"',
+            "exit code 1 with `test.required_not_run`",
+            "`reason_codes` list",
             "test output status reason: no known pass/fail pattern matched",
             "Verdict: FAIL",
             "docs/OUTREACH_TARGETS.md",

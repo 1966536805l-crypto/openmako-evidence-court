@@ -28,6 +28,9 @@ The narrow question:
 3. Open `docs/EVIDENCE_COURT_COMPARISON.md` for the normal-tests-vs-claim-audit boundary.
 4. Open `docs/REDACTION_GUIDE.md` and check whether the redacted fixture is shareable without implying real production proof.
 5. Open `docs/CURRENT_PROOF_STATUS.md` before trusting remote CI claims.
+6. If checking the current `evidence-court-smoke` artifact, open
+   `reason-codes.json` or `reason-codes.md` and confirm `test.required_not_run`
+   is listed before judging the CI wrapper recipe.
 
 Expected local behavior:
 
@@ -39,7 +42,7 @@ Expected local behavior:
 Current proof status:
 
 - Open before trusting remote CI evidence: https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/CURRENT_PROOF_STATUS.md
-- The proof-status page lists the current proof-anchor commit, public Evidence Court Smoke run, artifact digest, and stale-proof boundary.
+- The proof-status page lists the current proof-anchor commit, public Evidence Court Smoke run, artifact digest, reason-code artifact files, and stale-proof boundary.
 - Do not copy a run URL or digest from this draft without re-opening that page.
 
 ### Review Questions
@@ -47,7 +50,7 @@ Current proof status:
 1. Is the README clear that Evidence Court audits only supplied records?
 2. Does the redacted fixture improve trust, or does it still look toy-shaped?
 3. Are the no-native-ingestion and no-proof-of-real-test-execution boundaries clear enough?
-4. Would you accept `--fail-on fail` as a CI wrapper signal for this narrow audit?
+4. Would you accept `--fail-on-reason-code test.required_not_run` as a CI wrapper signal for this narrow audit?
 5. What is the most important missing input format or artifact before sharing this more broadly?
 
 ### Current Boundary
