@@ -844,6 +844,31 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "gh run download <run-id> --name evidence-court-smoke --dir /tmp/evidence-court-smoke",
             text,
         )
+        self.assertIn("## Post-PR Public Gate", text)
+        self.assertIn("Record the PR URL and PR head SHA before updating any public proof file.", text)
+        self.assertIn(
+            "Wait for GitHub Actions `Evidence Court Smoke` to finish on the PR head",
+            text,
+        )
+        self.assertIn(
+            "Update `docs/CURRENT_PROOF_STATUS.md` only after the remote evidence URL,",
+            text,
+        )
+        self.assertIn("run id, commit SHA, and artifact check are known.", text)
+        self.assertIn(
+            "Do not mark outreach as `sent`, `replied`, or `shared` without a public",
+            text,
+        )
+        self.assertIn("evidence URL for that status.", text)
+        self.assertIn(
+            "Do not ask trend-watch targets for promotion before PR-head CI evidence",
+            text,
+        )
+        self.assertIn(
+            "Do not state external review, endorsement, adoption, share, 10k stars, or",
+            text,
+        )
+        self.assertIn("10000 stars without evidence URLs.", text)
         self.assertIn("`quantagent/agent_planner.py`", text)
         self.assertIn("`tests/test_external_benchmark_multimodule_regression.py`", text)
 

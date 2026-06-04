@@ -193,6 +193,25 @@ sed -n '1,80p' /tmp/evidence-court-smoke/reviewer-quickstart.md
 sed -n '1,40p' /tmp/evidence-court-smoke/bad-run.md
 ```
 
+## Post-PR Public Gate
+
+Use this sequence after the PR is created and before any broader public
+outreach:
+
+1. Record the PR URL and PR head SHA before updating any public proof file.
+2. Wait for GitHub Actions `Evidence Court Smoke` to finish on the PR head
+   commit.
+3. Check the remote `evidence-court-smoke` artifact and confirm the files named
+   in the remote evidence checklist above.
+4. Update `docs/CURRENT_PROOF_STATUS.md` only after the remote evidence URL,
+   run id, commit SHA, and artifact check are known.
+5. Do not mark outreach as `sent`, `replied`, or `shared` without a public
+   evidence URL for that status.
+6. Do not ask trend-watch targets for promotion before PR-head CI evidence
+   exists or a first-batch reviewer replies.
+7. Do not state external review, endorsement, adoption, share, 10k stars, or
+   10000 stars without evidence URLs.
+
 ## Safe Boundaries
 
 Say:
