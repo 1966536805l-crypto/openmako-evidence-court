@@ -67,8 +67,10 @@ Only these release files support the Evidence Court v0.1 public claim:
 - `examples/evidence-court/bad-run.json`
 - `examples/evidence-court/bad-run.report.json`
 - `examples/evidence-court/good-run.json`
+- `examples/evidence-court/local-gateway-bad-run.json`
 - `examples/evidence-court/redacted-real-world-bad-run.json`
 - `examples/evidence-court/run-record.schema.json`
+- `examples/evidence-court/terminal-agent-bad-run.json`
 - `quantagent/evidence_court.py`
 - `quantagent/__init__.py`
 - `quantagent/cli.py`
