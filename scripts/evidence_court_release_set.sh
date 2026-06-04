@@ -402,6 +402,8 @@ expected_review_path = [
     "bad-run.md",
     "redacted-real-world-bad-run.json",
     "fail-on-fail.json",
+    "reason-codes.json",
+    "reason-codes.md",
     "good-run.json",
     "marked-transcript.json",
     "openmako-agent-run-result.json",
@@ -434,6 +436,8 @@ require(
     expected_checks.get("fail-on-fail.json") == '"verdict": "FAIL" and command exit code 1',
     "manifest missing fail-on-fail expected check",
 )
+require(expected_checks.get("reason-codes.json") == '"code": "test.required_not_run"', "manifest missing reason-code JSON expected check")
+require(expected_checks.get("reason-codes.md") == "test.required_not_run", "manifest missing reason-code markdown expected check")
 require(expected_checks.get("good-run.json") == '"verdict": "PASS"', "manifest missing good-run expected check")
 require(expected_checks.get("openmako-agent-run-result.json") == '"verdict": "FAIL"', "manifest missing AgentRunResult expected check")
 require(expected_checks.get("jsonl-events.json") == '"verdict": "FAIL"', "manifest missing JSONL expected check")
@@ -483,6 +487,7 @@ content_checks = {
         "## 30-Second Review Path",
         "Open `bad-run.md` first",
         "Open `redacted-real-world-bad-run.json`",
+        "Open `reason-codes.json` or `reason-codes.md`",
         "artifact file SHA-256 hashes",
         "## CI Policy Recipe",
         "--fail-on-reason-code test.required_not_run",
@@ -503,6 +508,8 @@ content_checks = {
         "required test not run: python -m pytest tests/test_api_guard.py -q",
     ],
     "fail-on-fail.json": ['"verdict": "FAIL"', "source: bad-run-demo"],
+    "reason-codes.json": ['"code": "test.required_not_run"', '"description": "A required test or command was not reported as run."'],
+    "reason-codes.md": ["Evidence Court reason codes:", "test.required_not_run"],
     "good-run.json": ['"verdict": "PASS"', "source: good-run-demo"],
     "marked-transcript.json": [
         '"verdict": "FAIL"',
@@ -522,6 +529,7 @@ content_checks = {
     "smoke-summary.txt": [
         "Evidence Court smoke gate passed.",
         "reason-code gate checked bad-run exits 1 with --fail-on-reason-code test.required_not_run.",
+        "reason-code catalog gate checked --list-reason-codes text and JSON output.",
         "review-path artifacts must have SHA-256 hashes",
     ],
 }

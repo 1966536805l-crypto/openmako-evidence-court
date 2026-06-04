@@ -194,6 +194,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
                 "marked-transcript.json",
                 "mixed-source-rejection.txt",
                 "openmako-agent-run-result.json",
+                "reason-codes.json",
+                "reason-codes.md",
                 "redacted-real-world-bad-run.json",
                 "reviewer-quickstart.md",
                 "smoke-summary.txt",
@@ -213,6 +215,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
                     "bad-run.md",
                     "redacted-real-world-bad-run.json",
                     "fail-on-fail.json",
+                    "reason-codes.json",
+                    "reason-codes.md",
                     "good-run.json",
                     "marked-transcript.json",
                     "openmako-agent-run-result.json",
@@ -225,6 +229,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             self.assertEqual("## Verdict: FAIL", manifest["expected_checks"]["bad-run.md"])
             self.assertEqual('"verdict": "FAIL"', manifest["expected_checks"]["redacted-real-world-bad-run.json"])
             self.assertEqual('"verdict": "FAIL" and command exit code 1', manifest["expected_checks"]["fail-on-fail.json"])
+            self.assertEqual('"code": "test.required_not_run"', manifest["expected_checks"]["reason-codes.json"])
+            self.assertEqual("test.required_not_run", manifest["expected_checks"]["reason-codes.md"])
             self.assertEqual('"verdict": "PASS"', manifest["expected_checks"]["good-run.json"])
             self.assertEqual('"verdict": "FAIL"', manifest["expected_checks"]["openmako-agent-run-result.json"])
             self.assertEqual('"verdict": "FAIL"', manifest["expected_checks"]["jsonl-events.json"])
@@ -275,6 +281,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             self.assertIn("source: examples/evidence-court/redacted-real-world-bad-run.json", quickstart)
             self.assertIn("Open `fail-on-fail.json`", quickstart)
             self.assertIn("exits with code 1", quickstart)
+            self.assertIn("Open `reason-codes.json` or `reason-codes.md`", quickstart)
+            self.assertIn("exact machine-readable reason-code catalog", quickstart)
             self.assertIn("supplied run record", quickstart)
             self.assertIn("Open `marked-transcript.json`", quickstart)
             self.assertIn("fixture path as `source`", quickstart)
@@ -311,8 +319,20 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             agent_run_result_json = (artifact_root / "openmako-agent-run-result.json").read_text(encoding="utf-8")
             jsonl_json = (artifact_root / "jsonl-events.json").read_text(encoding="utf-8")
             redacted_json = (artifact_root / "redacted-real-world-bad-run.json").read_text(encoding="utf-8")
+            reason_codes_json = (artifact_root / "reason-codes.json").read_text(encoding="utf-8")
+            reason_codes_md = (artifact_root / "reason-codes.md").read_text(encoding="utf-8")
             for report_json in (fail_on_json, good_json, marked_json, agent_run_result_json, jsonl_json, redacted_json):
                 self.assertIn('"schema_version": "evidence-court.report.v0.1"', report_json)
+            reason_catalog = json.loads(reason_codes_json)
+            self.assertIn(
+                {
+                    "code": "test.required_not_run",
+                    "description": "A required test or command was not reported as run.",
+                },
+                reason_catalog,
+            )
+            self.assertIn("Evidence Court reason codes:", reason_codes_md)
+            self.assertIn("test.required_not_run", reason_codes_md)
             self.assertIn('"verdict": "FAIL"', redacted_json)
             self.assertIn("source: examples/evidence-court/redacted-real-world-bad-run.json", redacted_json)
             self.assertIn("edited protected path: tests/test_api_guard.py", redacted_json)
@@ -354,10 +374,12 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
                 "reason-code gate checked bad-run exits 1 with --fail-on-reason-code test.required_not_run.",
                 summary,
             )
+            self.assertIn("reason-code catalog gate checked --list-reason-codes text and JSON output.", summary)
             self.assertIn("input-mode gate checked marked transcript FAIL, OpenMako AgentRunResult FAIL", summary)
             self.assertIn("explicit JSONL events FAIL", summary)
             self.assertIn("release boundary gate checked the Evidence Court release set", summary)
             self.assertIn("report artifacts must contain source provenance", summary)
+            self.assertIn("reason-codes.json and reason-codes.md must list test.required_not_run.", summary)
             self.assertIn("review-path artifacts must have SHA-256 hashes", summary)
             verifier = subprocess.run(
                 [
