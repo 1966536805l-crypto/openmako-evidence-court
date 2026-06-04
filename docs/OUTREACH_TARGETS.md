@@ -31,7 +31,7 @@ This file is not evidence of interest, adoption, endorsement, review, or sharing
 | Priority | Target | Bucket | Public source | Why it fits | Suggested channel | Template | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | OpenHands | coding-agent scaffold | `https://github.com/OpenHands/OpenHands` | Coding-agent builders care about run evidence, sandboxing, and SWE-Bench-style claims. | GitHub Discussions or community channel | Agent Framework Author | candidate |
-| 2 | SWE-agent / mini-SWE-agent | coding-agent scaffold | `https://github.com/SWE-agent/mini-swe-agent` | SWE-Bench-oriented agent maintainers are a direct fit for claim-vs-evidence checks. | GitHub issue question template | Researcher / Evaluator | sent |
+| 2 | SWE-agent / mini-SWE-agent | coding-agent scaffold | `https://github.com/SWE-agent/mini-swe-agent` | SWE-Bench-oriented agent maintainers are a direct fit for claim-vs-evidence checks. | GitHub issue question template | Researcher / Evaluator | closed |
 | 3 | Aider | coding assistant | `https://github.com/Aider-AI/aider` | Terminal coding-agent users understand test-claim gaps and CLI gates. | GitHub Discussions/community channel | CI / DevTools Engineer | candidate |
 | 4 | Cline | coding agent | `https://github.com/cline/cline` | Open-source IDE/CLI agent with human-in-the-loop workflows that could benefit from supplied-record audit language. | Public community channel, not unsolicited issue spam | Agent Framework Author | candidate |
 | 5 | Continue | coding assistant | `https://github.com/continuedev/continue` | IDE and CLI assistant ecosystem; useful target for honest run-record boundary feedback. | Community forum or public discussion | General AI Tooling Maintainer | candidate |
@@ -72,8 +72,8 @@ than sending weak messages to all 20.
 
 | Rank | Target | Reason |
 | --- | --- | --- |
-| 1 | SWE-agent / mini-SWE-agent | Strongest technical match: SWE-Bench-style trajectories, test/eval command evidence, and benchmark claims are central to their context. |
-| 2 | Aider | Strongest user-conversion match: terminal coding-assistant users understand "tests passed" claims, command history, edited files, and test output. |
+| 1 | SWE-agent / mini-SWE-agent | First contact was public and is now closed; do not repeat or follow up unless maintainers reply or reopen. |
+| 2 | Aider | Strongest user-conversion match, but Discord may not give a public evidence URL; keep public tracker status unchanged unless a public message URL exists. |
 | 3 | OpenHands | Largest reach, but the community is broader and noisier; send after the wording is tightened by at least one external review or manual pass. |
 | 4 | SWE-bench | Highest potential evaluation relevance, but less likely to convert directly into user stars than an agent-tool community. |
 | 5 | LangGraph | Large agent ecosystem, but current v0.1 has no LangGraph trace adapter; ask only about future explicit JSONL event mapping. |
@@ -112,9 +112,10 @@ would look like promotion instead of technical review.
 
 ## Immediate Send Packet
 
-Send only the first message first. Send the second message only after recording a
-public `Message URL` for the first one, or after one calendar day with no reply.
-If the channel does not provide a public URL, do not mark the row as `sent`.
+The first public message was sent to SWE-agent / mini-SWE-agent and is now
+closed. Do not send a follow-up there. Use the second message only in a channel
+that provides a public `Message URL`; if the channel does not provide a public
+URL, do not mark the row as `sent`.
 
 Use the current-main packet below when the target is reviewing current main
 behavior rather than the older v0.1.2 proof card. Generate it immediately
@@ -302,8 +303,8 @@ this public tracker.
 
 | Target | Status | Sent date | Contact URL | Message URL | Reply date | Reply URL | Share URL | Message variant | Action needed | Outcome |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| SWE-agent / mini-SWE-agent | sent | 2026-06-03 | `https://github.com/SWE-agent/mini-swe-agent/issues/848` | `https://github.com/SWE-agent/mini-swe-agent/issues/848` |  |  |  | GitHub issue question template | Wait for technical boundary feedback; do not follow up unless they reply. | Public issue opened; no reply yet. |
-| Aider | candidate |  | `https://discord.gg/Y7X7bhMQFV` |  |  |  |  | Immediate #2 | Send second only after first message URL is recorded, or after one calendar day. |  |
+| SWE-agent / mini-SWE-agent | closed | 2026-06-03 | `https://github.com/SWE-agent/mini-swe-agent/issues/848` | `https://github.com/SWE-agent/mini-swe-agent/issues/848` |  |  |  | GitHub issue question template | Closed; do not follow up unless maintainers reply or reopen. | Public issue opened; public issue state is closed. |
+| Aider | candidate |  | `https://discord.gg/Y7X7bhMQFV` |  |  |  |  | Immediate #2 | Use only if a public message URL is available; otherwise keep private sends outside this tracker. |  |
 | OpenHands | candidate |  | `https://dub.sh/openhands` |  |  |  |  | First-Batch Draft | Wait until wording is tightened by a manual pass or external review. |  |
 | LangChain Open SWE | drafted |  | `https://github.com/langchain-ai/open-swe/discussions/new?category=general` |  |  |  |  | Immediate #3 | Ready to submit to the General Discussion category after final third-party posting confirmation; do not mark `sent` without the discussion URL. | Draft prepared from current-main CI evidence and run-record field checklist. |
 | SWE-bench | sent | 2026-06-03 | `https://github.com/SWE-bench/SWE-bench/issues/595` | `https://github.com/SWE-bench/SWE-bench/issues/595` |  |  |  | GitHub issue question template | Wait for technical boundary feedback; do not follow up unless they reply. | Public issue opened; no reply yet. |

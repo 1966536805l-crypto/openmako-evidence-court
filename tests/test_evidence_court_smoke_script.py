@@ -2225,14 +2225,18 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
 
         target_list = targets.split("## Target List", maxsplit=1)[1].split("## First Batch", maxsplit=1)[0]
         target_rows = re.findall(
-            r"^\| \d+ \| (?P<target>.+?) \| .+? \| (?P<status>candidate|drafted|sent) \|$",
+            r"^\| \d+ \| (?P<target>.+?) \| .+? \| (?P<status>candidate|drafted|sent|closed) \|$",
             target_list,
             flags=re.MULTILINE,
         )
         self.assertEqual(len(target_rows), 23)
         self.assertEqual(
             [target for target, status in target_rows if status == "sent"],
-            ["SWE-agent / mini-SWE-agent", "SWE-bench"],
+            ["SWE-bench"],
+        )
+        self.assertEqual(
+            [target for target, status in target_rows if status == "closed"],
+            ["SWE-agent / mini-SWE-agent"],
         )
         self.assertEqual(
             [target for target, status in target_rows if status == "drafted"],
@@ -2285,6 +2289,9 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             with self.subTest(issue_url=issue_url):
                 self.assertIn(issue_url, tracker)
         self.assertIn("Public issue opened; no reply yet.", tracker)
+        self.assertIn("Public issue opened; public issue state is closed.", tracker)
+        self.assertIn("Closed; do not follow up unless maintainers reply or reopen.", tracker)
+        self.assertIn("Use only if a public message URL is available", tracker)
         self.assertIn("Ready to submit to the General Discussion category", tracker)
         self.assertIn("do not mark `sent` without the discussion URL", tracker)
 
