@@ -45,7 +45,7 @@ try:
     from .diagnostic_registry import load_diagnostic_registry, refresh_diagnostic_registry, render_diagnostic_registry
     from .demo_fix import render_fix_demo, run_fix_demo
     from .doctor import doctor_score, render_doctor, render_doctor_json, run_doctor
-    from .evidence_court import EVIDENCE_COURT_REASON_CODES, bad_run_demo, dumps_evidence_court_json, evaluate_evidence_court, good_run_demo, load_evidence_court_jsonl_events, load_evidence_court_run, load_evidence_court_transcript, load_openmako_agent_run_result, render_evidence_court
+    from .evidence_court import EVIDENCE_COURT_REASON_CODES, bad_run_demo, dumps_evidence_court_json, evaluate_evidence_court, good_run_demo, load_evidence_court_jsonl_events, load_evidence_court_run, load_evidence_court_transcript, load_openmako_agent_run_result, render_evidence_court, render_evidence_court_review_markdown
     from .desktop_control import activate_app, click_grid_cell, front_window, frontmost_app, hotkey, latest_grid, pointer, screenshot, screenshot_grid, type_text
     from .desktop_agent import render_desktop_agent_result, run_desktop_agent
     from .desktop_guardian import render_desktop_guardian_result, run_desktop_guardian
@@ -228,7 +228,7 @@ except ModuleNotFoundError as exc:
     if not (exc.name or "").startswith("quantagent."):
         raise
     _FULL_CLI_IMPORT_ERROR = exc
-    from .evidence_court import EVIDENCE_COURT_REASON_CODES, bad_run_demo, dumps_evidence_court_json, evaluate_evidence_court, good_run_demo, load_evidence_court_jsonl_events, load_evidence_court_run, load_evidence_court_transcript, load_openmako_agent_run_result, render_evidence_court
+    from .evidence_court import EVIDENCE_COURT_REASON_CODES, bad_run_demo, dumps_evidence_court_json, evaluate_evidence_court, good_run_demo, load_evidence_court_jsonl_events, load_evidence_court_run, load_evidence_court_transcript, load_openmako_agent_run_result, render_evidence_court, render_evidence_court_review_markdown
 
 
 def cmd_status(args: argparse.Namespace) -> int:
@@ -300,6 +300,9 @@ def cmd_agent_autopsy(args: argparse.Namespace) -> int:
 
 
 def cmd_evidence_court(args: argparse.Namespace) -> int:
+    if args.json and args.review_markdown:
+        print("evidence-court error: choose only one output format: --json or --review-markdown")
+        return 2
     if args.list_reason_codes:
         if args.json:
             print(
@@ -375,6 +378,8 @@ def cmd_evidence_court(args: argparse.Namespace) -> int:
     report = evaluate_evidence_court(run)
     if args.json:
         print(dumps_evidence_court_json(report))
+    elif args.review_markdown:
+        print(render_evidence_court_review_markdown(report), end="")
     else:
         print(render_evidence_court(report), end="")
     if args.fail_on == "fail" and report.verdict == "FAIL":
@@ -405,6 +410,11 @@ def _add_evidence_court_args(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument("--demo", choices=["bad-run", "good-run"], default="", help="Run a built-in demo")
     parser.add_argument("--json", action="store_true")
+    parser.add_argument(
+        "--review-markdown",
+        action="store_true",
+        help="Render a bounded Markdown review packet for issue/discussion handoff",
+    )
     parser.add_argument(
         "--list-reason-codes",
         action="store_true",

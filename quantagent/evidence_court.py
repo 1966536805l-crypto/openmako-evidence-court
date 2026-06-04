@@ -352,6 +352,36 @@ def render_evidence_court(report: EvidenceCourtReport) -> str:
     return "\n".join(lines)
 
 
+def render_evidence_court_review_markdown(report: EvidenceCourtReport) -> str:
+    reason_codes = report.reason_codes or ("none",)
+    evidence = report.evidence[:5]
+    lines = [
+        "# Evidence Court Review Packet",
+        "",
+        f"- Verdict: `{report.verdict}`",
+        f"- Claim: {report.claim}",
+        f"- Test output status: `{report.test_output_status}`",
+        f"- Test output reason: {report.test_output_status_reason}",
+        "",
+        "## Reason Codes",
+        "",
+        *_render_items(reason_codes),
+        "",
+        "## Key Supplied Evidence",
+        "",
+        *_render_items(evidence),
+        "",
+        "## Boundary",
+        "",
+        "- Audits only the supplied run record.",
+        "- Does not prove tests actually ran outside the supplied record.",
+        "- Does not natively ingest Claude/Codex/Cursor/Devin/CI logs.",
+        "- Not evidence of external review, adoption, endorsement, or sharing.",
+        "",
+    ]
+    return "\n".join(lines)
+
+
 def dumps_evidence_court_json(report: EvidenceCourtReport) -> str:
     return json.dumps(report.to_dict(), ensure_ascii=False, indent=2, sort_keys=True)
 

@@ -25,6 +25,7 @@ from quantagent.evidence_court import (
     load_evidence_court_transcript,
     load_openmako_agent_run_result,
     render_evidence_court,
+    render_evidence_court_review_markdown,
 )
 
 
@@ -298,6 +299,56 @@ class EvidenceCourtTest(unittest.TestCase):
         self.assertEqual(payload["schema_version"], EVIDENCE_COURT_REPORT_SCHEMA_VERSION)
         self.assertEqual(payload["verdict"], "FAIL")
         self.assertIn("scope_violations", payload)
+
+    def test_review_markdown_packet_keeps_boundary_review_first(self) -> None:
+        report = evaluate_evidence_court(bad_run_demo())
+
+        rendered = render_evidence_court_review_markdown(report)
+
+        self.assertIn("# Evidence Court Review Packet", rendered)
+        self.assertIn("- Verdict: `FAIL`", rendered)
+        self.assertIn("## Reason Codes", rendered)
+        self.assertIn("test.required_not_run", rendered)
+        self.assertIn("## Key Supplied Evidence", rendered)
+        self.assertIn("commands_run: python -m py_compile calculator.py", rendered)
+        self.assertIn("## Boundary", rendered)
+        self.assertIn("Audits only the supplied run record", rendered)
+        self.assertIn("Does not prove tests actually ran outside", rendered)
+        self.assertIn("Does not natively ingest Claude/Codex/Cursor/Devin/CI logs", rendered)
+        self.assertIn("Not evidence of external review, adoption, endorsement, or sharing", rendered)
+
+    def test_cli_review_markdown_packet_is_copyable_without_json(self) -> None:
+        stdout = io.StringIO()
+
+        with contextlib.redirect_stdout(stdout):
+            code = main(["--no-trust-prompt", "evidence-court", "--demo", "bad-run", "--review-markdown"])
+
+        rendered = stdout.getvalue()
+        self.assertEqual(code, 0)
+        self.assertIn("# Evidence Court Review Packet", rendered)
+        self.assertIn("- Verdict: `FAIL`", rendered)
+        self.assertNotIn('"schema_version"', rendered)
+        self.assertNotIn("reviewed by", rendered.lower())
+        self.assertNotIn("endorsed by", rendered.lower())
+        self.assertNotIn("shared by", rendered.lower())
+
+    def test_cli_rejects_multiple_output_formats(self) -> None:
+        stdout = io.StringIO()
+
+        with contextlib.redirect_stdout(stdout):
+            code = main(
+                [
+                    "--no-trust-prompt",
+                    "evidence-court",
+                    "--demo",
+                    "bad-run",
+                    "--json",
+                    "--review-markdown",
+                ]
+            )
+
+        self.assertEqual(code, 2)
+        self.assertIn("choose only one output format", stdout.getvalue())
 
     def test_cli_good_run_demo_renders_json(self) -> None:
         stdout = io.StringIO()

@@ -79,6 +79,13 @@ mako evidence-court --list-reason-codes
 mako evidence-court --list-reason-codes --json
 ```
 
+To paste a bounded review packet into an issue or discussion without switching
+to the full JSON report:
+
+```bash
+mako evidence-court --demo bad-run --review-markdown
+```
+
 ## What It Checks
 
 Evidence Court reports from the supplied record:
