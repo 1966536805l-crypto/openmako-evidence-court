@@ -22,21 +22,23 @@ yet. It asks for one technical boundary check, not stars, endorsement, adoption,
 or a repost.
 
 ```text
-Coding agents often say "tests passed" before the supplied run record supports it.
+I am testing a small evidence checker for coding-agent runs.
 
-OpenMako Evidence Court checks one narrow thing:
-does the supplied record support the final success claim?
+The failure case is simple: an agent says "tests passed", but the run record
+does not show the required test command.
 
-Demo card:
+I made a bad-run demo around that exact case:
 https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/social-card.svg
 
-The bad demo fails on the exact CI reason code:
+The report fails with:
 test.required_not_run
 
-Question for agent/tooling people:
-is this reason-code gate useful, or is a required evidence field missing?
+For people building agent tooling: is this kind of reason code useful, or am I
+missing a more important evidence field?
 
-Boundary: audits supplied records only. Not native Claude/Codex/Cursor/CI log ingestion, and not proof tests ran outside the supplied record.
+Scope is intentionally small: it only audits the record you give it. It does
+not ingest native Claude/Codex/Cursor/CI logs yet, and it cannot prove tests
+ran outside that record.
 ```
 
 ## General AI Tooling Maintainer
