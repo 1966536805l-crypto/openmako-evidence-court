@@ -245,6 +245,9 @@ audit_staged_claim_copy() {
   require_staged_contains ".github/ISSUE_TEMPLATE/technical-review-request.md" "not an endorsement request" || invalid=1
   require_staged_contains ".github/ISSUE_TEMPLATE/technical-review-request.md" "Review Questions" || invalid=1
   require_staged_contains "docs/EXPERT_REVIEW_BRIEF.md" "does not provide proof that tests actually ran outside" || invalid=1
+  require_staged_contains "docs/EXPERT_REVIEW_BRIEF.md" "reason-codes.json" || invalid=1
+  require_staged_contains "docs/LAUNCH_POST.md" "reason-codes.json" || invalid=1
+  require_staged_contains "docs/LAUNCH_POST.md" "test.required_not_run" || invalid=1
   require_staged_contains "docs/PUBLIC_PROOF.md" "What This Does Not Prove" || invalid=1
   require_staged_contains "docs/PUBLIC_PROOF.md" "Artifact digest" || invalid=1
   if [[ "${invalid}" -eq 0 ]]; then

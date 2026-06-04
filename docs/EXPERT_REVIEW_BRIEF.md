@@ -42,6 +42,9 @@ passed even though the supplied record lacks the required test command.
   and artifact digest.
 - `bash scripts/evidence_court_smoke.sh` runs the local smoke gate.
 - GitHub Actions `Evidence Court Smoke` is green for the commit being shared.
+- The current `evidence-court-smoke` artifact includes `reason-codes.json` and
+  `reason-codes.md`; check that they list `test.required_not_run` before
+  telling a CI user to gate on that code.
 - `docs/LAUNCH_POST.md` states the native-ingestion boundary.
 
 ## Do Not Share If
