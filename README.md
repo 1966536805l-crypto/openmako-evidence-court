@@ -218,9 +218,22 @@ Launch copy is tracked in `docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md`.
 
 ## Review In 30 Seconds
 
-After a green PR-head GitHub Actions run, download the `evidence-court-smoke` artifact and open `reviewer-quickstart.md`.
-Before remote CI exists, run `bash scripts/evidence_court_smoke.sh --artifact-dir /tmp/evidence-court-smoke` and open `/tmp/evidence-court-smoke/reviewer-quickstart.md`.
-Until that PR-head remote run exists, use the local smoke gate above; do not claim remote CI evidence.
+1. Check the safe claim: Evidence Court audits supplied run records; it does
+   not prove real test execution outside the supplied record.
+2. Run `mako evidence-court --demo bad-run`; expected visible result:
+   `Verdict: FAIL`.
+3. For current local evidence, run
+   `bash scripts/evidence_court_smoke.sh --artifact-dir /tmp/evidence-court-smoke`
+   and open `/tmp/evidence-court-smoke/reviewer-quickstart.md`.
+4. For public remote evidence, open
+   [docs/CURRENT_PROOF_STATUS.md](docs/CURRENT_PROOF_STATUS.md) before trusting
+   a smoke-run claim.
+5. After a green PR-head GitHub Actions run, download the
+   `evidence-court-smoke` artifact and open `reviewer-quickstart.md`.
+
+Until that PR-head remote run exists, use the local smoke gate above; do not
+claim remote CI evidence, external review, endorsement, share, or major-star
+milestones.
 
 ## Launch Assets
 

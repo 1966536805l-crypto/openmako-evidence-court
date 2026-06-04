@@ -1401,6 +1401,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
     def test_readme_separates_other_modules_from_v0_1_launch_claim(self) -> None:
         root = Path(__file__).resolve().parents[1]
         readme = (root / "README.md").read_text(encoding="utf-8")
+        normalized_readme = " ".join(readme.split())
 
         self.assertIn("docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md", readme)
         self.assertIn("Audit whether a coding agent's success claim is supported by a supplied run record.", readme)
@@ -1408,11 +1409,15 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("claim-vs-evidence gate", readme)
         self.assertIn("reports from the supplied record", readme)
         self.assertIn("## Review In 30 Seconds", readme)
-        self.assertIn("After a green PR-head GitHub Actions run, download the `evidence-court-smoke` artifact", readme)
+        self.assertIn("Check the safe claim", readme)
+        self.assertIn("For public remote evidence", readme)
+        self.assertIn("After a green PR-head GitHub Actions run, download the", readme)
+        self.assertIn("`evidence-court-smoke` artifact", readme)
         self.assertIn("bash scripts/evidence_court_smoke.sh --artifact-dir /tmp/evidence-court-smoke", readme)
         self.assertIn("/tmp/evidence-court-smoke/reviewer-quickstart.md", readme)
         self.assertNotIn("After a pushed GitHub Actions run", readme)
-        self.assertIn("do not claim remote CI evidence", readme)
+        self.assertIn("do not claim remote CI evidence", normalized_readme)
+        self.assertIn("major-star milestones", normalized_readme)
         self.assertIn("The bad demo is a supplied run record", readme)
         self.assertIn("This is the smallest evidence check: a bad supplied record says tests passed", readme)
         self.assertIn("protected test edit and no reported required pytest command", readme)
@@ -1703,6 +1708,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         launch_post = (root / "docs" / "LAUNCH_POST.md").read_text(encoding="utf-8")
         social_card = (root / "docs" / "social-card.svg").read_text(encoding="utf-8")
         readme = (root / "README.md").read_text(encoding="utf-8")
+        normalized_readme = " ".join(readme.split())
 
         self.assertIn("copyable launch post", readme)
         self.assertIn("public proof card", readme)
@@ -1713,6 +1719,19 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("outreach templates", readme)
         self.assertIn("expert review brief", readme)
         self.assertIn("social card", readme)
+        self.assertIn("## Review In 30 Seconds", readme)
+        self.assertIn("Check the safe claim", readme)
+        self.assertIn("Evidence Court audits supplied run records", readme)
+        self.assertIn("Run `mako evidence-court --demo bad-run`", readme)
+        self.assertIn("expected visible result", readme)
+        self.assertIn("For current local evidence", readme)
+        self.assertIn("For public remote evidence", readme)
+        self.assertIn("docs/CURRENT_PROOF_STATUS.md", readme)
+        self.assertIn("before trusting", readme)
+        self.assertIn(
+            "do not claim remote CI evidence, external review, endorsement, share, or major-star milestones",
+            normalized_readme,
+        )
         self.assertIn("supplied JSON run records", launch_post)
         self.assertIn("explicit marked transcript v0 files", launch_post)
         self.assertIn("explicit Evidence Court JSONL event streams", launch_post)
