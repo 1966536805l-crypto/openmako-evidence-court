@@ -13,6 +13,7 @@ Evidence Court v0.1 may claim support for:
 - explicit marked transcript v0 files
 - explicit Evidence Court JSONL event streams
 - claim/evidence/scope/test/suspicion/verdict reporting from the supplied record
+- optional `run_metrics` telemetry preserved in JSON reports without changing the verdict
 - JSON report schema marker `evidence-court.report.v0.1`
 - local smoke gate and focused regression tests
 - GitHub Actions workflow wiring
@@ -22,6 +23,7 @@ Evidence Court v0.1 must not claim support for:
 - native Claude/Codex/Cursor/Devin transcript ingestion
 - GitHub Actions or CI log ingestion
 - proof that tests actually ran outside the supplied record
+- proof that duration, token, or cost telemetry is complete
 - broad SWE-style repository repair
 - unknown NPM package reasoning
 - Desktop L4/L5 autonomy

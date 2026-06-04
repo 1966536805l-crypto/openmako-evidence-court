@@ -73,6 +73,7 @@ Evidence Court reports from the supplied record:
 - Scope violations
 - Test evidence from the supplied record
 - Suspicious behavior
+- Optional run metrics preserved from the supplied record
 - Verdict: PASS / SUSPICIOUS / FAIL
 
 JSON reports include `schema_version: "evidence-court.report.v0.1"` so CI,
@@ -80,6 +81,9 @@ wrappers, and review tooling can check the report contract before reading
 fields. `test_verification` includes both `test output status` and a
 `test output status reason` line so reviewers can see the matched evidence
 instead of trusting a black-box status word.
+`run_metrics`, when supplied, is preserved for reviewer context such as
+duration, token counts, estimated or actual cost, command count, and missing
+telemetry markers. It does not change the verdict.
 
 Machine-readable bad-run excerpt from `mako evidence-court --demo bad-run --json`
 (excerpt, not the full report):
@@ -126,6 +130,7 @@ Current v0.1 supports structured JSON run records:
 | `allowed_edit_paths` | Optional expected edit scope |
 | `protected_paths` | Optional paths that should not be changed |
 | `required_tests` / `required_commands` | Optional commands that must appear in the run |
+| `run_metrics` | Optional run metadata preserved in JSON reports; does not change the verdict |
 | `source` | Optional source label for the run record |
 
 It does not yet natively ingest Claude Code, Codex, Cursor, Devin, or CI logs. Those adapters need separate parsers before the project can claim native support.
@@ -144,6 +149,9 @@ supplied artifact only reports `py_compile`, edits a protected test path, and
 omits the required pytest command. This path requires
 `"schema": "openmako.agent_run_result.v0"`.
 It is not native Claude/Codex/Cursor/Devin/CI log parsing.
+If an AgentRunResult includes top-level `run_metrics`, Evidence Court preserves
+the supported telemetry fields in the JSON report without treating them as
+verdict evidence.
 
 ## Marked Transcript v0
 
@@ -169,12 +177,15 @@ cat > run.events.jsonl <<'JSONL'
 {"event":"file_edit","path":"tests/test_calculator.py"}
 {"event":"command","command":"python -m py_compile calculator.py"}
 {"event":"required_test","command":"python -m pytest tests/test_calculator.py -q"}
+{"event":"run_metrics","duration_ms":900,"input_tokens":50,"output_tokens":10,"missing_telemetry":["actual_cost_usd"]}
 JSONL
 mako evidence-court --from-jsonl-events run.events.jsonl --json
 ```
 
 This is an explicit Evidence Court event format for producers that already know
 what they are reporting. It is not native Claude/Codex/Cursor/Devin/CI log parsing.
+The optional `run_metrics` event is retained as telemetry context, not scored as
+proof that commands or tests ran.
 
 ## Smoke Gate
 
