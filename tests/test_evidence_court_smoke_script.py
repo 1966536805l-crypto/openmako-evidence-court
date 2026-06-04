@@ -599,7 +599,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         ):
             with self.subTest(field=field):
                 self.assertIn(field, text)
-        self.assertIn("Extra checklist fields are supplied metadata", text)
+        self.assertIn("preserves supported metadata fields for reviewer context", text)
+        self.assertIn("only its claim/evidence/scope/test logic affects the verdict", text)
         self.assertIn("## Trend-To-Mechanism Map", text)
         self.assertIn("Do not parse native Hermes/OpenClaw logs yet", text)
         self.assertIn("Do not claim sandbox proof from supplied text", text)
@@ -753,10 +754,20 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "protected_paths",
             "required_tests",
             "required_commands",
+            "agent_runtime",
+            "tool_calls",
+            "approval_events",
+            "sandbox_boundary",
+            "diff_summary",
+            "artifact_urls",
+            "redaction_note",
             "source",
         ):
             with self.subTest(field=field):
                 self.assertIn(field, properties)
+
+        self.assertIn("Metadata only; not proof of runtime behavior.", properties["agent_runtime"]["description"])
+        self.assertIn("not proof of sandbox enforcement", properties["sandbox_boundary"]["description"])
 
         command_text = json.dumps(schema["$defs"]["command"], sort_keys=True)
         for field in ("command", "cmd", "argv", "test_output", "output", "stdout", "stderr"):

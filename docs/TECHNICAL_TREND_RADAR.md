@@ -103,9 +103,9 @@ Trend-pressure fields to include as explicit metadata when available:
   for remote review.
 - `redaction_note`: what was removed before sharing the record.
 
-Evidence Court v0.1 only evaluates the fields its current loader understands.
-Extra checklist fields are supplied metadata for reviewers and future adapters;
-they do not prove sandboxing, approvals, native log ingestion, real test
+Evidence Court v0.1 preserves supported metadata fields for reviewer context,
+but only its claim/evidence/scope/test logic affects the verdict. Metadata
+fields do not prove sandboxing, approvals, native log ingestion, real test
 execution, or external review.
 
 ## Trend-To-Mechanism Map

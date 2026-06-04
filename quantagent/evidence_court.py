@@ -43,6 +43,13 @@ class EvidenceCourtRun:
     allowed_edit_paths: tuple[str, ...] = ()
     protected_paths: tuple[str, ...] = ()
     required_tests: tuple[str, ...] = ()
+    agent_runtime: str = ""
+    tool_calls: tuple[str, ...] = ()
+    approval_events: tuple[str, ...] = ()
+    sandbox_boundary: str = ""
+    diff_summary: str = ""
+    artifact_urls: tuple[str, ...] = ()
+    redaction_note: str = ""
     source: str = ""
 
     def to_dict(self) -> dict[str, Any]:
@@ -250,6 +257,13 @@ def evidence_court_run_from_dict(payload: Mapping[str, Any]) -> EvidenceCourtRun
         allowed_edit_paths=_string_tuple(allowed_edit_paths, field_name=allowed_edit_field),
         protected_paths=_string_tuple(payload.get("protected_paths"), field_name="protected_paths"),
         required_tests=_commands_tuple(required_tests, field_name=required_tests_field),
+        agent_runtime=_text_field(payload, "agent_runtime"),
+        tool_calls=_string_tuple(payload.get("tool_calls"), field_name="tool_calls"),
+        approval_events=_string_tuple(payload.get("approval_events"), field_name="approval_events"),
+        sandbox_boundary=_text_field(payload, "sandbox_boundary"),
+        diff_summary=_text_field(payload, "diff_summary"),
+        artifact_urls=_string_tuple(payload.get("artifact_urls"), field_name="artifact_urls"),
+        redaction_note=_text_field(payload, "redaction_note"),
         source=_text_field(payload, "source"),
     )
 
@@ -479,6 +493,20 @@ def _evidence_summary(run: EvidenceCourtRun) -> tuple[str, ...]:
         items.append(f"protected_paths: {_join_or_none(run.protected_paths)}")
     if run.required_tests:
         items.append(f"required_tests: {_join_or_none(run.required_tests)}")
+    if run.agent_runtime:
+        items.append(f"agent_runtime: {run.agent_runtime}")
+    if run.tool_calls:
+        items.append(f"tool_calls: {_join_or_none(run.tool_calls)}")
+    if run.approval_events:
+        items.append(f"approval_events: {_join_or_none(run.approval_events)}")
+    if run.sandbox_boundary:
+        items.append(f"sandbox_boundary: {run.sandbox_boundary}")
+    if run.diff_summary:
+        items.append(f"diff_summary: {run.diff_summary}")
+    if run.artifact_urls:
+        items.append(f"artifact_urls: {_join_or_none(run.artifact_urls)}")
+    if run.redaction_note:
+        items.append(f"redaction_note: {run.redaction_note}")
     if run.source:
         items.append(f"source: {run.source}")
     return tuple(items)

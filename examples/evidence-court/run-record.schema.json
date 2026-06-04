@@ -47,6 +47,34 @@
       "$ref": "#/$defs/commandOrCommandArray",
       "description": "Alias for required_tests."
     },
+    "agent_runtime": {
+      "type": "string",
+      "description": "Optional human-readable producer runtime label, such as terminal agent, local gateway, web IDE, or benchmark harness. Metadata only; not proof of runtime behavior."
+    },
+    "tool_calls": {
+      "$ref": "#/$defs/stringOrStringArray",
+      "description": "Optional summarized tool calls or shell steps if separate from commands_run. Metadata only."
+    },
+    "approval_events": {
+      "$ref": "#/$defs/stringOrStringArray",
+      "description": "Optional approvals or denials around risky tool calls or protected writes. Metadata only; not proof of approval unless evaluator logic checks it."
+    },
+    "sandbox_boundary": {
+      "type": "string",
+      "description": "Optional reported sandbox, network, or filesystem boundary. Metadata only; not proof of sandbox enforcement."
+    },
+    "diff_summary": {
+      "type": "string",
+      "description": "Optional compact changed-file or protected-path summary."
+    },
+    "artifact_urls": {
+      "$ref": "#/$defs/stringOrStringArray",
+      "description": "Optional public PR, CI, artifact, or run URLs for reviewer navigation."
+    },
+    "redaction_note": {
+      "type": "string",
+      "description": "Optional note describing what was removed before sharing the supplied record."
+    },
     "source": {
       "type": "string",
       "description": "Optional provenance label for the supplied record."
