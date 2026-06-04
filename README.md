@@ -94,6 +94,24 @@ mako evidence-court --list-reason-codes
 mako evidence-court --list-reason-codes --json
 ```
 
+## Integration-Shaped Examples
+
+These examples are synthetic supplied records for terminal and local-gateway
+agent sessions. They are meant to show the handoff shape, not native ingestion
+of Hermes, OpenClaw, opencode, OpenHands, Aider, Claude, Codex, Cursor, Devin,
+or CI logs.
+
+```bash
+mako evidence-court --input examples/evidence-court/terminal-agent-bad-run.json --fail-on-reason-code test.required_not_run --json
+mako evidence-court --input examples/evidence-court/local-gateway-bad-run.json --fail-on-reason-code test.required_not_run --json
+```
+
+Both records return `FAIL` because the supplied record claims tests passed while
+omitting the required test command and reporting a protected test edit. The
+local-gateway example also preserves `tool_calls`, `approval_events`, and
+`sandbox_boundary` as reviewer context only; those fields do not prove real
+approval, sandbox enforcement, or external integration.
+
 To paste a bounded review packet into an issue or discussion without switching
 to the full JSON report:
 
