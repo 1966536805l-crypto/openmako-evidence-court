@@ -38,6 +38,7 @@ These files are part of the release candidate:
 - `docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md`
 - `docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md`
 - `docs/EVIDENCE_COURT_COMPARISON.md`
+- `docs/RUN_RECORD_FIELD_CHECKLIST.md`
 - `docs/TECHNICAL_TREND_RADAR.md`
 - `docs/REDACTION_GUIDE.md`
 - `docs/CURRENT_PROOF_STATUS.md`

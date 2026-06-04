@@ -18,6 +18,7 @@ INCLUDE_PATHS=(
   "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md"
   "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md"
   "docs/EVIDENCE_COURT_COMPARISON.md"
+  "docs/RUN_RECORD_FIELD_CHECKLIST.md"
   "docs/TECHNICAL_TREND_RADAR.md"
   "docs/REDACTION_GUIDE.md"
   "docs/CURRENT_PROOF_STATUS.md"
@@ -204,6 +205,7 @@ audit_staged_claim_copy() {
   require_staged_contains "docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md" 'Remote CI evidence requires GitHub Actions `Evidence Court Smoke` green for the PR head commit.' || invalid=1
   require_staged_contains "docs/EVIDENCE_COURT_V0_1_PR_BODY.md" "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md" || invalid=1
   require_staged_contains "docs/EVIDENCE_COURT_V0_1_PR_BODY.md" "examples/evidence-court/run-record.schema.json" || invalid=1
+  require_staged_contains "docs/EVIDENCE_COURT_V0_1_PR_BODY.md" "docs/RUN_RECORD_FIELD_CHECKLIST.md" || invalid=1
   require_staged_contains "docs/EVIDENCE_COURT_V0_1_PR_BODY.md" "docs/TECHNICAL_TREND_RADAR.md" || invalid=1
   require_staged_contains "docs/EVIDENCE_COURT_V0_1_PR_BODY.md" "not evidence of endorsement, adoption, integration, or review" || invalid=1
   require_staged_contains "docs/EVIDENCE_COURT_V0_1_PR_BODY.md" "This PR does not claim native Claude/Codex/Cursor/Devin/CI log ingestion" || invalid=1
@@ -212,6 +214,9 @@ audit_staged_claim_copy() {
   require_staged_contains "docs/EVIDENCE_COURT_COMPARISON.md" "Evidence Court only audits the supplied record" || invalid=1
   require_staged_contains "docs/EVIDENCE_COURT_COMPARISON.md" "does not prove tests actually ran outside" || invalid=1
   require_staged_contains "docs/EVIDENCE_COURT_COMPARISON.md" "does not natively ingest Claude/Codex/Cursor/Devin/CI logs" || invalid=1
+  require_staged_contains "docs/RUN_RECORD_FIELD_CHECKLIST.md" "not evidence of native ingestion, endorsement, adoption" || invalid=1
+  require_staged_contains "docs/RUN_RECORD_FIELD_CHECKLIST.md" 'only its claim/evidence/scope/test logic affects the verdict' || invalid=1
+  require_staged_contains "docs/RUN_RECORD_FIELD_CHECKLIST.md" "does not natively ingest Hermes Agent, OpenClaw, opencode" || invalid=1
   require_staged_contains "docs/TECHNICAL_TREND_RADAR.md" "not evidence of endorsement, adoption, integration, or review" || invalid=1
   require_staged_contains "docs/TECHNICAL_TREND_RADAR.md" "does not natively ingest Hermes, OpenClaw, opencode" || invalid=1
   require_staged_contains "docs/REDACTION_GUIDE.md" "Evidence Court only audits the supplied record" || invalid=1

@@ -473,6 +473,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EVIDENCE_COURT_COMPARISON.md",
+            "docs/RUN_RECORD_FIELD_CHECKLIST.md",
             "docs/TECHNICAL_TREND_RADAR.md",
             "docs/REDACTION_GUIDE.md",
             "docs/CURRENT_PROOF_STATUS.md",
@@ -607,11 +608,56 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("Do not optimize for stars before technical boundary review", text)
         self.assertIn("does not natively ingest Hermes, OpenClaw, opencode", text)
         self.assertIn("does not replace `docs/OUTREACH_TARGETS.md`", text)
-        self.assertIn("Keep the checklist in this radar until", text)
+        self.assertIn("`docs/RUN_RECORD_FIELD_CHECKLIST.md`", text)
+        self.assertIn("Use `docs/RUN_RECORD_FIELD_CHECKLIST.md` as the next technical-review handoff", text)
         self.assertNotIn("endorsed Evidence Court", text)
         self.assertNotIn("native Hermes ingestion", text)
         self.assertNotIn("agent quality score", text)
         self.assertNotIn("10k", text)
+
+    def test_run_record_field_checklist_keeps_adapter_guidance_bounded(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        checklist = root / "docs" / "RUN_RECORD_FIELD_CHECKLIST.md"
+        text = checklist.read_text(encoding="utf-8")
+
+        self.assertIn("not evidence of native ingestion, endorsement, adoption", text)
+        self.assertIn("## Minimum Fields", text)
+        for field in (
+            "`final_claim`",
+            "`claimed_task` or `claim`",
+            "`files_read`",
+            "`files_edited`",
+            "`commands_run`",
+            "`test_output`",
+            "`required_tests` or `required_commands`",
+            "`allowed_edit_paths` or `allowed_files`",
+            "`protected_paths`",
+            "`source`",
+        ):
+            with self.subTest(field=field):
+                self.assertIn(field, text)
+
+        self.assertIn("## Trend-Pressure Metadata", text)
+        for field in (
+            "`agent_runtime`",
+            "`tool_calls`",
+            "`approval_events`",
+            "`sandbox_boundary`",
+            "`diff_summary`",
+            "`artifact_urls`",
+            "`redaction_note`",
+        ):
+            with self.subTest(field=field):
+                self.assertIn(field, text)
+
+        self.assertIn("only its claim/evidence/scope/test logic affects the verdict", text)
+        self.assertIn("does not natively ingest Hermes Agent, OpenClaw, opencode", text)
+        self.assertIn("OpenHands, SWE-agent, Aider, Open SWE, LangGraph", text)
+        self.assertIn("--fail-on-reason-code test.required_not_run", text)
+        self.assertIn("does not independently rerun tests or inspect external logs", text)
+        self.assertNotIn("native Hermes ingestion", text)
+        self.assertNotIn("adoption proof", text)
+        self.assertNotIn("share readiness proof", text)
 
     def test_release_manifest_is_the_claim_file_boundary(self) -> None:
         root = Path(__file__).resolve().parents[1]
@@ -630,6 +676,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EVIDENCE_COURT_COMPARISON.md",
+            "docs/RUN_RECORD_FIELD_CHECKLIST.md",
             "docs/TECHNICAL_TREND_RADAR.md",
             "docs/REDACTION_GUIDE.md",
             "docs/CURRENT_PROOF_STATUS.md",
@@ -683,6 +730,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "permissive supplied JSON run-record schema at `examples/evidence-court/run-record.schema.json`",
             text,
         )
+        self.assertIn("supplied-record field checklist guidance for adapter authors and reviewers", text)
         self.assertIn("must not support the Evidence Court v0.1 public claim", normalized)
         self.assertIn("native Claude/Codex/Cursor/Devin transcript ingestion", text)
         self.assertIn("GitHub Actions or CI log ingestion", text)
@@ -948,12 +996,14 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("`jsonl-events.json`: explicit Evidence Court JSONL event-stream input", text)
         self.assertIn("`mixed-source-rejection.txt`: mixed inputs fail closed with `exit_code=2`", text)
         self.assertIn("`examples/evidence-court/run-record.schema.json`: permissive supplied-record schema", text)
+        self.assertIn("`docs/RUN_RECORD_FIELD_CHECKLIST.md`: reviewer-facing supplied-record field checklist", text)
         self.assertIn("`docs/TECHNICAL_TREND_RADAR.md`: current local-agent/coding-agent trend inputs", text)
         self.assertIn("not evidence of endorsement, adoption, integration, or review", text)
         self.assertIn("not a native vendor-log schema", text)
         included_section = text.split("### Included In This Release Claim", 1)[1].split("### Excluded From This Claim", 1)[0]
         self.assertIn("- `scripts/evidence_court_smoke.sh`", included_section)
         self.assertIn("- `examples/evidence-court/run-record.schema.json`", included_section)
+        self.assertIn("- `docs/RUN_RECORD_FIELD_CHECKLIST.md`", included_section)
         self.assertIn("- `docs/TECHNICAL_TREND_RADAR.md`", included_section)
         self.assertNotIn("`bash scripts/evidence_court_smoke.sh`", included_section)
         self.assertIn("`docs/EVIDENCE_COURT_V0_1_PR_BODY.md`", text)
@@ -1121,6 +1171,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EVIDENCE_COURT_COMPARISON.md",
+            "docs/RUN_RECORD_FIELD_CHECKLIST.md",
             "docs/TECHNICAL_TREND_RADAR.md",
             "docs/REDACTION_GUIDE.md",
             "docs/CURRENT_PROOF_STATUS.md",
@@ -1215,6 +1266,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EVIDENCE_COURT_COMPARISON.md",
+            "docs/RUN_RECORD_FIELD_CHECKLIST.md",
             "docs/TECHNICAL_TREND_RADAR.md",
             "docs/REDACTION_GUIDE.md",
             "docs/CURRENT_PROOF_STATUS.md",
@@ -1328,6 +1380,10 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             (root / "docs" / "EVIDENCE_COURT_V0_1_PR_BODY.md").read_text(encoding="utf-8"),
         )
         self.assertIn(
+            "docs/RUN_RECORD_FIELD_CHECKLIST.md",
+            (root / "docs" / "EVIDENCE_COURT_V0_1_PR_BODY.md").read_text(encoding="utf-8"),
+        )
+        self.assertIn(
             "docs/TECHNICAL_TREND_RADAR.md",
             (root / "docs" / "EVIDENCE_COURT_V0_1_PR_BODY.md").read_text(encoding="utf-8"),
         )
@@ -1347,6 +1403,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EVIDENCE_COURT_COMPARISON.md",
+            "docs/RUN_RECORD_FIELD_CHECKLIST.md",
             "docs/TECHNICAL_TREND_RADAR.md",
             "docs/REDACTION_GUIDE.md",
             "docs/CURRENT_PROOF_STATUS.md",
@@ -1761,6 +1818,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("proof status and stale-proof boundary", readme)
         self.assertIn("terminal demo visual", readme)
         self.assertIn("normal-tests comparison", readme)
+        self.assertIn("run-record field checklist", readme)
         self.assertIn("redaction guide", readme)
         self.assertIn("outreach templates", readme)
         self.assertIn("expert review brief", readme)

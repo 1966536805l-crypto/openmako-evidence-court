@@ -10,7 +10,7 @@ not evidence of endorsement, adoption, integration, or review.
 | Hermes Agent | `https://github.com/NousResearch/hermes-agent` | Local agent gateway with subagents, memory, multi-channel entry points, and multiple coding-agent backends. | Keep Evidence Court as a post-run supplied-record auditor that can receive a small handoff artifact from fast local-agent sessions. |
 | OpenClaw | `https://github.com/openclaw/openclaw` | Local-first coding-agent workflow with gateway, sandbox, approvals, and human-controlled execution themes. | Add explicit approval/sandbox boundary fields before any final success claim is treated as supportable. |
 | opencode | `https://github.com/sst/opencode` | Terminal/TUI coding-agent workflow where command history and final claims are close together. | Make the reason-code CI recipe obvious for terminal users: missing required test command should fail with a stable machine-readable reason. |
-| OpenHands | `https://github.com/OpenHands/OpenHands` | Software-development agent platform with local, CLI, SDK, and evaluation-facing workflows. | Publish a minimal run-record field checklist that maps commands, edits, tests, protected paths, and final claims without claiming native ingestion. |
+| OpenHands | `https://github.com/OpenHands/OpenHands` | Software-development agent platform with local, CLI, SDK, and evaluation-facing workflows. | Use the standalone run-record field checklist to map commands, edits, tests, protected paths, and final claims without claiming native ingestion. |
 | SWE-agent / mini-SWE-agent | `https://github.com/SWE-agent/mini-swe-agent` | Small linear trajectory agent and SWE-Bench-oriented evaluation flow. | Treat exact eval command, patch scope, protected-file edits, and supplied output as first-class evidence fields. |
 | Aider | `https://github.com/Aider-AI/aider` | Terminal pair-programming agent centered on local git edits, tests, and lint commands. | Keep the record shape friendly to terminal sessions: command list, edited files, diff/protected-path summary, test output status, and final claim. |
 
@@ -67,46 +67,17 @@ adapter claim:
 
 ## Run-Record Field Checklist
 
-This is the current checklist for adapter authors and reviewers. It translates
-the trend signals above into supplied-record fields without claiming native
-ingestion of any external agent log.
-
-Minimum useful fields for a supportable "done/tests passed" claim:
-
-- `final_claim`: the exact final success claim being audited.
-- `claimed_task` or `claim`: the requested task boundary.
-- `files_read`: files the agent says it inspected before editing.
-- `files_edited`: files the agent says it changed.
-- `commands_run`: exact commands the agent says it ran, preferably with exit
-  status and output attached to each command object.
-- `test_output`: supplied test output if the run reports test success or
-  failure.
-- `required_tests` or `required_commands`: commands the reviewer expects before
-  the claim is supportable.
-- `allowed_edit_paths` or `allowed_files`: the intended edit boundary.
-- `protected_paths`: files or directories whose edits should be treated as
-  suspicious without explicit scope.
-- `source`: provenance label for the supplied record or generated artifact.
-
-Trend-pressure fields to include as explicit metadata when available:
-
-- `agent_runtime`: human-readable runtime label such as terminal agent, local
-  gateway, web IDE, or benchmark harness.
-- `tool_calls`: summarized tool calls or shell steps, if separate from
-  `commands_run`.
-- `approval_events`: approvals or denials around risky tool calls or protected
-  writes.
-- `sandbox_boundary`: sandbox mode, network policy, or filesystem boundary
-  reported by the producing agent.
-- `diff_summary`: compact changed-file and protected-path summary.
-- `artifact_urls`: public PR, CI, or artifact URLs when the record is being used
-  for remote review.
-- `redaction_note`: what was removed before sharing the record.
+The reviewer-facing checklist now lives in
+`docs/RUN_RECORD_FIELD_CHECKLIST.md`. It translates the trend signals above into
+supplied-record fields such as `final_claim`, `commands_run`,
+`required_tests`, `allowed_edit_paths`, `protected_paths`, `approval_events`,
+`sandbox_boundary`, and `artifact_urls` without claiming native ingestion of
+any external agent log.
 
 Evidence Court v0.1 preserves supported metadata fields for reviewer context,
 but only its claim/evidence/scope/test logic affects the verdict. Metadata
 fields do not prove sandboxing, approvals, native log ingestion, real test
-execution, or external review.
+execution, external review, adoption, endorsement, or share readiness.
 
 ## Trend-To-Mechanism Map
 
@@ -131,6 +102,6 @@ execution, or external review.
 
 ## Smallest Next Mechanism
 
-Keep the checklist in this radar until a public PR-head CI artifact exists or an
-external reviewer asks for a standalone checklist. If that happens, split this
-section into `docs/RUN_RECORD_FIELD_CHECKLIST.md` and keep the same boundaries.
+Use `docs/RUN_RECORD_FIELD_CHECKLIST.md` as the next technical-review handoff.
+Do not build native Hermes/OpenClaw/opencode/OpenHands/Aider adapters until an
+external reviewer confirms the supplied-record fields are clear enough.

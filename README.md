@@ -250,6 +250,7 @@ milestones.
 - [v0.1.2 release notes](docs/RELEASE_NOTES_V0_1_2.md)
 - [expert review brief](docs/EXPERT_REVIEW_BRIEF.md)
 - [normal-tests comparison](docs/EVIDENCE_COURT_COMPARISON.md)
+- [run-record field checklist](docs/RUN_RECORD_FIELD_CHECKLIST.md)
 - [redaction guide](docs/REDACTION_GUIDE.md)
 - [outreach templates](docs/OUTREACH.md)
 - [outreach target tracker](docs/OUTREACH_TARGETS.md)

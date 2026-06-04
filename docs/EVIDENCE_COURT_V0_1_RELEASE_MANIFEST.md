@@ -17,6 +17,7 @@ Evidence Court v0.1 may claim support for:
 - structured `test_output_status` and `test_output_status_reason` fields derived from the supplied record
 - machine-readable reason codes derived from the supplied record
 - CI failure gating by exact machine-readable reason code from the supplied record
+- supplied-record field checklist guidance for adapter authors and reviewers
 - JSON report schema marker `evidence-court.report.v0.1`
 - local smoke gate and focused regression tests
 - GitHub Actions workflow wiring
@@ -49,6 +50,7 @@ Only these release files support the Evidence Court v0.1 public claim:
 - `docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md`
 - `docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md`
 - `docs/EVIDENCE_COURT_COMPARISON.md`
+- `docs/RUN_RECORD_FIELD_CHECKLIST.md`
 - `docs/TECHNICAL_TREND_RADAR.md`
 - `docs/REDACTION_GUIDE.md`
 - `docs/CURRENT_PROOF_STATUS.md`
