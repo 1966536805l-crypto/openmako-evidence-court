@@ -49,6 +49,7 @@ Only these release files support the Evidence Court v0.1 public claim:
 - `docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md`
 - `docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md`
 - `docs/EVIDENCE_COURT_COMPARISON.md`
+- `docs/TECHNICAL_TREND_RADAR.md`
 - `docs/REDACTION_GUIDE.md`
 - `docs/CURRENT_PROOF_STATUS.md`
 - `docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md`

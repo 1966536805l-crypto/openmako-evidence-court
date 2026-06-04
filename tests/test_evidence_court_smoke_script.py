@@ -473,6 +473,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EVIDENCE_COURT_COMPARISON.md",
+            "docs/TECHNICAL_TREND_RADAR.md",
             "docs/REDACTION_GUIDE.md",
             "docs/CURRENT_PROOF_STATUS.md",
             "docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md",
@@ -556,6 +557,34 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         )
         self.assertIn("sed -n '1,80p' /tmp/evidence-court-smoke/artifact-manifest.json", text)
 
+    def test_technical_trend_radar_keeps_external_project_boundaries(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        radar = root / "docs" / "TECHNICAL_TREND_RADAR.md"
+        text = radar.read_text(encoding="utf-8")
+
+        for project in (
+            "Hermes Agent",
+            "OpenClaw",
+            "opencode",
+            "OpenHands",
+            "SWE-agent / mini-SWE-agent",
+            "Aider",
+        ):
+            with self.subTest(project=project):
+                self.assertIn(project, text)
+
+        self.assertIn("not evidence of endorsement, adoption, integration, or review", text)
+        self.assertIn("post-run supplied-record auditor", text)
+        self.assertIn("claim-vs-evidence layer", text)
+        self.assertIn("approval/sandbox boundary fields", text)
+        self.assertIn("--fail-on-reason-code test.required_not_run", text)
+        self.assertIn("does not natively ingest Hermes, OpenClaw, opencode", text)
+        self.assertIn("does not replace `docs/OUTREACH_TARGETS.md`", text)
+        self.assertIn("Add a `docs/RUN_RECORD_FIELD_CHECKLIST.md` only after", text)
+        self.assertNotIn("endorsed Evidence Court", text)
+        self.assertNotIn("native Hermes ingestion", text)
+        self.assertNotIn("10k", text)
+
     def test_release_manifest_is_the_claim_file_boundary(self) -> None:
         root = Path(__file__).resolve().parents[1]
         manifest = root / "docs" / "EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md"
@@ -573,6 +602,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EVIDENCE_COURT_COMPARISON.md",
+            "docs/TECHNICAL_TREND_RADAR.md",
             "docs/REDACTION_GUIDE.md",
             "docs/CURRENT_PROOF_STATUS.md",
             "docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md",
@@ -1023,6 +1053,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EVIDENCE_COURT_COMPARISON.md",
+            "docs/TECHNICAL_TREND_RADAR.md",
             "docs/REDACTION_GUIDE.md",
             "docs/CURRENT_PROOF_STATUS.md",
             "docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md",
@@ -1114,6 +1145,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EVIDENCE_COURT_COMPARISON.md",
+            "docs/TECHNICAL_TREND_RADAR.md",
             "docs/REDACTION_GUIDE.md",
             "docs/CURRENT_PROOF_STATUS.md",
             "docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md",
@@ -1239,6 +1271,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md",
             "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
             "docs/EVIDENCE_COURT_COMPARISON.md",
+            "docs/TECHNICAL_TREND_RADAR.md",
             "docs/REDACTION_GUIDE.md",
             "docs/CURRENT_PROOF_STATUS.md",
             "docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md",

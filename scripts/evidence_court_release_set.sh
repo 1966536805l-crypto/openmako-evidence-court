@@ -18,6 +18,7 @@ INCLUDE_PATHS=(
   "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md"
   "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md"
   "docs/EVIDENCE_COURT_COMPARISON.md"
+  "docs/TECHNICAL_TREND_RADAR.md"
   "docs/REDACTION_GUIDE.md"
   "docs/CURRENT_PROOF_STATUS.md"
   "docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md"
@@ -207,6 +208,8 @@ audit_staged_claim_copy() {
   require_staged_contains "docs/EVIDENCE_COURT_COMPARISON.md" "Evidence Court only audits the supplied record" || invalid=1
   require_staged_contains "docs/EVIDENCE_COURT_COMPARISON.md" "does not prove tests actually ran outside" || invalid=1
   require_staged_contains "docs/EVIDENCE_COURT_COMPARISON.md" "does not natively ingest Claude/Codex/Cursor/Devin/CI logs" || invalid=1
+  require_staged_contains "docs/TECHNICAL_TREND_RADAR.md" "not evidence of endorsement, adoption, integration, or review" || invalid=1
+  require_staged_contains "docs/TECHNICAL_TREND_RADAR.md" "does not natively ingest Hermes, OpenClaw, opencode" || invalid=1
   require_staged_contains "docs/REDACTION_GUIDE.md" "Evidence Court only audits the supplied record" || invalid=1
   require_staged_contains "docs/REDACTION_GUIDE.md" "does not prove tests actually ran outside" || invalid=1
   require_staged_contains "docs/REDACTION_GUIDE.md" "not native Claude/Codex/Cursor/Devin/CI" || invalid=1
