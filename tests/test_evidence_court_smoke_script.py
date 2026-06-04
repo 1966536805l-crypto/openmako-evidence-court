@@ -28,6 +28,39 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("OpenMako Evidence Court v0.1.2", release_notes)
         self.assertIn("v0.1.2 supports JSON run records", social_card)
 
+    def test_package_metadata_supports_discovery_without_overclaiming(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
+
+        for phrase in (
+            'readme = "README.md"',
+            'license = { file = "LICENSE" }',
+            '"coding-agents"',
+            '"agent-evaluation"',
+            '"claim-verification"',
+            '"run-records"',
+            '"Topic :: Software Development :: Testing"',
+            '"Topic :: Software Development :: Quality Assurance"',
+            "Homepage = \"https://github.com/1966536805l-crypto/openmako-evidence-court\"",
+            "Repository = \"https://github.com/1966536805l-crypto/openmako-evidence-court\"",
+            "\"Proof Status\" = \"https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/CURRENT_PROOF_STATUS.md\"",
+            "\"Technical Review\" = \"https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/TECHNICAL_REVIEW_REQUEST.md\"",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, pyproject)
+
+        forbidden = (
+            "autonomous repair",
+            "native Claude",
+            "native Codex",
+            "10k stars",
+            "endorsed",
+            "adopted",
+        )
+        for phrase in forbidden:
+            with self.subTest(phrase=phrase):
+                self.assertNotIn(phrase, pyproject)
+
     def _run_release_set_with_staged_paths(
         self,
         root: Path,

@@ -6,8 +6,39 @@ build-backend = "setuptools.build_meta"
 name = "open-mako"
 version = "0.1.2"
 description = "Evidence Court for auditing coding-agent success claims against supplied run records."
+readme = "README.md"
+license = { file = "LICENSE" }
 requires-python = ">=3.9"
 dependencies = []
+keywords = [
+  "ai-agents",
+  "coding-agents",
+  "agent-evaluation",
+  "ci",
+  "testing",
+  "claim-verification",
+  "run-records",
+  "evidence",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.9",
+  "Topic :: Software Development :: Quality Assurance",
+  "Topic :: Software Development :: Testing",
+  "Topic :: Utilities",
+]
+
+[project.urls]
+Homepage = "https://github.com/1966536805l-crypto/openmako-evidence-court"
+Repository = "https://github.com/1966536805l-crypto/openmako-evidence-court"
+Issues = "https://github.com/1966536805l-crypto/openmako-evidence-court/issues"
+"Proof Status" = "https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/CURRENT_PROOF_STATUS.md"
+"Technical Review" = "https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/TECHNICAL_REVIEW_REQUEST.md"
 
 [project.scripts]
 mako = "quantagent.cli:main"
