@@ -21,24 +21,28 @@ Use this as the first public post or DM when no external reviewer has replied
 yet. It asks for one technical boundary check, not stars, endorsement, adoption,
 or a repost.
 
+Before posting, run a five-agent AI-likeness check on the exact text. Do not
+publish if the reviewers call it template-like, too complete, or too
+announcement-shaped; rewrite it into one concrete technical question first.
+
 ```text
-I am testing a small evidence checker for coding-agent runs.
+I'm trying to make agent-run failure reports less vague.
 
-The failure case is simple: an agent says "tests passed", but the run record
-does not show the required test command.
+One test case:
+an agent says tests passed, but the submitted run record never shows the
+required test command.
 
-I made a bad-run demo around that exact case:
+Right now the checker reports:
+
+`test.required_not_run`
+
+Demo card:
 https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/social-card.svg
 
-The report fails with:
-test.required_not_run
+Would you keep that reason code, rename it, or track a different field?
 
-For people building agent tooling: is this kind of reason code useful, or am I
-missing a more important evidence field?
-
-Scope is intentionally small: it only audits the record you give it. It does
-not ingest native Claude/Codex/Cursor/CI logs yet, and it cannot prove tests
-ran outside that record.
+Current limit: it only checks the record you hand it. It is not reading native
+Claude/Codex/Cursor or CI logs yet.
 ```
 
 ## General AI Tooling Maintainer
