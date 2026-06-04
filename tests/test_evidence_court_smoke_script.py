@@ -2164,8 +2164,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertEqual([name for name, _ in messages], ["SWE-agent / mini-SWE-agent", "Aider"])
         self.assertIn("### 3. LangChain Open SWE", packet)
         self.assertIn("Boundary check: minimum supplied-record fields", packet)
-        self.assertIn("20b3360ffe20c551961edfaae2ec6c9f236c0b2c", packet)
-        self.assertIn("actions/runs/26951223320", packet)
+        self.assertIn("7c19d2248d1560e1863c35529d9bec9d72803b90", packet)
+        self.assertIn("actions/runs/26951852233", packet)
         self.assertIn("docs/RUN_RECORD_FIELD_CHECKLIST.md", packet)
         self.assertIn("does not claim adoption, endorsement, integration, or a\nshare", packet)
 
