@@ -2116,31 +2116,51 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
                 for phrase in forbidden:
                     self.assertNotIn(phrase, normalized)
 
-    def test_pr_head_evidence_packet_is_current_and_not_a_share_request(self) -> None:
+    def test_pr_head_evidence_packet_is_refresh_safe_and_not_a_share_request(self) -> None:
         root = Path(__file__).resolve().parents[1]
         targets = (root / "docs" / "OUTREACH_TARGETS.md").read_text(encoding="utf-8")
 
-        packet = targets.split("### PR-head Evidence Packet", maxsplit=1)[1].split("### 1. SWE-agent", maxsplit=1)[0]
+        immediate_packet = targets.split("## Immediate Send Packet", maxsplit=1)[1].split(
+            "## First-Batch Send Drafts",
+            maxsplit=1,
+        )[0]
+        packet = immediate_packet.split("### PR-head Evidence Packet", maxsplit=1)[1].split(
+            "### 1. SWE-agent",
+            maxsplit=1,
+        )[0]
 
         for phrase in (
             "https://github.com/1966536805l-crypto/openmako-evidence-court/pull/27",
-            "5974ee3578fbca48ee1dd794701936285314188f",
-            "https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26947581663",
+            "Fill `<PR_HEAD_SHA>`,",
+            "<PR_HEAD_SHA>",
+            "<RUN_URL>",
+            "<ARTIFACT_DIGEST>",
+            "latest visible PR-head Actions run",
             "agent_runtime",
             "tool_calls",
             "approval_events",
             "sandbox_boundary",
+            "diff_summary",
             "artifact_urls",
+            "redaction_note",
             "reviewer context only",
             "do not prove",
             "technical boundary check",
             "Not asking for endorsement, adoption, or a share.",
         ):
             with self.subTest(phrase=phrase):
-                self.assertIn(phrase, packet)
+                self.assertIn(phrase, immediate_packet)
 
         normalized = " ".join(packet.lower().split())
-        for phrase in ("please retweet", "10k", "10000", "native ingestion is supported", "reviewed by"):
+        for phrase in (
+            "please retweet",
+            "10k",
+            "10000",
+            "native ingestion is supported",
+            "reviewed by",
+            "5974ee3578fbca48ee1dd794701936285314188f",
+            "actions/runs/26947581663",
+        ):
             with self.subTest(forbidden=phrase):
                 self.assertNotIn(phrase, normalized)
 

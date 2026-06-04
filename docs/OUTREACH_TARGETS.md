@@ -117,16 +117,19 @@ public `Message URL` for the first one, or after one calendar day with no reply.
 If the channel does not provide a public URL, do not mark the row as `sent`.
 
 Use the PR-head packet below when the target is reviewing current branch
-behavior rather than the older v0.1.2 proof card. Do not mark this packet as
-sent until the actual message has a public URL.
+behavior rather than the older v0.1.2 proof card. Fill `<PR_HEAD_SHA>`,
+`<RUN_URL>`, and `<ARTIFACT_DIGEST>` from the latest visible PR-head Actions run
+immediately before sending. Do not mark this packet as sent until the actual
+message has a public URL.
 
 ### PR-head Evidence Packet
 
 ```text
 I added current PR-head evidence for the supplied-record boundary:
 PR: https://github.com/1966536805l-crypto/openmako-evidence-court/pull/27
-Head: 5974ee3578fbca48ee1dd794701936285314188f
-CI: https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26947581663
+Head: <PR_HEAD_SHA>
+CI: <RUN_URL>
+Artifact digest: <ARTIFACT_DIGEST>
 
 The current run-record schema preserves optional metadata like agent_runtime,
 tool_calls, approval_events, sandbox_boundary, diff_summary, artifact_urls, and
