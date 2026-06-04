@@ -39,6 +39,60 @@ Release: https://github.com/1966536805l-crypto/openmako-evidence-court/releases/
 Current proof status: https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/CURRENT_PROOF_STATUS.md
 ```
 
+## Share Kit
+
+Use this section when someone is deciding whether to share OpenMako Evidence
+Court. It is designed for accurate third-party posts, not endorsement claims.
+
+Before sharing, check that the current `Evidence Court Smoke` badge is green and
+open `docs/CURRENT_PROOF_STATUS.md`. Do not repeat a run URL, artifact digest,
+or current-main claim unless that proof-status page or the run page supports it.
+
+### Safe Short Post
+
+```text
+Coding agents often say "done" or "tests passed" before the supplied run record supports it.
+
+OpenMako Evidence Court is a small CI-friendly record auditor for that gap.
+
+The demo fails a bad record that claims tests passed while omitting the required pytest command and editing a protected test file.
+
+Repo:
+https://github.com/1966536805l-crypto/openmako-evidence-court
+
+Proof status:
+https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/CURRENT_PROOF_STATUS.md
+```
+
+### Technical Share
+
+```text
+The useful boundary in OpenMako Evidence Court is not "agent quality"; it is claim-vs-evidence.
+
+Example CI gate:
+mako evidence-court --input examples/evidence-court/bad-run.json --fail-on-reason-code test.required_not_run --json
+
+That exact gate exits 1 when the supplied record omits the required test command.
+
+Boundary: it audits supplied records only. It does not natively ingest Claude/Codex/Cursor/CI logs and does not prove tests ran outside the record.
+```
+
+### Share Only If
+
+- The post says Evidence Court audits supplied records.
+- The post keeps `test.required_not_run` as a narrow CI reason-code example.
+- The post links to current proof status before citing remote CI evidence.
+- Any external review, endorsement, adoption, or share claim has a public
+  evidence URL.
+- The post does not imply external endorsement, adoption, review, or a share.
+
+### Star Request Boundary
+
+It is acceptable to ask people to star the repository if they want a small,
+bounded CI gate for unsupported coding-agent success claims. Do not ask for
+stars by implying endorsement, adoption, proven usefulness, or milestone
+progress that does not exist.
+
 ## Review Path
 
 1. Open the repository.

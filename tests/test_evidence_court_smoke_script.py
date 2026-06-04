@@ -1949,6 +1949,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("redaction guide", readme)
         self.assertIn("outreach templates", readme)
         self.assertIn("expert review brief", readme)
+        self.assertIn("share kit", readme)
         self.assertIn("social card", readme)
         self.assertIn("## Review In 30 Seconds", readme)
         self.assertIn("Check the safe claim", readme)
@@ -2044,6 +2045,45 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             with self.subTest(phrase=phrase):
                 self.assertNotIn(phrase, brief)
                 self.assertNotIn(phrase, release_notes)
+
+    def test_launch_post_share_kit_keeps_reposts_bounded_and_copyable(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        launch_post = (root / "docs" / "LAUNCH_POST.md").read_text(encoding="utf-8")
+        share_kit = launch_post.split("## Share Kit", maxsplit=1)[1].split("## Review Path", maxsplit=1)[0]
+        normalized_share_kit = " ".join(share_kit.split())
+        readme = (root / "README.md").read_text(encoding="utf-8")
+
+        self.assertIn("share kit", readme)
+        self.assertIn("copyable launch post and share kit", readme)
+        self.assertIn("docs/LAUNCH_POST.md", readme)
+        self.assertIn("## Share Kit", launch_post)
+        self.assertIn("Safe Short Post", share_kit)
+        self.assertIn("Technical Share", share_kit)
+        self.assertIn("Share Only If", share_kit)
+        self.assertIn("Star Request Boundary", share_kit)
+        self.assertIn("--fail-on-reason-code test.required_not_run --json", share_kit)
+        self.assertIn("audits supplied records only", share_kit)
+        self.assertIn("does not natively ingest Claude/Codex/Cursor/CI logs", share_kit)
+        self.assertIn("does not prove tests ran outside the record", share_kit)
+        self.assertIn("public evidence URL", normalized_share_kit)
+        self.assertIn("Do not ask for stars by implying endorsement", normalized_share_kit)
+        self.assertNotIn("guaranteed", share_kit.lower())
+
+        forbidden = (
+            "please retweet",
+            "guaranteed",
+            "endorsed by",
+            "adopted by",
+            "shared by",
+            "10k stars achieved",
+            "10000 stars",
+            "native Claude ingestion is supported",
+            "proves tests actually ran",
+        )
+        normalized = share_kit.lower()
+        for phrase in forbidden:
+            with self.subTest(phrase=phrase):
+                self.assertNotIn(phrase.lower(), normalized)
 
     def test_outreach_templates_are_review_first_and_bounded(self) -> None:
         root = Path(__file__).resolve().parents[1]

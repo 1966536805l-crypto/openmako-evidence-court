@@ -305,7 +305,7 @@ milestones.
 - [technical review request](docs/TECHNICAL_REVIEW_REQUEST.md)
 - [technical review issue draft](docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md)
 - [technical review issue template](../../issues/new?template=technical-review-request.md)
-- [copyable launch post](docs/LAUNCH_POST.md)
+- [copyable launch post and share kit](docs/LAUNCH_POST.md)
 - [social card](docs/social-card.svg)
 
 ## Boundaries
