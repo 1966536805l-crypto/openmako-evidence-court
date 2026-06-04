@@ -41,6 +41,7 @@ Open these first:
 7. `jsonl-events.json`: explicit Evidence Court JSONL event-stream input.
 8. `mixed-source-rejection.txt`: mixed inputs fail closed with `exit_code=2`.
 9. `examples/evidence-court/run-record.schema.json`: permissive supplied-record schema for adapter authors; not a native vendor-log schema.
+10. `docs/TECHNICAL_TREND_RADAR.md`: current local-agent/coding-agent trend inputs and development bets; not evidence of endorsement, adoption, integration, or review.
 
 ### Included In This Release Claim
 - `.github/ISSUE_TEMPLATE/technical-review-request.md`
@@ -54,6 +55,7 @@ Open these first:
 - `docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md`
 - `docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md`
 - `docs/EVIDENCE_COURT_COMPARISON.md`
+- `docs/TECHNICAL_TREND_RADAR.md`
 - `docs/REDACTION_GUIDE.md`
 - `docs/CURRENT_PROOF_STATUS.md`
 - `docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md`
