@@ -1781,14 +1781,14 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("Do not treat this draft as a sent review request", issue_draft)
         self.assertIn("Open `docs/CURRENT_PROOF_STATUS.md` before trusting remote CI claims", issue_draft)
         self.assertIn("Current proof-anchor evidence", issue_draft)
-        self.assertIn("Evidence Court Smoke run: https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26836126047", issue_draft)
-        self.assertIn("Run status: `Success` for commit `cb1ab5e`", issue_draft)
+        self.assertIn("Evidence Court Smoke run: https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26952138422", issue_draft)
+        self.assertIn("Run status: `completed successfully` for commit `6d9bafe`", issue_draft)
         self.assertIn("It does not have third-party endorsement from this issue being opened", issue_draft)
 
         draft_body = issue_draft.split("## Do Not Add Before Posting", 1)[0]
         forbidden = (
-            "remote CI is green for `cb1ab5e`",
-            "downloaded artifact proves `cb1ab5e`",
+            "remote CI is green for `6d9bafe`",
+            "downloaded artifact proves `6d9bafe`",
             "sent review request",
             "reviewed by",
             "endorsed by",
@@ -1916,10 +1916,10 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("issues/new?template=technical-review-request.md", outreach)
         self.assertIn("TECHNICAL_REVIEW_REQUEST.md", outreach)
         self.assertIn("technical boundary feedback", release_notes)
-        self.assertIn("Reference green smoke run", outreach)
-        self.assertIn("actions/runs/26836126047", outreach)
-        self.assertIn("Reference smoke artifact digest", outreach)
-        self.assertIn("sha256:7ec4b7b76b0486ebad593e2936bd083ab80e0eee65c628c80f4ea64852095eac", outreach)
+        self.assertIn("Current proof-anchor smoke run", outreach)
+        self.assertIn("actions/runs/26952138422", outreach)
+        self.assertIn("Current proof-anchor artifact digest", outreach)
+        self.assertIn("sha256:42f38ea0acc3033479d0588dd33cf4c2f3eceb95b78d2f52a3a81278bae17db1", outreach)
         self.assertIn("I would value a quick review", outreach)
         self.assertIn("honest enough for", outreach)
         self.assertIn("If you have 30 seconds", outreach)
@@ -2002,8 +2002,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "https://github.com/1966536805l-crypto/openmako-evidence-court",
             "https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/PUBLIC_PROOF.md",
             "https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/demo-terminal.svg",
-            "actions/runs/26836126047",
-            "sha256:7ec4b7b76b0486ebad593e2936bd083ab80e0eee65c628c80f4ea64852095eac",
+            "actions/runs/26952138422",
+            "sha256:42f38ea0acc3033479d0588dd33cf4c2f3eceb95b78d2f52a3a81278bae17db1",
             "mako evidence-court --demo bad-run",
             "mako evidence-court --input examples/evidence-court/bad-run.json --json | diff -u examples/evidence-court/bad-run.report.json -",
             "examples/evidence-court/bad-run.report.json",

@@ -38,9 +38,9 @@ Expected local behavior:
 
 Current proof-anchor evidence:
 
-- Evidence Court Smoke run: https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26836126047
-- Run status: `Success` for commit `cb1ab5e`
-- Artifact digest: `sha256:7ec4b7b76b0486ebad593e2936bd083ab80e0eee65c628c80f4ea64852095eac`
+- Evidence Court Smoke run: https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26952138422
+- Run status: `completed successfully` for commit `6d9bafe`
+- Artifact digest: `sha256:42f38ea0acc3033479d0588dd33cf4c2f3eceb95b78d2f52a3a81278bae17db1`
 
 ### Review Questions
 
