@@ -11,6 +11,9 @@ from typing import Any, Mapping
 
 EVIDENCE_COURT_REPORT_SCHEMA_VERSION = "evidence-court.report.v0.1"
 OPENMAKO_AGENT_RUN_RESULT_SCHEMA_VERSION = "openmako.agent_run_result.v0"
+RUN_METRIC_INT_FIELDS = ("duration_ms", "input_tokens", "output_tokens", "total_tokens", "command_count")
+RUN_METRIC_NUMBER_FIELDS = ("estimated_cost_usd", "actual_cost_usd")
+RUN_METRIC_FIELDS = RUN_METRIC_INT_FIELDS + RUN_METRIC_NUMBER_FIELDS + ("missing_telemetry",)
 
 
 @dataclass(frozen=True)
@@ -24,6 +27,7 @@ class EvidenceCourtRun:
     allowed_edit_paths: tuple[str, ...] = ()
     protected_paths: tuple[str, ...] = ()
     required_tests: tuple[str, ...] = ()
+    run_metrics: Mapping[str, Any] = field(default_factory=dict)
     source: str = ""
 
     def to_dict(self) -> dict[str, Any]:
@@ -37,6 +41,7 @@ class EvidenceCourtReport:
     scope_violations: tuple[str, ...]
     test_verification: tuple[str, ...]
     suspicious_behavior: tuple[str, ...]
+    run_metrics: Mapping[str, Any]
     verdict: str
     schema_version: str = EVIDENCE_COURT_REPORT_SCHEMA_VERSION
 
@@ -117,6 +122,7 @@ def evidence_court_run_from_jsonl_events(text: str, *, source: str = "") -> Evid
     allowed_edit_paths: list[str] = []
     protected_paths: list[str] = []
     required_tests: list[str] = []
+    run_metrics: dict[str, Any] = {}
     recognized = 0
 
     for record in records:
@@ -150,6 +156,9 @@ def evidence_court_run_from_jsonl_events(text: str, *, source: str = "") -> Evid
         elif event in {"required_test", "required_command"}:
             required_tests.extend(_jsonl_event_commands(record))
             recognized += 1
+        elif event in {"run_metrics", "metrics", "telemetry", "usage"}:
+            run_metrics.update(_jsonl_event_run_metrics(record))
+            recognized += 1
 
     if not records:
         raise ValueError("Evidence Court JSONL event input is empty")
@@ -165,6 +174,7 @@ def evidence_court_run_from_jsonl_events(text: str, *, source: str = "") -> Evid
         allowed_edit_paths=tuple(_dedupe(allowed_edit_paths)),
         protected_paths=tuple(_dedupe(protected_paths)),
         required_tests=tuple(_dedupe(required_tests)),
+        run_metrics=_run_metrics_dict(run_metrics or None, field_name="jsonl_event_run_metrics", commands_run=commands_run),
         source=(source.strip() or "explicit-jsonl-events"),
     )
 
@@ -184,6 +194,12 @@ def evidence_court_run_from_openmako_agent_run_result(payload: Mapping[str, Any]
     commands_value = payload.get("commands")
     if commands_value is None:
         commands_value = payload.get("commands_run")
+    commands_run = _commands_tuple(commands_value, field_name="commands")
+    run_metrics, run_metrics_field = _field_value(
+        payload,
+        "run_metrics",
+        aliases=("metrics", "usage"),
+    )
 
     return EvidenceCourtRun(
         claimed_task=_mapping_text(task, "claimed_task", "text", "description")
@@ -192,7 +208,7 @@ def evidence_court_run_from_openmako_agent_run_result(payload: Mapping[str, Any]
         or _text_field(payload, "final_claim"),
         files_read=_string_tuple(files.get("read") or files.get("files_read"), field_name="files.read"),
         files_edited=_string_tuple(files.get("edited") or files.get("files_edited"), field_name="files.edited"),
-        commands_run=_commands_tuple(commands_value, field_name="commands"),
+        commands_run=commands_run,
         test_output=_openmako_test_output(payload, commands_value),
         allowed_edit_paths=_string_tuple(
             policy.get("allowed_edit_paths") or policy.get("allowed_files"),
@@ -203,6 +219,7 @@ def evidence_court_run_from_openmako_agent_run_result(payload: Mapping[str, Any]
             policy.get("required_tests") or policy.get("required_commands"),
             field_name="policy.required_tests",
         ),
+        run_metrics=_run_metrics_dict(run_metrics, field_name=run_metrics_field, commands_run=commands_run),
         source=_text_field(payload, "source"),
     )
 
@@ -218,16 +235,23 @@ def evidence_court_run_from_dict(payload: Mapping[str, Any]) -> EvidenceCourtRun
         "required_tests",
         aliases=("required_commands",),
     )
+    run_metrics, run_metrics_field = _field_value(
+        payload,
+        "run_metrics",
+        aliases=("metrics",),
+    )
+    commands_run = _commands_tuple(payload.get("commands_run"), field_name="commands_run")
     return EvidenceCourtRun(
         claimed_task=_text_field(payload, "claimed_task", aliases=("claim",)),
         final_claim=_text_field(payload, "final_claim"),
         files_read=_string_tuple(payload.get("files_read"), field_name="files_read"),
         files_edited=_string_tuple(payload.get("files_edited"), field_name="files_edited"),
-        commands_run=_commands_tuple(payload.get("commands_run"), field_name="commands_run"),
+        commands_run=commands_run,
         test_output=_text_field(payload, "test_output"),
         allowed_edit_paths=_string_tuple(allowed_edit_paths, field_name=allowed_edit_field),
         protected_paths=_string_tuple(payload.get("protected_paths"), field_name="protected_paths"),
         required_tests=_commands_tuple(required_tests, field_name=required_tests_field),
+        run_metrics=_run_metrics_dict(run_metrics, field_name=run_metrics_field, commands_run=commands_run),
         source=_text_field(payload, "source"),
     )
 
@@ -273,6 +297,7 @@ def evaluate_evidence_court(run: EvidenceCourtRun) -> EvidenceCourtReport:
         scope_violations=tuple(scope_violations),
         test_verification=tuple(test_verification),
         suspicious_behavior=tuple(suspicious),
+        run_metrics=run.run_metrics,
         verdict=verdict,
     )
 
@@ -405,6 +430,8 @@ def _evidence_summary(run: EvidenceCourtRun) -> tuple[str, ...]:
         items.append(f"protected_paths: {_join_or_none(run.protected_paths)}")
     if run.required_tests:
         items.append(f"required_tests: {_join_or_none(run.required_tests)}")
+    if run.run_metrics:
+        items.append(f"run_metrics: {_run_metrics_summary(run.run_metrics)}")
     if run.source:
         items.append(f"source: {run.source}")
     return tuple(items)
@@ -518,6 +545,78 @@ def _commands_tuple(value: Any, *, field_name: str) -> tuple[str, ...]:
                 )
         return tuple(command.strip() for command in commands if command.strip())
     raise ValueError(f"Evidence Court field `{field_name}` must be a string or list of commands")
+
+
+def _run_metrics_dict(value: Any, *, field_name: str, commands_run: tuple[str, ...] | list[str]) -> dict[str, Any]:
+    if value is None:
+        return {}
+    if not isinstance(value, Mapping):
+        raise ValueError(f"Evidence Court field `{field_name}` must be a JSON object")
+
+    metrics: dict[str, Any] = {}
+    for metric_field in RUN_METRIC_INT_FIELDS:
+        if metric_field in value and value.get(metric_field) is not None:
+            metrics[metric_field] = _nonnegative_int(value.get(metric_field), field_name=f"{field_name}.{metric_field}")
+    for metric_field in RUN_METRIC_NUMBER_FIELDS:
+        if metric_field in value and value.get(metric_field) is not None:
+            metrics[metric_field] = _nonnegative_number(
+                value.get(metric_field),
+                field_name=f"{field_name}.{metric_field}",
+            )
+    if "missing_telemetry" in value and value.get("missing_telemetry") is not None:
+        metrics["missing_telemetry"] = list(
+            _string_tuple(value.get("missing_telemetry"), field_name=f"{field_name}.missing_telemetry")
+        )
+    if metrics and "command_count" not in metrics:
+        metrics["command_count"] = len(tuple(commands_run))
+    return metrics
+
+
+def _jsonl_event_run_metrics(record: Mapping[str, Any]) -> dict[str, Any]:
+    value = record.get("run_metrics")
+    if value is None:
+        value = record.get("metrics")
+    if value is not None:
+        if not isinstance(value, Mapping):
+            raise ValueError("Evidence Court field `jsonl_event_run_metrics` must be a JSON object")
+        metrics = dict(value)
+    else:
+        metrics = {}
+    for field_name in RUN_METRIC_FIELDS:
+        if field_name in record:
+            metrics[field_name] = record.get(field_name)
+    return metrics
+
+
+def _run_metrics_summary(metrics: Mapping[str, Any]) -> str:
+    items: list[str] = []
+    for field_name in (
+        "duration_ms",
+        "input_tokens",
+        "output_tokens",
+        "total_tokens",
+        "estimated_cost_usd",
+        "actual_cost_usd",
+        "command_count",
+    ):
+        if field_name in metrics:
+            items.append(f"{field_name}={metrics[field_name]}")
+    missing = metrics.get("missing_telemetry")
+    if isinstance(missing, (list, tuple)) and missing:
+        items.append("missing_telemetry=" + ",".join(str(item) for item in missing))
+    return ", ".join(items) if items else "present"
+
+
+def _nonnegative_int(value: Any, *, field_name: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise ValueError(f"Evidence Court field `{field_name}` must be a non-negative integer")
+    return value
+
+
+def _nonnegative_number(value: Any, *, field_name: str) -> int | float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0:
+        raise ValueError(f"Evidence Court field `{field_name}` must be a non-negative number")
+    return value
 
 
 def _transcript_sections(text: str) -> dict[str, str]:
