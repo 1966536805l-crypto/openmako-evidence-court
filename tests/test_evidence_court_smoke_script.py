@@ -14,6 +14,20 @@ from urllib.parse import urlparse
 
 
 class EvidenceCourtSmokeScriptTest(unittest.TestCase):
+    def test_package_version_matches_public_release_assets(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        init_text = (root / "quantagent" / "__init__.py").read_text(encoding="utf-8")
+        pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
+        proof = (root / "docs" / "PUBLIC_PROOF.md").read_text(encoding="utf-8")
+        release_notes = (root / "docs" / "RELEASE_NOTES_V0_1_2.md").read_text(encoding="utf-8")
+        social_card = (root / "docs" / "social-card.svg").read_text(encoding="utf-8")
+
+        self.assertIn('version = "0.1.2"', pyproject)
+        self.assertIn('__version__ = "0.1.2"', init_text)
+        self.assertIn("OpenMako Evidence Court v0.1.2", proof)
+        self.assertIn("OpenMako Evidence Court v0.1.2", release_notes)
+        self.assertIn("v0.1.2 supports JSON run records", social_card)
+
     def _run_release_set_with_staged_paths(
         self,
         root: Path,

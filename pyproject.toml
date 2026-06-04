@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "open-mako"
-version = "0.1.0"
+version = "0.1.2"
 description = "Evidence Court for auditing coding-agent success claims against supplied run records."
 requires-python = ">=3.9"
 dependencies = []
