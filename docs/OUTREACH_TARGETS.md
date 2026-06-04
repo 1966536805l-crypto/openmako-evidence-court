@@ -177,10 +177,13 @@ Body:
 I built a narrow claim-vs-evidence gate for supplied coding-agent run records:
 https://github.com/1966536805l-crypto/openmako-evidence-court
 
-Current main evidence:
-- Commit: 6d9bafe649ec9277343b1cd80a0c0a1958230f50
-- CI: https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26952138422
+Current proof status:
+- Proof status: https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/CURRENT_PROOF_STATUS.md
 - Field checklist: https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/RUN_RECORD_FIELD_CHECKLIST.md
+
+Open the proof-status page before trusting remote CI evidence. It lists the
+current proof-anchor commit, public Evidence Court Smoke run, artifact digest,
+and stale-proof boundary.
 
 Open SWE is close to the workflow I want feedback from: internal coding agents,
 sandboxed execution, PR creation, and human-visible artifacts.

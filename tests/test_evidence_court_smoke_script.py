@@ -2176,8 +2176,9 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertEqual([name for name, _ in messages], ["SWE-agent / mini-SWE-agent", "Aider"])
         self.assertIn("### 3. LangChain Open SWE", packet)
         self.assertIn("Boundary check: minimum supplied-record fields", packet)
-        self.assertIn("6d9bafe649ec9277343b1cd80a0c0a1958230f50", packet)
-        self.assertIn("actions/runs/26952138422", packet)
+        self.assertIn("Current proof status", packet)
+        self.assertIn("docs/CURRENT_PROOF_STATUS.md", packet)
+        self.assertIn("Open the proof-status page before trusting remote CI evidence", packet)
         self.assertIn("docs/RUN_RECORD_FIELD_CHECKLIST.md", packet)
         self.assertIn("does not claim adoption, endorsement, integration, or a\nshare", packet)
 
@@ -2198,6 +2199,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             "native codex",
             "native cursor",
             "native ci",
+            "6d9bafe649ec9277343b1cd80a0c0a1958230f50",
+            "actions/runs/26952138422",
         )
         for name, message in messages:
             with self.subTest(name=name):
