@@ -33,8 +33,11 @@ shows a protected test edit and no reported required pytest command.
 - Repository: `https://github.com/1966536805l-crypto/openmako-evidence-court`
 - Public proof card: `https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/PUBLIC_PROOF.md`
 - Demo visual: `https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/demo-terminal.svg`
-- Current proof-anchor smoke run: `https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26952138422`
-- Current proof-anchor artifact digest: `sha256:42f38ea0acc3033479d0588dd33cf4c2f3eceb95b78d2f52a3a81278bae17db1`
+- Current proof status: `https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/CURRENT_PROOF_STATUS.md`
+
+Open `docs/CURRENT_PROOF_STATUS.md` before trusting or repeating remote CI
+evidence. It lists the current proof-anchor commit, public Evidence Court Smoke
+run, artifact digest, and stale-proof boundary.
 
 ## Quick Local Check
 

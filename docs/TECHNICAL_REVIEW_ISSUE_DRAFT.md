@@ -36,11 +36,11 @@ Expected local behavior:
 - the redacted bad run flags protected edits and a missing required API guard pytest
 - `bash scripts/evidence_court_smoke.sh` passes locally
 
-Current proof-anchor evidence:
+Current proof status:
 
-- Evidence Court Smoke run: https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26952138422
-- Run status: `completed successfully` for commit `6d9bafe`
-- Artifact digest: `sha256:42f38ea0acc3033479d0588dd33cf4c2f3eceb95b78d2f52a3a81278bae17db1`
+- Open before trusting remote CI evidence: https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/CURRENT_PROOF_STATUS.md
+- The proof-status page lists the current proof-anchor commit, public Evidence Court Smoke run, artifact digest, and stale-proof boundary.
+- Do not copy a run URL or digest from this draft without re-opening that page.
 
 ### Review Questions
 
