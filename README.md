@@ -35,6 +35,21 @@ To block CI on this verdict, run the same command with `--fail-on fail`; the bad
 Evidence Court does not inspect the real repository state or independently rerun tests. It checks whether the run record you supply contains enough evidence to support the final claim.
 Current v0.1 reads JSON run records, OpenMako AgentRunResult JSON producer artifacts, explicit marked transcript v0 files, and explicit Evidence Court JSONL event streams. It does not parse raw chat transcripts or native Claude/Codex/Cursor/Devin/CI logs.
 
+## Why Star Or Share
+
+- You build or evaluate coding agents and want a small CI gate for unsupported
+  "done/tests passed" claims.
+- You want the failure mode to be reviewable in 30 seconds: claim, supplied
+  commands, supplied output, protected edits, reason codes, and verdict.
+- You want bounded proof before broader agent-runtime claims: current proof
+  status, artifact digest, and stale-proof warnings are linked below.
+
+Shareable one-liner:
+
+```text
+Evidence Court checks whether a coding agent's supplied run record supports its "tests passed" claim.
+```
+
 ## What Normal Tests Miss
 
 Test output alone does not answer whether an agent stayed honest about the run.

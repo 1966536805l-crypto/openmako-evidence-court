@@ -24,6 +24,9 @@ Verified scope:
 Boundary: this does not ingest native Claude/Codex/Cursor/Devin/CI logs, and it
 does not prove tests ran outside the supplied record.
 
+Shareable one-liner:
+Evidence Court checks whether a coding agent's supplied run record supports its "tests passed" claim.
+
 Repo: https://github.com/1966536805l-crypto/openmako-evidence-court
 Release: https://github.com/1966536805l-crypto/openmako-evidence-court/releases/tag/v0.1.2
 Current proof status: https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/CURRENT_PROOF_STATUS.md
