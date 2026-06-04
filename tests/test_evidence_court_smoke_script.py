@@ -2024,6 +2024,9 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("does not prove tests ran outside the supplied record", launch_post)
         self.assertIn("VERDICT: FAIL", social_card)
         self.assertIn("required test not run", social_card)
+        self.assertIn("EXACT CI REASON CODE", social_card)
+        self.assertIn("test.required_not_run", social_card)
+        self.assertIn("Audits supplied records only", social_card)
         self.assertIn("Boundary: not native Claude/Codex/Cursor/Devin/CI log ingestion", social_card)
         forbidden = (
             "native Claude",
@@ -2677,6 +2680,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("Verdict", visual)
         self.assertIn("FAIL", visual)
         self.assertIn("supplied run records only", visual)
+        self.assertIn("reason code: test.required_not_run", visual)
+        self.assertIn("--fail-on-reason-code test.required_not_run exits 1", visual)
         self.assertIn("not native Claude/Codex/Cursor/Devin/CI log ingestion", visual)
         self.assertIn("Does not prove tests ran outside the supplied record", visual)
 

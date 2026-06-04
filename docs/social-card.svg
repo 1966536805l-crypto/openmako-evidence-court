@@ -1,24 +1,31 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
   <title id="title">OpenMako Evidence Court social card</title>
-  <desc id="desc">A coding agent claims success, the supplied evidence is checked, and Evidence Court returns FAIL.</desc>
+  <desc id="desc">A share card showing a coding agent claim, supplied-record contradiction, exact CI reason code, and FAIL verdict.</desc>
   <rect width="1200" height="630" fill="#0f172a"/>
-  <rect x="48" y="48" width="1104" height="534" rx="18" fill="#f8fafc"/>
-  <text x="84" y="116" fill="#0f172a" font-family="Inter, Arial, sans-serif" font-size="44" font-weight="700">OpenMako Evidence Court</text>
-  <text x="84" y="158" fill="#475569" font-family="Inter, Arial, sans-serif" font-size="24">Audit an agent success claim against the supplied run record.</text>
+  <rect x="48" y="42" width="1104" height="546" rx="12" fill="#f8fafc"/>
 
-  <rect x="84" y="202" width="1032" height="94" rx="12" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
-  <text x="116" y="240" fill="#075985" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="700">CLAIM</text>
-  <text x="116" y="274" fill="#0f172a" font-family="Inter, Arial, sans-serif" font-size="28">"Done. The calculator bug is fixed and tests pass."</text>
+  <text x="84" y="106" fill="#0f172a" font-family="Inter, Arial, sans-serif" font-size="42" font-weight="800">OpenMako Evidence Court</text>
+  <text x="84" y="148" fill="#475569" font-family="Inter, Arial, sans-serif" font-size="24">A tiny CI gate for unsupported coding-agent "tests passed" claims.</text>
 
-  <rect x="84" y="326" width="1032" height="118" rx="12" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
-  <text x="116" y="364" fill="#9a3412" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="700">SUPPLIED EVIDENCE</text>
-  <text x="116" y="398" fill="#0f172a" font-family="Inter, Arial, sans-serif" font-size="26">edited protected path: tests/test_calculator.py</text>
-  <text x="116" y="430" fill="#0f172a" font-family="Inter, Arial, sans-serif" font-size="26">required test not run: python -m pytest tests/test_calculator.py -q</text>
+  <rect x="84" y="188" width="492" height="120" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+  <text x="116" y="226" fill="#075985" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="800">AGENT CLAIM</text>
+  <text x="116" y="264" fill="#0f172a" font-family="Inter, Arial, sans-serif" font-size="27">"Tests pass."</text>
 
-  <rect x="84" y="474" width="500" height="72" rx="12" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
-  <text x="116" y="520" fill="#991b1b" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="800">VERDICT: FAIL</text>
+  <rect x="624" y="188" width="492" height="120" rx="8" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
+  <text x="656" y="226" fill="#9a3412" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="800">SUPPLIED RECORD</text>
+  <text x="656" y="261" fill="#0f172a" font-family="Inter, Arial, sans-serif" font-size="24">required test not run</text>
+  <text x="656" y="292" fill="#334155" font-family="Inter, Arial, sans-serif" font-size="19">protected test file edited</text>
 
-  <text x="626" y="504" fill="#334155" font-family="Inter, Arial, sans-serif" font-size="22">v0.1.2 supports JSON run records, marked transcript v0,</text>
-  <text x="626" y="536" fill="#334155" font-family="Inter, Arial, sans-serif" font-size="22">and explicit Evidence Court JSONL events.</text>
-  <text x="84" y="586" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="18">Boundary: not native Claude/Codex/Cursor/Devin/CI log ingestion; does not prove tests ran outside the supplied record.</text>
+  <rect x="84" y="342" width="1032" height="86" rx="8" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+  <text x="116" y="376" fill="#92400e" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="800">EXACT CI REASON CODE</text>
+  <text x="116" y="411" fill="#0f172a" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="28">test.required_not_run</text>
+
+  <rect x="84" y="460" width="392" height="70" rx="8" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+  <text x="116" y="505" fill="#991b1b" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="900">VERDICT: FAIL</text>
+
+  <text x="524" y="488" fill="#334155" font-family="Inter, Arial, sans-serif" font-size="22">Audits supplied records only.</text>
+  <text x="524" y="520" fill="#334155" font-family="Inter, Arial, sans-serif" font-size="22">Not native Claude/Codex/Cursor/CI log ingestion.</text>
+  <text x="524" y="548" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="17">v0.1.2 supports JSON run records, marked transcript v0, and JSONL events.</text>
+
+  <text x="84" y="568" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="18">Boundary: not native Claude/Codex/Cursor/Devin/CI log ingestion; does not prove tests ran outside the supplied record.</text>
 </svg>

@@ -1,26 +1,37 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680" role="img" aria-labelledby="title desc">
   <title id="title">OpenMako Evidence Court bad-run demo</title>
-  <desc id="desc">A terminal-style visual showing Evidence Court reporting FAIL for a supplied bad agent run record.</desc>
+  <desc id="desc">A shareable terminal-style visual showing Evidence Court rejecting a supplied coding-agent run record with reason code test.required_not_run.</desc>
   <rect width="1200" height="680" fill="#f8fafc"/>
-  <rect x="56" y="48" width="1088" height="584" rx="8" fill="#0f172a"/>
-  <rect x="56" y="48" width="1088" height="56" rx="8" fill="#111827"/>
-  <circle cx="88" cy="76" r="9" fill="#ef4444"/>
-  <circle cx="118" cy="76" r="9" fill="#f59e0b"/>
-  <circle cx="148" cy="76" r="9" fill="#22c55e"/>
-  <text x="184" y="83" fill="#cbd5e1" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18">OpenMako Evidence Court v0.1</text>
-  <text x="88" y="146" fill="#94a3b8" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18">$ mako evidence-court --demo bad-run</text>
-  <text x="88" y="202" fill="#e2e8f0" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18">Claim</text>
-  <text x="220" y="202" fill="#cbd5e1" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18">Done. Calculator bug fixed; tests pass.</text>
-  <text x="88" y="266" fill="#e2e8f0" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18">Evidence</text>
-  <text x="220" y="266" fill="#fca5a5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18">edited protected path:</text>
-  <text x="220" y="304" fill="#fca5a5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18">tests/test_calculator.py</text>
-  <text x="220" y="350" fill="#fca5a5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18">required test not run:</text>
-  <text x="220" y="388" fill="#fca5a5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18">python -m pytest tests/test_calculator.py -q</text>
-  <text x="88" y="462" fill="#e2e8f0" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18">Verdict</text>
-  <rect x="220" y="432" width="112" height="44" rx="6" fill="#dc2626"/>
-  <text x="244" y="462" fill="#ffffff" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="22" font-weight="700">FAIL</text>
-  <rect x="88" y="512" width="992" height="1" fill="#334155"/>
-  <text x="88" y="550" fill="#bae6fd" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18">supplied run records only</text>
-  <text x="88" y="586" fill="#94a3b8" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16">Boundary: not native Claude/Codex/Cursor/Devin/CI log ingestion.</text>
-  <text x="88" y="616" fill="#94a3b8" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16">Does not prove tests ran outside the supplied record.</text>
+
+  <rect x="48" y="40" width="1104" height="600" rx="10" fill="#0f172a"/>
+  <rect x="48" y="40" width="1104" height="58" rx="10" fill="#111827"/>
+  <circle cx="82" cy="69" r="9" fill="#ef4444"/>
+  <circle cx="112" cy="69" r="9" fill="#f59e0b"/>
+  <circle cx="142" cy="69" r="9" fill="#22c55e"/>
+  <text x="178" y="77" fill="#cbd5e1" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18">OpenMako Evidence Court</text>
+  <text x="880" y="77" fill="#94a3b8" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16">supplied run records only</text>
+
+  <text x="82" y="136" fill="#94a3b8" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18">$ mako evidence-court --demo bad-run</text>
+
+  <rect x="82" y="166" width="1036" height="92" rx="8" fill="#172554" stroke="#38bdf8" stroke-width="1.5"/>
+  <text x="110" y="204" fill="#7dd3fc" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18" font-weight="700">Claim</text>
+  <text x="244" y="204" fill="#e0f2fe" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="21">Done. Calculator bug fixed; tests pass.</text>
+  <text x="244" y="236" fill="#bae6fd" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16">This is only a final claim until the supplied record supports it.</text>
+
+  <rect x="82" y="286" width="1036" height="160" rx="8" fill="#451a03" stroke="#fb923c" stroke-width="1.5"/>
+  <text x="110" y="326" fill="#fdba74" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18" font-weight="700">Evidence</text>
+  <text x="244" y="326" fill="#fed7aa" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="20">edited protected path: tests/test_calculator.py</text>
+  <text x="244" y="366" fill="#fed7aa" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="20">required test not run: python -m pytest tests/test_calculator.py -q</text>
+  <text x="244" y="406" fill="#fef3c7" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="20">reason code: test.required_not_run</text>
+
+  <rect x="82" y="474" width="292" height="72" rx="8" fill="#7f1d1d" stroke="#f87171" stroke-width="1.5"/>
+  <text x="110" y="520" fill="#fee2e2" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="34" font-weight="800">Verdict: FAIL</text>
+
+  <rect x="404" y="474" width="714" height="72" rx="8" fill="#052e16" stroke="#22c55e" stroke-width="1.5"/>
+  <text x="434" y="503" fill="#86efac" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="17" font-weight="700">CI gate</text>
+  <text x="434" y="530" fill="#dcfce7" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18">--fail-on-reason-code test.required_not_run exits 1</text>
+
+  <rect x="82" y="574" width="1036" height="1" fill="#334155"/>
+  <text x="82" y="606" fill="#94a3b8" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16">Boundary: not native Claude/Codex/Cursor/Devin/CI log ingestion.</text>
+  <text x="82" y="632" fill="#94a3b8" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16">Does not prove tests ran outside the supplied record.</text>
 </svg>
