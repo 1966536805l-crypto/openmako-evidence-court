@@ -243,7 +243,10 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
                 "source: tests/fixtures/evidence_court/openmako_agent_run_result_bad.json",
                 manifest["source_provenance_checks"]["openmako-agent-run-result.json"],
             )
-            self.assertEqual("source: ", manifest["source_provenance_checks"]["jsonl-events.json"])
+            self.assertEqual(
+                "source: evidence-court-smoke-jsonl-events.jsonl",
+                manifest["source_provenance_checks"]["jsonl-events.json"],
+            )
             self.assertEqual(
                 "mako evidence-court --input <run-record.json> --fail-on-reason-code test.required_not_run --json",
                 manifest["ci_policy_recipe"]["required_test_gate"],
@@ -278,7 +281,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             self.assertIn("Open `openmako-agent-run-result.json`", quickstart)
             self.assertIn("explicit OpenMako AgentRunResult input returns", quickstart)
             self.assertIn("Open `jsonl-events.json`", quickstart)
-            self.assertIn("generated JSONL path as `source`", quickstart)
+            self.assertIn("source: evidence-court-smoke-jsonl-events.jsonl", quickstart)
             self.assertIn("explicit Evidence Court JSONL event stream input returns", quickstart)
             self.assertIn("mixed JSON plus transcript plus JSONL inputs fail closed with `exit_code=2`", quickstart)
             self.assertIn("Open `smoke-summary.txt`", quickstart)
@@ -329,7 +332,8 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
                 agent_run_result_json,
             )
             self.assertIn('"verdict": "FAIL"', jsonl_json)
-            self.assertIn("source: ", jsonl_json)
+            self.assertIn("source: evidence-court-smoke-jsonl-events.jsonl", jsonl_json)
+            self.assertNotIn("evidence-court-events.", jsonl_json)
             self.assertIn(
                 "required test not run: python -m pytest tests/test_calculator.py -q",
                 jsonl_json,

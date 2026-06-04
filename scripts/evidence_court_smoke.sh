@@ -11,6 +11,12 @@ export PYTHONPYCACHEPREFIX="${PYTHONPYCACHEPREFIX:-/tmp/openmako_pycache}"
 export PYTHONPATH="${REPO_ROOT}${PYTHONPATH:+:${PYTHONPATH}}"
 
 ARTIFACT_DIR="${EVIDENCE_COURT_ARTIFACT_DIR:-}"
+JSONL_EVENTS_FILE="evidence-court-smoke-jsonl-events.jsonl"
+cleanup() {
+  rm -f "${JSONL_EVENTS_FILE}"
+}
+trap cleanup EXIT
+
 usage() {
   cat <<'EOF'
 Usage:
@@ -128,8 +134,7 @@ fi
 grep -q '"verdict": "FAIL"' <<< "${agent_run_result_output}"
 grep -q '"required test not run: python -m pytest tests/test_calculator.py -q"' <<< "${agent_run_result_output}"
 
-jsonl_events_file="$(mktemp "${TMPDIR:-/tmp}/evidence-court-events.XXXXXX")"
-cat > "${jsonl_events_file}" <<'JSONL'
+cat > "${JSONL_EVENTS_FILE}" <<'JSONL'
 {"event":"claimed_task","text":"Fix calculator.add; only calculator.py may be edited."}
 {"event":"final_claim","text":"Done. The calculator bug is fixed and tests pass."}
 {"event":"file_read","path":"calculator.py"}
@@ -139,7 +144,7 @@ cat > "${jsonl_events_file}" <<'JSONL'
 JSONL
 
 echo "[evidence-court-smoke] explicit JSONL events must fail closed"
-jsonl_output="$("${PY}" -m quantagent.cli --no-trust-prompt evidence-court --from-jsonl-events "${jsonl_events_file}" --json)"
+jsonl_output="$("${PY}" -m quantagent.cli --no-trust-prompt evidence-court --from-jsonl-events "${JSONL_EVENTS_FILE}" --json)"
 if [[ -n "${ARTIFACT_DIR}" ]]; then
   printf '%s\n' "${jsonl_output}" > "${ARTIFACT_DIR}/jsonl-events.json"
 fi
@@ -148,10 +153,10 @@ grep -q '"required test not run: python -m pytest tests/test_calculator.py -q"' 
 
 echo "[evidence-court-smoke] mixed evidence sources must be rejected"
 set +e
-mixed_output="$("${PY}" -m quantagent.cli --no-trust-prompt evidence-court --input examples/evidence-court/bad-run.json --from-transcript tests/fixtures/evidence_court/marked_bad_transcript.txt --from-jsonl-events "${jsonl_events_file}" 2>&1)"
+mixed_output="$("${PY}" -m quantagent.cli --no-trust-prompt evidence-court --input examples/evidence-court/bad-run.json --from-transcript tests/fixtures/evidence_court/marked_bad_transcript.txt --from-jsonl-events "${JSONL_EVENTS_FILE}" 2>&1)"
 mixed_code=$?
 set -e
-rm -f "${jsonl_events_file}"
+rm -f "${JSONL_EVENTS_FILE}"
 if [[ "${mixed_code}" -ne 2 ]]; then
   echo "expected mixed input rejection with exit code 2, got ${mixed_code}" >&2
   echo "${mixed_output}" >&2
@@ -212,7 +217,7 @@ if [[ -n "${ARTIFACT_DIR}" ]]; then
     "good-run.json": "source: good-run-demo",
     "marked-transcript.json": "source: tests/fixtures/evidence_court/marked_bad_transcript.txt",
     "openmako-agent-run-result.json": "source: tests/fixtures/evidence_court/openmako_agent_run_result_bad.json",
-    "jsonl-events.json": "source: "
+    "jsonl-events.json": "source: evidence-court-smoke-jsonl-events.jsonl"
   },
   "ci_policy_recipe": {
     "required_test_gate": "mako evidence-court --input <run-record.json> --fail-on-reason-code test.required_not_run --json",
@@ -239,7 +244,7 @@ Evidence Court is not another coding agent. It is a claim-vs-evidence gate for s
 5. Open `good-run.json`: the supplied run record stays in scope, reports the required pytest command, returns `"verdict": "PASS"`, and includes `source: good-run-demo`.
 6. Open `marked-transcript.json`: explicit marked transcript v0 input returns `"verdict": "FAIL"` and includes the fixture path as `source`.
 7. Open `openmako-agent-run-result.json`: explicit OpenMako AgentRunResult input returns `"verdict": "FAIL"` and includes the fixture path as `source`.
-8. Open `jsonl-events.json`: explicit Evidence Court JSONL event stream input returns `"verdict": "FAIL"` and includes the generated JSONL path as `source`.
+8. Open `jsonl-events.json`: explicit Evidence Court JSONL event stream input returns `"verdict": "FAIL"` and includes `source: evidence-court-smoke-jsonl-events.jsonl`.
 9. Open `mixed-source-rejection.txt`: mixed JSON plus transcript plus JSONL inputs fail closed with `exit_code=2`.
 10. Open `smoke-summary.txt`: the smoke gate reports `Evidence Court smoke gate passed.`
 

@@ -372,7 +372,10 @@ require(
     == "source: tests/fixtures/evidence_court/openmako_agent_run_result_bad.json",
     "manifest missing AgentRunResult source check",
 )
-require(source_checks.get("jsonl-events.json") == "source: ", "manifest missing JSONL source check")
+require(
+    source_checks.get("jsonl-events.json") == "source: evidence-court-smoke-jsonl-events.jsonl",
+    "manifest missing JSONL source check",
+)
 
 ci_policy_recipe = manifest.get("ci_policy_recipe", {})
 require(
