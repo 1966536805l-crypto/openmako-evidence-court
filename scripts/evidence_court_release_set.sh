@@ -67,6 +67,7 @@ Usage:
   bash scripts/evidence_court_release_set.sh --audit-staged-claim-copy
   bash scripts/evidence_court_release_set.sh --check-branch-diff [BASE_REF]
   bash scripts/evidence_court_release_set.sh --verify-artifact-dir DIR
+  bash scripts/evidence_court_release_set.sh --render-current-main-review-packet [RUN_URL]
   bash scripts/evidence_court_release_set.sh --list
 
 --check verifies that release files exist and that any staged files are limited
@@ -81,6 +82,11 @@ are limited to the Evidence Court v0.1 release set. BASE_REF defaults to main.
 --verify-artifact-dir verifies a downloaded or local evidence-court-smoke
 artifact directory, including review-path files, expected verdict/source text,
 and SHA-256 hashes recorded in artifact-manifest.json.
+--render-current-main-review-packet prints a bounded outreach packet with the
+current remote main SHA and a successful public Evidence Court Smoke run URL.
+Pass RUN_URL or EVIDENCE_COURT_RUN_URL if public GitHub HTML discovery is not
+available. Automatic discovery checks the most recent public run pages only.
+Do not send the packet unless the run URL belongs to the same main SHA.
 EOF
 }
 
@@ -280,6 +286,82 @@ check_branch_diff() {
   return "${invalid}"
 }
 
+discover_successful_run_urls_for_sha() {
+  local main_sha="$1"
+  local repo_slug="${EVIDENCE_COURT_REPO_SLUG:-1966536805l-crypto/openmako-evidence-court}"
+  local workflow_url="https://github.com/${repo_slug}/actions/workflows/evidence-court.yml?query=branch%3Amain"
+  local scan_limit="${EVIDENCE_COURT_RUN_SCAN_LIMIT:-5}"
+  local workflow_html
+  local run_id
+  local run_html
+
+  command -v curl >/dev/null 2>&1 || return 1
+  workflow_html="$(curl --max-time 10 -fsSL "${workflow_url}" 2>/dev/null || true)"
+  [[ -n "${workflow_html}" ]] || return 1
+
+  printf '%s' "${workflow_html}" \
+    | grep -Eo '/actions/runs/[0-9]+' \
+    | sed 's#.*/##' \
+    | awk '!seen[$0]++' \
+    | head -n "${scan_limit}" \
+    | while IFS= read -r run_id; do
+        [[ -n "${run_id}" ]] || continue
+        run_html="$(curl --max-time 10 -fsSL "https://github.com/${repo_slug}/actions/runs/${run_id}" 2>/dev/null || true)"
+        [[ -n "${run_html}" ]] || continue
+        if printf '%s' "${run_html}" | grep -Fq "${main_sha}" \
+          && printf '%s' "${run_html}" | grep -Fqi 'completed successfully'; then
+          printf 'https://github.com/%s/actions/runs/%s\n' "${repo_slug}" "${run_id}"
+        fi
+      done
+}
+
+render_current_main_review_packet() {
+  local supplied_run_url="${1:-${EVIDENCE_COURT_RUN_URL:-}}"
+  local repo_slug="${EVIDENCE_COURT_REPO_SLUG:-1966536805l-crypto/openmako-evidence-court}"
+  local remote="${EVIDENCE_COURT_REMOTE:-origin}"
+  local main_ref="${EVIDENCE_COURT_MAIN_REF:-refs/heads/main}"
+  local main_sha="${EVIDENCE_COURT_MAIN_SHA:-}"
+  local run_url="${supplied_run_url}"
+
+  if [[ -z "${main_sha}" ]]; then
+    main_sha="$(git ls-remote "${remote}" "${main_ref}" | awk '{print $1}')"
+  fi
+  if [[ ! "${main_sha}" =~ ^[0-9a-f]{40}$ ]]; then
+    echo "could not resolve a 40-character remote main SHA from ${remote} ${main_ref}" >&2
+    return 2
+  fi
+
+  if [[ -z "${run_url}" ]]; then
+    run_url="$(discover_successful_run_urls_for_sha "${main_sha}" | head -n 1 || true)"
+  fi
+  if [[ -z "${run_url}" ]]; then
+    echo "could not resolve a successful public Evidence Court Smoke run for ${main_sha}" >&2
+    echo "Pass EVIDENCE_COURT_RUN_URL=https://github.com/${repo_slug}/actions/runs/<run-id> after verifying that run page contains ${main_sha} and completed successfully." >&2
+    return 2
+  fi
+  if [[ ! "${run_url}" =~ ^https://github\.com/[^[:space:]]+/actions/runs/[0-9]+$ ]]; then
+    echo "run URL does not look like a GitHub Actions run URL: ${run_url}" >&2
+    return 2
+  fi
+
+  cat <<EOF
+I added current-main evidence for the supplied-record boundary:
+Repo: https://github.com/${repo_slug}
+Main commit: ${main_sha}
+CI: ${run_url}
+Artifact digest: not included here; verify public Actions artifact metadata before claiming artifact contents.
+
+The current run-record schema preserves optional metadata like agent_runtime,
+tool_calls, approval_events, sandbox_boundary, diff_summary, artifact_urls, and
+redaction_note, but those fields are reviewer context only. They do not prove
+sandboxing, approval, native log ingestion, or real test execution.
+
+Could you give one technical boundary check: is this supplied-record handoff
+shape useful for coding-agent runs, or is a required field missing?
+Not asking for endorsement, adoption, or a share.
+EOF
+}
+
 verify_artifact_dir() {
   local artifact_dir="${1:-}"
   if [[ -z "${artifact_dir}" ]]; then
@@ -474,6 +556,9 @@ case "${mode}" in
     ;;
   --verify-artifact-dir)
     verify_artifact_dir "${2:-}"
+    ;;
+  --render-current-main-review-packet)
+    render_current_main_review_packet "${2:-}"
     ;;
   -h|--help)
     usage
