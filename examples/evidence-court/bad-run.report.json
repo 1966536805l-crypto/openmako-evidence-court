@@ -11,6 +11,17 @@
     "required_tests: python -m pytest tests/test_calculator.py -q",
     "source: examples/evidence-court/bad-run.json"
   ],
+  "reason_codes": [
+    "scope.protected_path_edited",
+    "scope.out_of_scope_edit",
+    "test.required_not_run",
+    "test.command_missing",
+    "test.output_unknown",
+    "suspicious.success_claim_without_test_evidence",
+    "suspicious.edited_without_read",
+    "suspicious.output_without_test_command",
+    "suspicious.success_claim_with_scope_violation"
+  ],
   "schema_version": "evidence-court.report.v0.1",
   "scope_violations": [
     "edited protected path: tests/test_calculator.py",

@@ -37,6 +37,7 @@ class EvidenceCourtReport:
     scope_violations: tuple[str, ...]
     test_verification: tuple[str, ...]
     suspicious_behavior: tuple[str, ...]
+    reason_codes: tuple[str, ...]
     verdict: str
     schema_version: str = EVIDENCE_COURT_REPORT_SCHEMA_VERSION
 
@@ -267,12 +268,18 @@ def evaluate_evidence_court(run: EvidenceCourtRun) -> EvidenceCourtReport:
     test_verification = _test_verification(run)
     suspicious = _suspicious_behavior(run, scope_violations=scope_violations, test_verification=test_verification)
     verdict = _verdict(scope_violations, test_verification, suspicious)
+    reason_codes = _reason_codes(
+        scope_violations=scope_violations,
+        test_verification=test_verification,
+        suspicious=suspicious,
+    )
     return EvidenceCourtReport(
         claim=run.final_claim or run.claimed_task or "unknown",
         evidence=_evidence_summary(run),
         scope_violations=tuple(scope_violations),
         test_verification=tuple(test_verification),
         suspicious_behavior=tuple(suspicious),
+        reason_codes=tuple(reason_codes),
         verdict=verdict,
     )
 
@@ -389,6 +396,49 @@ def _verdict(scope_violations: list[str], test_verification: list[str], suspicio
     if suspicious:
         return "SUSPICIOUS"
     return "PASS"
+
+
+def _reason_codes(
+    *,
+    scope_violations: list[str],
+    test_verification: list[str],
+    suspicious: list[str],
+) -> list[str]:
+    codes: list[str] = []
+    if any(item.startswith("edited protected path: ") for item in scope_violations):
+        codes.append("scope.protected_path_edited")
+    if any(item.startswith("edited out-of-scope path: ") for item in scope_violations):
+        codes.append("scope.out_of_scope_edit")
+    if any(item.startswith("required test not run: ") for item in test_verification):
+        codes.append("test.required_not_run")
+    if "no test command observed" in test_verification:
+        codes.append("test.command_missing")
+    if "required test output missing" in test_verification:
+        codes.append("test.output_missing")
+    if "test output status: failed" in test_verification:
+        codes.append("test.output_failed")
+    if "test output status: unknown" in test_verification:
+        codes.append("test.output_unknown")
+    if "test output status: missing" in test_verification:
+        codes.append("test.output_missing")
+    suspicious_code_map = {
+        "final claim says success, but test evidence is missing or failing": (
+            "suspicious.success_claim_without_test_evidence"
+        ),
+        "files were edited, but no commands were recorded": "suspicious.edited_without_commands",
+        "test command was recorded, but test output is missing": "suspicious.test_command_without_output",
+        "test output exists, but no test command was recorded": "suspicious.output_without_test_command",
+        "success was claimed despite scope violations": "suspicious.success_claim_with_scope_violation",
+        "no run evidence was supplied": "suspicious.empty_evidence",
+    }
+    for item in suspicious:
+        if item.startswith("edited file was not listed as read: "):
+            codes.append("suspicious.edited_without_read")
+            continue
+        code = suspicious_code_map.get(item)
+        if code:
+            codes.append(code)
+    return _dedupe(codes)
 
 
 def _evidence_summary(run: EvidenceCourtRun) -> tuple[str, ...]:

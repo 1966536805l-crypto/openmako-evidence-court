@@ -73,6 +73,7 @@ Evidence Court reports from the supplied record:
 - Scope violations
 - Test evidence from the supplied record
 - Suspicious behavior
+- Machine-readable reason codes
 - Verdict: PASS / SUSPICIOUS / FAIL
 
 JSON reports include `schema_version: "evidence-court.report.v0.1"` so CI,
@@ -80,6 +81,9 @@ wrappers, and review tooling can check the report contract before reading
 fields. `test_verification` includes both `test output status` and a
 `test output status reason` line so reviewers can see the matched evidence
 instead of trusting a black-box status word.
+`reason_codes` gives CI wrappers stable categories such as
+`test.required_not_run`, `scope.protected_path_edited`, and
+`suspicious.success_claim_without_test_evidence` without parsing prose strings.
 
 Machine-readable bad-run excerpt from `mako evidence-court --demo bad-run --json`
 (excerpt, not the full report):

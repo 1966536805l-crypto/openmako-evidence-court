@@ -44,6 +44,20 @@ class EvidenceCourtTest(unittest.TestCase):
         )
         self.assertIn("edited file was not listed as read: tests/test_calculator.py", report.suspicious_behavior)
         self.assertIn("test output exists, but no test command was recorded", report.suspicious_behavior)
+        self.assertEqual(
+            report.reason_codes,
+            (
+                "scope.protected_path_edited",
+                "scope.out_of_scope_edit",
+                "test.required_not_run",
+                "test.command_missing",
+                "test.output_unknown",
+                "suspicious.success_claim_without_test_evidence",
+                "suspicious.edited_without_read",
+                "suspicious.output_without_test_command",
+                "suspicious.success_claim_with_scope_violation",
+            ),
+        )
 
     def test_pass_run_requires_scope_and_test_evidence(self) -> None:
         run = EvidenceCourtRun(
@@ -65,6 +79,7 @@ class EvidenceCourtTest(unittest.TestCase):
         self.assertIn("test output status: passed", report.test_verification)
         self.assertIn("test output status reason: matched pass pattern: nonzero passed count", report.test_verification)
         self.assertEqual(report.suspicious_behavior, ())
+        self.assertEqual(report.reason_codes, ())
 
     def test_success_claim_without_tests_is_suspicious(self) -> None:
         run = EvidenceCourtRun(
@@ -362,6 +377,7 @@ class EvidenceCourtTest(unittest.TestCase):
                 "scope_violations",
                 "test_verification",
                 "suspicious_behavior",
+                "reason_codes",
                 "verdict",
             },
         )
