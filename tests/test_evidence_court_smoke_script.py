@@ -578,9 +578,27 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("claim-vs-evidence layer", text)
         self.assertIn("approval/sandbox boundary fields", text)
         self.assertIn("--fail-on-reason-code test.required_not_run", text)
+        self.assertIn("## Run-Record Field Checklist", text)
+        for field in (
+            "`final_claim`",
+            "`commands_run`",
+            "`required_tests`",
+            "`allowed_edit_paths`",
+            "`protected_paths`",
+            "`approval_events`",
+            "`sandbox_boundary`",
+            "`artifact_urls`",
+        ):
+            with self.subTest(field=field):
+                self.assertIn(field, text)
+        self.assertIn("Extra checklist fields are supplied metadata", text)
+        self.assertIn("## Trend-To-Mechanism Map", text)
+        self.assertIn("Do not parse native Hermes/OpenClaw logs yet", text)
+        self.assertIn("Do not claim sandbox proof from supplied text", text)
+        self.assertIn("Do not optimize for stars before technical boundary review", text)
         self.assertIn("does not natively ingest Hermes, OpenClaw, opencode", text)
         self.assertIn("does not replace `docs/OUTREACH_TARGETS.md`", text)
-        self.assertIn("Add a `docs/RUN_RECORD_FIELD_CHECKLIST.md` only after", text)
+        self.assertIn("Keep the checklist in this radar until", text)
         self.assertNotIn("endorsed Evidence Court", text)
         self.assertNotIn("native Hermes ingestion", text)
         self.assertNotIn("10k", text)

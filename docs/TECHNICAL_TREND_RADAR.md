@@ -37,6 +37,59 @@ records from agent sessions and says whether the record supports the final
 5. Public review before scaling outreach: ask Hermes/OpenClaw/opencode style
    projects for boundary criticism only after PR-head CI or a first-batch reply.
 
+## Run-Record Field Checklist
+
+This is the current checklist for adapter authors and reviewers. It translates
+the trend signals above into supplied-record fields without claiming native
+ingestion of any external agent log.
+
+Minimum useful fields for a supportable "done/tests passed" claim:
+
+- `final_claim`: the exact final success claim being audited.
+- `claimed_task` or `claim`: the requested task boundary.
+- `files_read`: files the agent says it inspected before editing.
+- `files_edited`: files the agent says it changed.
+- `commands_run`: exact commands the agent says it ran, preferably with exit
+  status and output attached to each command object.
+- `test_output`: supplied test output if the run reports test success or
+  failure.
+- `required_tests` or `required_commands`: commands the reviewer expects before
+  the claim is supportable.
+- `allowed_edit_paths` or `allowed_files`: the intended edit boundary.
+- `protected_paths`: files or directories whose edits should be treated as
+  suspicious without explicit scope.
+- `source`: provenance label for the supplied record or generated artifact.
+
+Trend-pressure fields to include as explicit metadata when available:
+
+- `agent_runtime`: human-readable runtime label such as terminal agent, local
+  gateway, web IDE, or benchmark harness.
+- `tool_calls`: summarized tool calls or shell steps, if separate from
+  `commands_run`.
+- `approval_events`: approvals or denials around risky tool calls or protected
+  writes.
+- `sandbox_boundary`: sandbox mode, network policy, or filesystem boundary
+  reported by the producing agent.
+- `diff_summary`: compact changed-file and protected-path summary.
+- `artifact_urls`: public PR, CI, or artifact URLs when the record is being used
+  for remote review.
+- `redaction_note`: what was removed before sharing the record.
+
+Evidence Court v0.1 only evaluates the fields its current loader understands.
+Extra checklist fields are supplied metadata for reviewers and future adapters;
+they do not prove sandboxing, approvals, native log ingestion, real test
+execution, or external review.
+
+## Trend-To-Mechanism Map
+
+| Trend | Small mechanism to build now | What to skip |
+| --- | --- | --- |
+| Local gateway and subagent workflows | Preserve `source`, `agent_runtime`, and explicit record provenance. | Do not parse native Hermes/OpenClaw logs yet. |
+| Human approval and sandbox themes | Ask producers to include `approval_events` and `sandbox_boundary` metadata. | Do not claim sandbox proof from supplied text. |
+| Terminal/TUI coding agents | Keep exact `commands_run`, `required_tests`, and reason-code CI examples visible. | Do not add broad terminal-agent adapters before reviewer feedback. |
+| SWE-Bench and eval workflows | Require task boundary, patch scope, commands, and supplied output in one record. | Do not claim benchmark performance from a single smoke fixture. |
+| Public launch and outreach pressure | Use public PR-head CI and artifact URLs before asking for broader attention. | Do not optimize for stars before technical boundary review. |
+
 ## Boundaries
 
 - No project listed here has endorsed, reviewed, adopted, integrated, or shared
@@ -50,7 +103,6 @@ records from agent sessions and says whether the record supports the final
 
 ## Smallest Next Mechanism
 
-Add a `docs/RUN_RECORD_FIELD_CHECKLIST.md` only after the current reason-code
-branch has a public PR-head CI artifact or an external reviewer asks for the
-schema in checklist form. Until then, the safer improvement is to keep the schema
-handoff and reason-code CI recipe small and reviewable.
+Keep the checklist in this radar until a public PR-head CI artifact exists or an
+external reviewer asks for a standalone checklist. If that happens, split this
+section into `docs/RUN_RECORD_FIELD_CHECKLIST.md` and keep the same boundaries.
