@@ -40,6 +40,7 @@ Open these first:
 6. `openmako-agent-run-result.json`: explicit OpenMako AgentRunResult producer-artifact input.
 7. `jsonl-events.json`: explicit Evidence Court JSONL event-stream input.
 8. `mixed-source-rejection.txt`: mixed inputs fail closed with `exit_code=2`.
+9. `examples/evidence-court/run-record.schema.json`: permissive supplied-record schema for adapter authors; not a native vendor-log schema.
 
 ### Included In This Release Claim
 - `.github/ISSUE_TEMPLATE/technical-review-request.md`
@@ -70,6 +71,7 @@ Open these first:
 - `examples/evidence-court/bad-run.json`
 - `examples/evidence-court/good-run.json`
 - `examples/evidence-court/redacted-real-world-bad-run.json`
+- `examples/evidence-court/run-record.schema.json`
 - `quantagent/evidence_court.py`
 - `quantagent/__init__.py`
 - `quantagent/cli.py`

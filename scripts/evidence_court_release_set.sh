@@ -200,6 +200,7 @@ audit_staged_claim_copy() {
   require_staged_contains "README.md" "Claude Code, Codex, Cursor, Devin, or CI logs" || invalid=1
   require_staged_contains "docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md" 'Remote CI evidence requires GitHub Actions `Evidence Court Smoke` green for the PR head commit.' || invalid=1
   require_staged_contains "docs/EVIDENCE_COURT_V0_1_PR_BODY.md" "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md" || invalid=1
+  require_staged_contains "docs/EVIDENCE_COURT_V0_1_PR_BODY.md" "examples/evidence-court/run-record.schema.json" || invalid=1
   require_staged_contains "docs/EVIDENCE_COURT_V0_1_PR_BODY.md" "This PR does not claim native Claude/Codex/Cursor/Devin/CI log ingestion" || invalid=1
   require_staged_contains "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md" "workflow wired locally" || invalid=1
   require_staged_contains "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md" "Only these release files support" || invalid=1

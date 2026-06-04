@@ -852,8 +852,11 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("`openmako-agent-run-result.json`: explicit OpenMako AgentRunResult producer-artifact input", text)
         self.assertIn("`jsonl-events.json`: explicit Evidence Court JSONL event-stream input", text)
         self.assertIn("`mixed-source-rejection.txt`: mixed inputs fail closed with `exit_code=2`", text)
+        self.assertIn("`examples/evidence-court/run-record.schema.json`: permissive supplied-record schema", text)
+        self.assertIn("not a native vendor-log schema", text)
         included_section = text.split("### Included In This Release Claim", 1)[1].split("### Excluded From This Claim", 1)[0]
         self.assertIn("- `scripts/evidence_court_smoke.sh`", included_section)
+        self.assertIn("- `examples/evidence-court/run-record.schema.json`", included_section)
         self.assertNotIn("`bash scripts/evidence_court_smoke.sh`", included_section)
         self.assertIn("`docs/EVIDENCE_COURT_V0_1_PR_BODY.md`", text)
         self.assertIn("`docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md`", text)
@@ -891,6 +894,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         )
         self.assertIn("`quantagent/agent_planner.py`", text)
         self.assertIn("do not support the Evidence Court v0.1 public claim", normalized)
+        self.assertIn("examples/evidence-court/run-record.schema.json", text)
         self.assertIn("Retweet-sized version:", text)
         self.assertIn("claim-vs-evidence gate for supplied agent-run records", text)
         self.assertIn("protected-file edits, out-of-scope", text)
@@ -1214,6 +1218,10 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
             self.assertIn(
                 "staged claim-copy audit missing in docs/EVIDENCE_COURT_V0_1_PR_BODY.md: docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md",
                 weakened_audit.stdout + weakened_audit.stderr,
+            )
+            self.assertIn(
+                "examples/evidence-court/run-record.schema.json",
+                (root / "docs" / "EVIDENCE_COURT_V0_1_PR_BODY.md").read_text(encoding="utf-8"),
             )
 
     def test_release_set_script_checks_committed_branch_diff(self) -> None:
