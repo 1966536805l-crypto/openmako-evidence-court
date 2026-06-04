@@ -116,6 +116,28 @@ Send only the first message first. Send the second message only after recording 
 public `Message URL` for the first one, or after one calendar day with no reply.
 If the channel does not provide a public URL, do not mark the row as `sent`.
 
+Use the PR-head packet below when the target is reviewing current branch
+behavior rather than the older v0.1.2 proof card. Do not mark this packet as
+sent until the actual message has a public URL.
+
+### PR-head Evidence Packet
+
+```text
+I added current PR-head evidence for the supplied-record boundary:
+PR: https://github.com/1966536805l-crypto/openmako-evidence-court/pull/27
+Head: 5974ee3578fbca48ee1dd794701936285314188f
+CI: https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26947581663
+
+The current run-record schema preserves optional metadata like agent_runtime,
+tool_calls, approval_events, sandbox_boundary, diff_summary, artifact_urls, and
+redaction_note, but those fields are reviewer context only. They do not prove
+sandboxing, approval, native log ingestion, or real test execution.
+
+Could you give one technical boundary check: is this supplied-record handoff
+shape useful for coding-agent runs, or is a required field missing?
+Not asking for endorsement, adoption, or a share.
+```
+
 ### 1. SWE-agent / mini-SWE-agent
 
 ```text
