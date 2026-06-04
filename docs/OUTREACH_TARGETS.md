@@ -178,8 +178,8 @@ I built a narrow claim-vs-evidence gate for supplied coding-agent run records:
 https://github.com/1966536805l-crypto/openmako-evidence-court
 
 Current main evidence:
-- Commit: 7c19d2248d1560e1863c35529d9bec9d72803b90
-- CI: https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26951852233
+- Commit: 6d9bafe649ec9277343b1cd80a0c0a1958230f50
+- CI: https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26952138422
 - Field checklist: https://github.com/1966536805l-crypto/openmako-evidence-court/blob/main/docs/RUN_RECORD_FIELD_CHECKLIST.md
 
 Open SWE is close to the workflow I want feedback from: internal coding agents,

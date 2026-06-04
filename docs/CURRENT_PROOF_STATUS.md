@@ -1,61 +1,59 @@
 # Current Proof Status
 
-This page separates pinned proof-anchor evidence from latest-main claims.
+This page separates current-main proof evidence from historical release proof.
 It is not an automatically updated status page.
 
-## Proof Anchor
+## Current Main Proof Anchor
 
 - Branch: `main`
-- Proof anchor commit: `cb1ab5e`
-- Proof anchor subject: `docs: add redacted evidence court bad run`
-- Remote `main` contained this commit when checked by `git ls-remote origin refs/heads/main`
+- Current main proof anchor commit: `6d9bafe649ec9277343b1cd80a0c0a1958230f50`
+- Current main proof anchor subject: `docs: refresh Open SWE outreach evidence`
+- Remote `main` contained this commit when checked by `git ls-remote origin refs/heads/main`.
 
 ## Local Evidence
 
-These checks passed locally for proof anchor commit `cb1ab5e`:
+These checks passed locally for current main proof anchor commit `6d9bafe`:
 
 ```bash
-python3 -m quantagent.cli --no-trust-prompt evidence-court --input examples/evidence-court/redacted-real-world-bad-run.json
-git diff --check
-bash scripts/evidence_court_release_set.sh --check
-python3 -m pytest -p no:cacheprovider tests/test_evidence_court_smoke_script.py tests/test_evidence_court.py -q
-bash scripts/evidence_court_smoke.sh
-bash scripts/evidence_court_smoke.sh --artifact-dir /tmp/evidence-court-smoke-redacted
-bash scripts/evidence_court_release_set.sh --verify-artifact-dir /tmp/evidence-court-smoke-redacted
+bash scripts/evidence_court_smoke.sh --artifact-dir /tmp/evidence-court-current-main
+bash scripts/evidence_court_release_set.sh --verify-artifact-dir /tmp/evidence-court-current-main
+find /tmp/evidence-court-current-main -type f -maxdepth 2 -print | sort | xargs shasum -a 256
 ```
 
 Observed local results:
 
-- redacted supplied-record bad run reports `Verdict: FAIL`
-- full focused Evidence Court tests reported `70 passed`
+- focused Evidence Court tests inside the smoke gate reported `58 passed`
 - smoke gate reported `Evidence Court smoke gate passed.`
 - local artifact verifier reported `Evidence Court artifact dir verified`
+- `artifact-manifest.json` SHA-256:
+  `69200e8a62c36454e8e73cd4c7cf92b5cd9b768b8ee8c07d350eea76adfd147e`
+- `reviewer-quickstart.md` SHA-256:
+  `ef8d78e1c1dde2db8c49efceb96d5fb4c7aeef9d97ef13e7187b574aa8ea3bea`
 
 ## Public Remote Evidence
 
-Remote CI evidence is confirmed for proof anchor commit `cb1ab5e`.
+Remote CI evidence is confirmed for current main proof anchor commit `6d9bafe`.
 
 Known facts:
 
-- The commit page for `cb1ab5e` is publicly visible.
-- The public Actions run `26836126047` was triggered by push on `main`.
-- The public Actions run shows commit `cb1ab5e`.
-- The public Actions run shows `Status Success`.
+- The commit page for `6d9bafe` is publicly visible.
+- The public Actions run `26952138422` was triggered by push on `main`.
+- The public Actions run shows commit `6d9bafe`.
+- The public Actions run shows `completed successfully`.
+- The public job `evidence-court-smoke` shows `completed successfully`.
 - The public Actions run uploaded one `evidence-court-smoke` artifact.
-- Artifact digest: `sha256:7ec4b7b76b0486ebad593e2936bd083ab80e0eee65c628c80f4ea64852095eac`.
-- The unauthenticated GitHub REST API was rate-limited during earlier verification, so this status is based on the public Actions HTML page and local gates.
+- Public artifact digest: `sha256:42f38ea0acc3033479d0588dd33cf4c2f3eceb95b78d2f52a3a81278bae17db1`.
 
 Remote evidence URL:
-`https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26836126047`
+`https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26952138422`
 
-## Stale Proof Boundary
+## Historical Release Proof Boundary
 
 `docs/PUBLIC_PROOF.md` intentionally binds the older `v0.1.2` tag, commit,
-smoke run, and artifact digest. It is still useful as historical release
-evidence, but it does not prove the latest main commit or the redacted bad-run
-fixture.
+smoke run, and artifact digest. It remains historical release evidence, but it
+does not automatically prove the latest main commit after `6d9bafe`.
 
-This page's proof anchor does not automatically prove later commits on `main`.
+This page's current main proof anchor does not automatically prove later commits on `main`.
 After any new commit, use the newest visible `Evidence Court Smoke` run and
 artifact digest before claiming current remote CI evidence.
 
