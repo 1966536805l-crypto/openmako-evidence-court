@@ -7,8 +7,8 @@ It is not an automatically updated status page.
 ## Latest Verified Main Proof Anchor
 
 - Branch: `main`
-- Latest verified main proof anchor commit: `5836afa6d844348d22433229f2c295023d35d178`
-- Latest verified main proof anchor subject: `outreach: render current main review packet`
+- Latest verified main proof anchor commit: `738438b915563c3ad1241a0909ac947697cfd924`
+- Latest verified main proof anchor subject: `docs: expose terminal gateway examples`
 - Remote `main` contained this commit when checked by `git ls-remote origin refs/heads/main`.
 - This anchor can trail the newest remote `main` commit. Re-check Actions before
   repeating any claim about the current remote head.
@@ -16,13 +16,13 @@ It is not an automatically updated status page.
 ## Local Evidence
 
 These checks passed locally for latest verified main proof anchor commit
-`5836afa`:
+`738438b`:
 
 ```bash
 python3 -m pytest tests/test_evidence_court.py tests/test_evidence_court_smoke_script.py -q
 bash scripts/evidence_court_smoke.sh --artifact-dir /tmp/openmako-evidence-court-smoke-current-main
 bash scripts/evidence_court_release_set.sh --verify-artifact-dir /tmp/openmako-evidence-court-smoke-current-main
-EVIDENCE_COURT_RUN_URL=https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26958891388 \
+EVIDENCE_COURT_RUN_URL=https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26960805210 \
   bash scripts/evidence_court_release_set.sh --render-current-main-review-packet
 ```
 
@@ -39,27 +39,27 @@ Observed local results:
 ## Public Remote Evidence
 
 Remote CI evidence is confirmed for latest verified main proof anchor commit
-`5836afa`.
+`738438b`.
 
 Known facts:
 
-- The commit page for `5836afa` is publicly visible.
-- The public Actions run `26958891388` was triggered by push on `main`.
-- The public Actions run shows commit `5836afa`.
+- The commit page for `738438b` is publicly visible.
+- The public Actions run `26960805210` was triggered by push on `main`.
+- The public Actions run shows commit `738438b`.
 - The public Actions run shows Status `Success`.
 - The public job `evidence-court-smoke` shows `completed successfully`.
 - The public Actions run uploaded one `evidence-court-smoke` artifact.
 - Public artifact digest:
-  `sha256:e039d6c99b3cf02309fe4633e902f2e0d3a59a4faf40f404b4309c49dddba6e0`.
+  `sha256:b88802f99f0f6cc3c391cbf86f52757388a23d51ba2779608f98b0ed6643c456`.
 
 Remote evidence URL:
-`https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26958891388`
+`https://github.com/1966536805l-crypto/openmako-evidence-court/actions/runs/26960805210`
 
 ## Historical Release Proof Boundary
 
 `docs/PUBLIC_PROOF.md` intentionally binds the older `v0.1.2` tag, commit,
 smoke run, and artifact digest. It remains historical release evidence, but it
-does not automatically prove the latest main commit after `5836afa`.
+does not automatically prove the latest main commit after `738438b`.
 
 This page's latest verified main proof anchor does not automatically prove later commits on `main`.
 After any new commit, use the newest visible `Evidence Court Smoke` run and
