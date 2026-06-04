@@ -45,7 +45,7 @@ try:
     from .diagnostic_registry import load_diagnostic_registry, refresh_diagnostic_registry, render_diagnostic_registry
     from .demo_fix import render_fix_demo, run_fix_demo
     from .doctor import doctor_score, render_doctor, render_doctor_json, run_doctor
-    from .evidence_court import bad_run_demo, dumps_evidence_court_json, evaluate_evidence_court, good_run_demo, load_evidence_court_jsonl_events, load_evidence_court_run, load_evidence_court_transcript, load_openmako_agent_run_result, render_evidence_court
+    from .evidence_court import EVIDENCE_COURT_REASON_CODES, bad_run_demo, dumps_evidence_court_json, evaluate_evidence_court, good_run_demo, load_evidence_court_jsonl_events, load_evidence_court_run, load_evidence_court_transcript, load_openmako_agent_run_result, render_evidence_court
     from .desktop_control import activate_app, click_grid_cell, front_window, frontmost_app, hotkey, latest_grid, pointer, screenshot, screenshot_grid, type_text
     from .desktop_agent import render_desktop_agent_result, run_desktop_agent
     from .desktop_guardian import render_desktop_guardian_result, run_desktop_guardian
@@ -228,7 +228,7 @@ except ModuleNotFoundError as exc:
     if not (exc.name or "").startswith("quantagent."):
         raise
     _FULL_CLI_IMPORT_ERROR = exc
-    from .evidence_court import bad_run_demo, dumps_evidence_court_json, evaluate_evidence_court, good_run_demo, load_evidence_court_jsonl_events, load_evidence_court_run, load_evidence_court_transcript, load_openmako_agent_run_result, render_evidence_court
+    from .evidence_court import EVIDENCE_COURT_REASON_CODES, bad_run_demo, dumps_evidence_court_json, evaluate_evidence_court, good_run_demo, load_evidence_court_jsonl_events, load_evidence_court_run, load_evidence_court_transcript, load_openmako_agent_run_result, render_evidence_court
 
 
 def cmd_status(args: argparse.Namespace) -> int:
@@ -300,6 +300,24 @@ def cmd_agent_autopsy(args: argparse.Namespace) -> int:
 
 
 def cmd_evidence_court(args: argparse.Namespace) -> int:
+    if args.list_reason_codes:
+        if args.json:
+            print(
+                json.dumps(
+                    [
+                        {"code": code, "description": description}
+                        for code, description in EVIDENCE_COURT_REASON_CODES
+                    ],
+                    indent=2,
+                    sort_keys=True,
+                )
+            )
+        else:
+            print("Evidence Court reason codes:")
+            for code, description in EVIDENCE_COURT_REASON_CODES:
+                print(f"- {code}: {description}")
+        return 0
+
     source_count = sum(
         bool(value)
         for value in (
@@ -387,6 +405,11 @@ def _add_evidence_court_args(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument("--demo", choices=["bad-run", "good-run"], default="", help="Run a built-in demo")
     parser.add_argument("--json", action="store_true")
+    parser.add_argument(
+        "--list-reason-codes",
+        action="store_true",
+        help="List machine-readable reason codes for --fail-on-reason-code; no run input required",
+    )
     parser.add_argument(
         "--fail-on",
         choices=["never", "fail", "suspicious"],

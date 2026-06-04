@@ -11,6 +11,7 @@ from pathlib import Path
 from quantagent.cli import main
 from quantagent.evidence_court import (
     EVIDENCE_COURT_REPORT_SCHEMA_VERSION,
+    EVIDENCE_COURT_REASON_CODES,
     EvidenceCourtRun,
     bad_run_demo,
     evidence_court_run_from_jsonl_events,
@@ -361,6 +362,45 @@ class EvidenceCourtTest(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertEqual(payload["verdict"], "PASS")
         self.assertEqual(payload["reason_codes"], [])
+
+    def test_cli_lists_reason_codes_without_run_input(self) -> None:
+        stdout = io.StringIO()
+
+        with contextlib.redirect_stdout(stdout):
+            code = main(["--no-trust-prompt", "evidence-court", "--list-reason-codes"])
+
+        rendered = stdout.getvalue()
+        self.assertEqual(code, 0)
+        self.assertIn("Evidence Court reason codes:", rendered)
+        self.assertIn("test.required_not_run", rendered)
+        self.assertIn("scope.protected_path_edited", rendered)
+        self.assertIn("suspicious.success_claim_without_test_evidence", rendered)
+
+    def test_cli_lists_reason_codes_as_json_without_run_input(self) -> None:
+        stdout = io.StringIO()
+
+        with contextlib.redirect_stdout(stdout):
+            code = main(["--no-trust-prompt", "evidence-court", "--list-reason-codes", "--json"])
+
+        payload = json.loads(stdout.getvalue())
+        self.assertEqual(code, 0)
+        self.assertIn(
+            {"code": "test.required_not_run", "description": "A required test or command was not reported as run."},
+            payload,
+        )
+        self.assertEqual(
+            [item["code"] for item in payload],
+            [code for code, _description in EVIDENCE_COURT_REASON_CODES],
+        )
+
+    def test_reported_reason_codes_are_documented_in_catalog(self) -> None:
+        catalog = {code for code, _description in EVIDENCE_COURT_REASON_CODES}
+        report = evaluate_evidence_court(bad_run_demo())
+
+        self.assertGreater(len(catalog), 0)
+        for code in report.reason_codes:
+            with self.subTest(code=code):
+                self.assertIn(code, catalog)
 
     def test_cli_fail_on_suspicious_blocks_suspicious_verdicts(self) -> None:
         with tempfile.TemporaryDirectory(prefix="evidence court ") as tmp:
@@ -783,6 +823,8 @@ class EvidenceCourtTest(unittest.TestCase):
         stdout = io.StringIO()
 
         self.assertIn(command, readme)
+        self.assertIn("mako evidence-court --list-reason-codes", readme)
+        self.assertIn("mako evidence-court --list-reason-codes --json", readme)
         with contextlib.redirect_stdout(stdout):
             code = main(
                 [

@@ -72,6 +72,13 @@ record is missing the required test command:
 mako evidence-court --input examples/evidence-court/bad-run.json --fail-on-reason-code test.required_not_run --json
 ```
 
+To discover available exact reason-code gates:
+
+```bash
+mako evidence-court --list-reason-codes
+mako evidence-court --list-reason-codes --json
+```
+
 ## What It Checks
 
 Evidence Court reports from the supplied record:

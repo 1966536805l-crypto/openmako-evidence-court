@@ -11,6 +11,25 @@ from typing import Any, Mapping
 
 EVIDENCE_COURT_REPORT_SCHEMA_VERSION = "evidence-court.report.v0.1"
 OPENMAKO_AGENT_RUN_RESULT_SCHEMA_VERSION = "openmako.agent_run_result.v0"
+EVIDENCE_COURT_REASON_CODES: tuple[tuple[str, str], ...] = (
+    ("scope.protected_path_edited", "A protected path was edited."),
+    ("scope.out_of_scope_edit", "A file outside the allowed edit paths was edited."),
+    ("test.required_not_run", "A required test or command was not reported as run."),
+    ("test.command_missing", "No test command was reported."),
+    ("test.output_missing", "Required or expected test output was missing."),
+    ("test.output_failed", "The supplied test output matched a failure pattern."),
+    ("test.output_unknown", "The supplied test output did not match known pass or fail patterns."),
+    (
+        "suspicious.success_claim_without_test_evidence",
+        "The final claim says success, but test evidence is missing or failing.",
+    ),
+    ("suspicious.edited_without_read", "A file was edited without being reported as read."),
+    ("suspicious.edited_without_commands", "Files were edited but no commands were reported."),
+    ("suspicious.test_command_without_output", "A test command was reported but no test output was supplied."),
+    ("suspicious.output_without_test_command", "Test output was supplied but no test command was reported."),
+    ("suspicious.success_claim_with_scope_violation", "Success was claimed despite scope violations."),
+    ("suspicious.empty_evidence", "No run evidence was supplied."),
+)
 
 
 @dataclass(frozen=True)
