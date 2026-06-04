@@ -576,8 +576,16 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("not evidence of endorsement, adoption, integration, or review", text)
         self.assertIn("post-run supplied-record auditor", text)
         self.assertIn("claim-vs-evidence layer", text)
+        self.assertIn("## Hot Trend Ranking", text)
+        self.assertIn("Local agent gateways and terminal coding agents", text)
+        self.assertIn("Human approval, sandbox, and permission boundaries", text)
+        self.assertIn("Trace and artifact exports are safer than vendor-log scraping", text)
         self.assertIn("approval/sandbox boundary fields", text)
         self.assertIn("--fail-on-reason-code test.required_not_run", text)
+        self.assertIn("## Next Development Slice", text)
+        self.assertIn("`terminal-agent-bad-run.json`", text)
+        self.assertIn("`local-gateway-bad-run.json`", text)
+        self.assertIn("extra gateway metadata must not be", text)
         self.assertIn("## Run-Record Field Checklist", text)
         for field in (
             "`final_claim`",
@@ -601,6 +609,7 @@ class EvidenceCourtSmokeScriptTest(unittest.TestCase):
         self.assertIn("Keep the checklist in this radar until", text)
         self.assertNotIn("endorsed Evidence Court", text)
         self.assertNotIn("native Hermes ingestion", text)
+        self.assertNotIn("agent quality score", text)
         self.assertNotIn("10k", text)
 
     def test_release_manifest_is_the_claim_file_boundary(self) -> None:

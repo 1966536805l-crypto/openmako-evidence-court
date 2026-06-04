@@ -14,6 +14,18 @@ not evidence of endorsement, adoption, integration, or review.
 | SWE-agent / mini-SWE-agent | `https://github.com/SWE-agent/mini-swe-agent` | Small linear trajectory agent and SWE-Bench-oriented evaluation flow. | Treat exact eval command, patch scope, protected-file edits, and supplied output as first-class evidence fields. |
 | Aider | `https://github.com/Aider-AI/aider` | Terminal pair-programming agent centered on local git edits, tests, and lint commands. | Keep the record shape friendly to terminal sessions: command list, edited files, diff/protected-path summary, test output status, and final claim. |
 
+## Hot Trend Ranking
+
+This ranking is a build-order input, not a market-size claim.
+
+| Rank | Trend | Why it matters now | Evidence Court development response |
+| --- | --- | --- | --- |
+| 1 | Local agent gateways and terminal coding agents are converging around command history, tool calls, and final claims. | Hermes, OpenClaw, opencode, Aider, and OpenHands-style workflows all need a compact way to hand off what happened after a run. | Make the supplied-record checklist the primary integration surface before attempting native adapters. |
+| 2 | Human approval, sandbox, and permission boundaries are becoming part of the product surface. | Local agents increasingly expose risky-action controls, but a final "done" claim rarely explains whether a risky step was approved or sandboxed. | Add metadata guidance for `approval_events`, `sandbox_boundary`, and `tool_calls`; do not treat those fields as proof until evaluator logic exists. |
+| 3 | CI and benchmark communities need machine-readable failure categories, not prose-only verdicts. | A terminal user can understand a FAIL line, but CI wrappers need stable categories like `test.required_not_run`. | Keep exact reason-code gates prominent and avoid adding fuzzy "agent quality" scores. |
+| 4 | Trace and artifact exports are safer than vendor-log scraping for v0.1. | Native logs differ by product and can change quickly; explicit exports let reviewers see the source boundary. | Prefer explicit JSON/JSONL/marked-record examples and reviewer artifacts over native Hermes/OpenClaw/opencode parsers. |
+| 5 | Public proof artifacts matter more than broad claims. | Reviewers can verify a digest, artifact file, and reason-code command faster than they can audit a broad autonomy claim. | Keep proof cards, artifact manifests, SHA-256 hashes, and stale-proof warnings in the launch path. |
+
 ## Product Bet
 
 Evidence Court should not compete with these projects as another coding agent.
@@ -36,6 +48,22 @@ records from agent sessions and says whether the record supports the final
    terminal agent and a local gateway session before attempting native adapters.
 5. Public review before scaling outreach: ask Hermes/OpenClaw/opencode style
    projects for boundary criticism only after PR-head CI or a first-batch reply.
+
+## Next Development Slice
+
+Build the next slice as synthetic supplied-record coverage, not as a native
+adapter claim:
+
+1. `terminal-agent-bad-run.json`: command-history style record with a final
+   tests-passed claim, protected test edit, and missing required test command.
+2. `local-gateway-bad-run.json`: gateway-style record with `tool_calls`,
+   `approval_events`, and `sandbox_boundary` metadata, but still missing the
+   required test command.
+3. Focused test expectation: both records must produce the existing
+   `test.required_not_run` reason code; extra gateway metadata must not be
+   misrepresented as sandbox proof.
+4. Public wording gate: describe these as synthetic supplied-record examples
+   only, not Hermes/OpenClaw/opencode/OpenHands/Aider native ingestion.
 
 ## Run-Record Field Checklist
 
