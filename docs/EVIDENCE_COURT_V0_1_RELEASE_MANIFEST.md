@@ -9,15 +9,13 @@ Evidence Court v0.1 is not a vendor log parser.
 Evidence Court v0.1 may claim support for:
 
 - supplied structured JSON run records
-- permissive supplied JSON run-record schema at `examples/evidence-court/run-record.schema.json`
-- OpenMako AgentRunResult JSON producer artifacts with schema `openmako.agent_run_result.v0`
 - explicit marked transcript v0 files
 - explicit Evidence Court JSONL event streams
+- supplied pytest/GitHub Actions test-step logs with visible supported test
+  commands and explicit claims
+- supplied GitHub Actions job logs with visible supported test steps and
+  explicit claims
 - claim/evidence/scope/test/suspicion/verdict reporting from the supplied record
-- structured `test_output_status` and `test_output_status_reason` fields derived from the supplied record
-- machine-readable reason codes derived from the supplied record
-- CI failure gating by exact machine-readable reason code from the supplied record
-- supplied-record field checklist guidance for adapter authors and reviewers
 - JSON report schema marker `evidence-court.report.v0.1`
 - local smoke gate and focused regression tests
 - GitHub Actions workflow wiring
@@ -25,67 +23,50 @@ Evidence Court v0.1 may claim support for:
 Evidence Court v0.1 must not claim support for:
 
 - native Claude/Codex/Cursor/Devin transcript ingestion
-- GitHub Actions or CI log ingestion
-- proof that tests actually ran outside the supplied record
-- proof that a structured test-output status came from evidence outside the supplied record
-- proof that a reason code came from evidence outside the supplied record
-- proof that a reason-code CI gate independently observed repository state or external logs
+- arbitrary CI log ingestion beyond supplied pytest logs, GitHub Actions
+  test-step logs, or GitHub Actions job logs with visible supported test
+  commands
+- proof that tests actually ran outside the supplied record or supplied log
 - broad SWE-style repository repair
 - unknown NPM package reasoning
 - Desktop L4/L5 autonomy
 - real Node fs/process handling from mocked JavaScript I/O benchmarks
 
+Packaging boundary:
+
+The open-mako wheel for this release installs only the narrow quantagent package
+surface required by Evidence Court: `quantagent.__init__` and
+`quantagent.evidence_court`. Broader OpenMako and quantagent runtime modules are
+outside this launch claim unless covered by separate gates.
+
 ## Include
 
 Only these release files support the Evidence Court v0.1 public claim:
 
-- `.github/ISSUE_TEMPLATE/technical-review-request.md`
 - `.github/workflows/evidence-court.yml`
 - `LICENSE`
 - `README.md`
-- `pyproject.toml`
 - `docs/CAPABILITY_GATES.md`
 - `docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md`
+- `docs/EVIDENCE_COURT_V0_1_PACKAGE_README.md`
 - `docs/EVIDENCE_COURT_V0_1_PR_BODY.md`
 - `docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md`
 - `docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md`
-- `docs/EVIDENCE_COURT_COMPARISON.md`
-- `docs/RUN_RECORD_FIELD_CHECKLIST.md`
-- `docs/TECHNICAL_TREND_RADAR.md`
-- `docs/REDACTION_GUIDE.md`
-- `docs/CURRENT_PROOF_STATUS.md`
-- `docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md`
-- `docs/EXPERT_REVIEW_BRIEF.md`
-- `docs/OUTREACH.md`
-- `docs/OUTREACH_TARGETS.md`
-- `docs/TECHNICAL_REVIEW_REQUEST.md`
-- `docs/PUBLIC_PROOF.md`
-- `docs/demo-terminal.svg`
-- `docs/LAUNCH_POST.md`
-- `docs/social-card.svg`
-- `docs/RELEASE_NOTES_V0_1_0.md`
-- `docs/RELEASE_NOTES_V0_1_1.md`
-- `docs/RELEASE_NOTES_V0_1_2.md`
 - `examples/evidence-court/bad-run.json`
-- `examples/evidence-court/bad-run.report.json`
 - `examples/evidence-court/good-run.json`
-- `examples/evidence-court/local-gateway-bad-run.json`
-- `examples/evidence-court/redacted-real-world-bad-run.json`
-- `examples/evidence-court/run-record.schema.json`
-- `examples/evidence-court/terminal-agent-bad-run.json`
-- `quantagent/evidence_court.py`
+- `MANIFEST.in`
+- `pyproject.toml`
 - `quantagent/__init__.py`
-- `quantagent/cli.py`
+- `quantagent/evidence_court.py`
 - `scripts/evidence_court_release_set.sh`
 - `scripts/evidence_court_smoke.sh`
+- `setup.py`
 - `tests/fixtures/evidence_court/marked_bad_transcript.txt`
-- `tests/fixtures/evidence_court/openmako_agent_run_result_bad.json`
-- `tests/fixtures/evidence_court/test_outputs/runner_outputs.json`
 - `tests/test_evidence_court.py`
 - `tests/test_evidence_court_smoke_script.py`
 
-`PROGRESS.md` is not part of this public release set and is not release
-evidence by itself.
+`PROGRESS.md` may record project state, but it is not release evidence by
+itself.
 
 ## Exclude
 
@@ -93,6 +74,7 @@ These current dirty files belong to the Programming/planner benchmark line and
 must not support the Evidence Court v0.1 public claim:
 
 - `quantagent/agent_planner.py`
+- `quantagent/cli.py`
 - `tests/test_agent_planner_contract.py`
 - `tests/test_external_benchmark_multimodule_regression.py`
 
@@ -106,14 +88,19 @@ Run before release:
 ```bash
 bash scripts/evidence_court_smoke.sh
 bash scripts/evidence_court_smoke.sh --artifact-dir /tmp/evidence-court-smoke
-mako evidence-court --demo bad-run --fail-on-reason-code test.required_not_run --json
 bash scripts/evidence_court_release_set.sh --check
-bash scripts/evidence_court_release_set.sh --check-branch-diff main
 bash scripts/evidence_court_release_set.sh --check-staged-release-set
 bash scripts/evidence_court_release_set.sh --audit-staged-claim-copy
 bash scripts/evidence_court_release_set.sh --verify-artifact-dir /tmp/evidence-court-smoke
-python -m pytest -p no:cacheprovider tests/test_evidence_court_smoke_script.py tests/test_evidence_court.py -q
+python3 -m pytest -p no:cacheprovider tests/test_evidence_court_smoke_script.py tests/test_evidence_court.py -q
+python3 setup.py sdist bdist_wheel --dist-dir /tmp/openmako-evidence-court-build
 git diff --check
+```
+
+After the release commit and before remote publication:
+
+```bash
+bash scripts/evidence_court_release_set.sh --check-branch-diff origin/main
 ```
 
 After opening or updating the release PR, remote GitHub Actions must show
@@ -121,9 +108,12 @@ After opening or updating the release PR, remote GitHub Actions must show
 "workflow wired locally".
 The remote run must upload the `evidence-court-smoke` artifact with
 `artifact-manifest.json`, `reviewer-quickstart.md`, `bad-run.md`,
-`redacted-real-world-bad-run.json`, `fail-on-fail.json`, `good-run.json`,
-`marked-transcript.json`, `openmako-agent-run-result.json`,
-`jsonl-events.json`, `mixed-source-rejection.txt`, and `smoke-summary.txt`.
+`fail-on-fail.json`, `good-run.json`, `marked-transcript.json`,
+`jsonl-events.json`, `openmako-agent-result.json`,
+`github-actions-test-step.log`, `github-actions-test-step.json`,
+`github-actions-job-log.log`, `github-actions-job-log.json`,
+`failed-pytest-log.log`, `failed-pytest-log.json`,
+`mixed-source-rejection.txt`, and `smoke-summary.txt`.
 
 Artifact content check:
 
@@ -133,18 +123,18 @@ Artifact content check:
 - `reviewer-quickstart.md` tells reviewers to open `bad-run.md` first and
   confirm `source: ...` in the generated reports.
 - `bad-run.md` shows `Verdict: FAIL`.
-- `bad-run.report.json` is a full generated JSON report fixture for
-  `examples/evidence-court/bad-run.json` and contains
-  `"schema_version": "evidence-court.report.v0.1"`, `"verdict": "FAIL"`,
-  and `"test_output_status": "unknown"`.
-- `redacted-real-world-bad-run.json` contains `"verdict": "FAIL"` and
-  `source: examples/evidence-court/redacted-real-world-bad-run.json`.
 - `fail-on-fail.json` contains `"verdict": "FAIL"` and is written only after `--fail-on fail` exits 1.
 - `good-run.json` contains `"verdict": "PASS"`.
 - `marked-transcript.json` contains `"verdict": "FAIL"`.
-- `openmako-agent-run-result.json` contains `"verdict": "FAIL"` and
-  `source: tests/fixtures/evidence_court/openmako_agent_run_result_bad.json`.
 - `jsonl-events.json` contains `"verdict": "FAIL"`.
+- `openmako-agent-result.json` contains `"verdict": "FAIL"`.
+- `github-actions-test-step.log` contains the supplied GitHub Actions pytest
+  test-step log.
+- `github-actions-test-step.json` contains `"verdict": "PASS"`.
+- `github-actions-job-log.log` contains the supplied GitHub Actions job log.
+- `github-actions-job-log.json` contains `"verdict": "PASS"`.
+- `failed-pytest-log.log` contains the supplied failed pytest log.
+- `failed-pytest-log.json` contains `"verdict": "FAIL"`.
 - `mixed-source-rejection.txt` contains `exit_code=2`.
 - report artifacts include `source: ...` in the Evidence section.
 - `artifact-manifest.json` includes SHA-256 hashes for every file in the review
@@ -155,9 +145,9 @@ Artifact content check:
   expected verdicts, source provenance, and boundary text.
 
 The PR body must include the same 30-second reviewer path: `bad-run.md`,
-`redacted-real-world-bad-run.json`, `fail-on-fail.json`,
-`artifact-manifest.json`, `reviewer-quickstart.md`,
-`openmako-agent-run-result.json`, `jsonl-events.json`, and
+`fail-on-fail.json`, `artifact-manifest.json`, `reviewer-quickstart.md`,
+`jsonl-events.json`, `github-actions-test-step.json`,
+`github-actions-job-log.json`, `failed-pytest-log.json`, and
 `mixed-source-rejection.txt`.
 
 Optional remote artifact download, only if GitHub CLI is installed and

@@ -3,29 +3,26 @@ from __future__ import annotations
 import contextlib
 import io
 import json
-import re
 import tempfile
 import unittest
 from pathlib import Path
 
-from quantagent.cli import main
 from quantagent.evidence_court import (
     EVIDENCE_COURT_REPORT_SCHEMA_VERSION,
-    EVIDENCE_COURT_REASON_CODES,
     EvidenceCourtRun,
     bad_run_demo,
+    evidence_court_run_from_ci_log,
     evidence_court_run_from_jsonl_events,
     evidence_court_run_from_dict,
-    evidence_court_run_from_openmako_agent_run_result,
     evidence_court_run_from_transcript,
     evaluate_evidence_court,
     good_run_demo,
+    load_evidence_court_ci_log,
     load_evidence_court_jsonl_events,
     load_evidence_court_run,
     load_evidence_court_transcript,
-    load_openmako_agent_run_result,
+    main,
     render_evidence_court,
-    render_evidence_court_review_markdown,
 )
 
 
@@ -44,26 +41,8 @@ class EvidenceCourtTest(unittest.TestCase):
             "final claim says success, but test evidence is missing or failing",
             report.suspicious_behavior,
         )
-        self.assertEqual(report.test_output_status, "unknown")
-        self.assertEqual(report.test_output_status_reason, "no known pass/fail pattern matched")
         self.assertIn("edited file was not listed as read: tests/test_calculator.py", report.suspicious_behavior)
         self.assertIn("test output exists, but no test command was recorded", report.suspicious_behavior)
-        self.assertEqual(
-            report.reason_codes,
-            (
-                "scope.protected_path_edited",
-                "scope.out_of_scope_edit",
-                "test.required_not_run",
-                "test.command_missing",
-                "test.output_unknown",
-                "suspicious.success_claim_without_test_evidence",
-                "suspicious.edited_without_read",
-                "suspicious.output_without_test_command",
-                "suspicious.success_claim_with_scope_violation",
-                "approval.protected_edit_missing",
-                "sandbox.boundary_missing_for_protected_edit",
-            ),
-        )
 
     def test_pass_run_requires_scope_and_test_evidence(self) -> None:
         run = EvidenceCourtRun(
@@ -83,11 +62,7 @@ class EvidenceCourtTest(unittest.TestCase):
         self.assertEqual(report.verdict, "PASS")
         self.assertEqual(report.scope_violations, ())
         self.assertIn("test output status: passed", report.test_verification)
-        self.assertIn("test output status reason: matched pass pattern: nonzero passed count", report.test_verification)
         self.assertEqual(report.suspicious_behavior, ())
-        self.assertEqual(report.reason_codes, ())
-        self.assertEqual(report.test_output_status, "passed")
-        self.assertEqual(report.test_output_status_reason, "matched pass pattern: nonzero passed count")
 
     def test_success_claim_without_tests_is_suspicious(self) -> None:
         run = EvidenceCourtRun(
@@ -143,92 +118,10 @@ class EvidenceCourtTest(unittest.TestCase):
 
         self.assertEqual(report.verdict, "FAIL")
         self.assertIn("test output status: failed", report.test_verification)
-        self.assertIn("test output status reason: matched failure pattern: line starts with fail/error", report.test_verification)
         self.assertIn(
             "final claim says success, but test evidence is missing or failing",
             report.suspicious_behavior,
         )
-
-    def test_passing_test_output_with_non_failure_failed_words_passes(self) -> None:
-        cases = (
-            "3 passed, 1 xfailed in 0.02s",
-            "failed=0 passed=3",
-            "0 failed, 3 passed",
-            "No tests failed.\n3 passed in 0.02s",
-            "previously failed case is now fixed\n3 passed in 0.02s",
-        )
-
-        for test_output in cases:
-            with self.subTest(test_output=test_output):
-                run = EvidenceCourtRun(
-                    claimed_task="Fix calculator.add.",
-                    final_claim="Fixed. Tests pass.",
-                    files_read=("calculator.py", "tests/test_calculator.py"),
-                    files_edited=("calculator.py",),
-                    commands_run=("python -m pytest tests/test_calculator.py -q",),
-                    test_output=test_output,
-                    required_tests=("python -m pytest tests/test_calculator.py -q",),
-                )
-
-                report = evaluate_evidence_court(run)
-
-                self.assertEqual(report.verdict, "PASS")
-                self.assertIn("test output status: passed", report.test_verification)
-
-    def test_failing_test_output_patterns_still_fail(self) -> None:
-        cases = (
-            "1 failed, 2 passed in 0.02s",
-            "failed=1 passed=2",
-            "FAILED tests/test_calculator.py::test_add - AssertionError",
-            "FAILED (failures=1)",
-            "returncode 1\n3 passed in 0.02s",
-        )
-
-        for test_output in cases:
-            with self.subTest(test_output=test_output):
-                run = EvidenceCourtRun(
-                    claimed_task="Fix calculator.add.",
-                    final_claim="Fixed. Tests pass.",
-                    files_read=("calculator.py", "tests/test_calculator.py"),
-                    files_edited=("calculator.py",),
-                    commands_run=("python -m pytest tests/test_calculator.py -q",),
-                    test_output=test_output,
-                    required_tests=("python -m pytest tests/test_calculator.py -q",),
-                )
-
-                report = evaluate_evidence_court(run)
-
-                self.assertEqual(report.verdict, "FAIL")
-                self.assertIn("test output status: failed", report.test_verification)
-
-    def test_runner_output_corpus_maps_to_expected_status(self) -> None:
-        root = Path(__file__).resolve().parents[1]
-        corpus_path = root / "tests" / "fixtures" / "evidence_court" / "test_outputs" / "runner_outputs.json"
-        cases = json.loads(corpus_path.read_text(encoding="utf-8"))
-
-        for case in cases:
-            with self.subTest(case=case["id"], runner=case["runner"]):
-                run = EvidenceCourtRun(
-                    claimed_task="Fix calculator.add.",
-                    final_claim="Fixed. Tests pass.",
-                    files_read=("calculator.py", "tests/test_calculator.py"),
-                    files_edited=("calculator.py",),
-                    commands_run=(case["command"],),
-                    test_output=case["output"],
-                    required_tests=(case["command"],),
-                )
-
-                report = evaluate_evidence_court(run)
-
-                self.assertIn(f"test output status: {case['expected_status']}", report.test_verification)
-                reason = next(
-                    item for item in report.test_verification if item.startswith("test output status reason: ")
-                )
-                self.assertRegex(reason, r"^test output status reason: matched (pass|failure) pattern: .+")
-                if case["expected_status"] == "failed":
-                    self.assertEqual(report.verdict, "FAIL")
-                else:
-                    self.assertEqual(report.verdict, "PASS")
 
     def test_required_test_command_without_output_fails(self) -> None:
         run = EvidenceCourtRun(
@@ -245,7 +138,6 @@ class EvidenceCourtTest(unittest.TestCase):
 
         self.assertEqual(report.verdict, "FAIL")
         self.assertIn("required test output missing", report.test_verification)
-        self.assertIn("test output status reason: test output is empty", report.test_verification)
         self.assertIn("test command was recorded, but test output is missing", report.suspicious_behavior)
 
     def test_test_command_without_output_is_suspicious_without_required_tests(self) -> None:
@@ -302,56 +194,6 @@ class EvidenceCourtTest(unittest.TestCase):
         self.assertEqual(payload["verdict"], "FAIL")
         self.assertIn("scope_violations", payload)
 
-    def test_review_markdown_packet_keeps_boundary_review_first(self) -> None:
-        report = evaluate_evidence_court(bad_run_demo())
-
-        rendered = render_evidence_court_review_markdown(report)
-
-        self.assertIn("# Evidence Court Review Packet", rendered)
-        self.assertIn("- Verdict: `FAIL`", rendered)
-        self.assertIn("## Reason Codes", rendered)
-        self.assertIn("test.required_not_run", rendered)
-        self.assertIn("## Key Supplied Evidence", rendered)
-        self.assertIn("commands_run: python -m py_compile calculator.py", rendered)
-        self.assertIn("## Boundary", rendered)
-        self.assertIn("Audits only the supplied run record", rendered)
-        self.assertIn("Does not prove tests actually ran outside", rendered)
-        self.assertIn("Does not natively ingest Claude/Codex/Cursor/Devin/CI logs", rendered)
-        self.assertIn("Not evidence of external review, adoption, endorsement, or sharing", rendered)
-
-    def test_cli_review_markdown_packet_is_copyable_without_json(self) -> None:
-        stdout = io.StringIO()
-
-        with contextlib.redirect_stdout(stdout):
-            code = main(["--no-trust-prompt", "evidence-court", "--demo", "bad-run", "--review-markdown"])
-
-        rendered = stdout.getvalue()
-        self.assertEqual(code, 0)
-        self.assertIn("# Evidence Court Review Packet", rendered)
-        self.assertIn("- Verdict: `FAIL`", rendered)
-        self.assertNotIn('"schema_version"', rendered)
-        self.assertNotIn("reviewed by", rendered.lower())
-        self.assertNotIn("endorsed by", rendered.lower())
-        self.assertNotIn("shared by", rendered.lower())
-
-    def test_cli_rejects_multiple_output_formats(self) -> None:
-        stdout = io.StringIO()
-
-        with contextlib.redirect_stdout(stdout):
-            code = main(
-                [
-                    "--no-trust-prompt",
-                    "evidence-court",
-                    "--demo",
-                    "bad-run",
-                    "--json",
-                    "--review-markdown",
-                ]
-            )
-
-        self.assertEqual(code, 2)
-        self.assertIn("choose only one output format", stdout.getvalue())
-
     def test_cli_good_run_demo_renders_json(self) -> None:
         stdout = io.StringIO()
 
@@ -373,87 +215,6 @@ class EvidenceCourtTest(unittest.TestCase):
         payload = json.loads(stdout.getvalue())
         self.assertEqual(code, 1)
         self.assertEqual(payload["verdict"], "FAIL")
-
-    def test_cli_fail_on_reason_code_turns_matching_code_into_ci_failure(self) -> None:
-        stdout = io.StringIO()
-
-        with contextlib.redirect_stdout(stdout):
-            code = main(
-                [
-                    "--no-trust-prompt",
-                    "evidence-court",
-                    "--demo",
-                    "bad-run",
-                    "--fail-on-reason-code",
-                    "test.required_not_run",
-                    "--json",
-                ]
-            )
-
-        payload = json.loads(stdout.getvalue())
-        self.assertEqual(code, 1)
-        self.assertEqual(payload["verdict"], "FAIL")
-        self.assertIn("test.required_not_run", payload["reason_codes"])
-
-    def test_cli_fail_on_reason_code_ignores_non_matching_codes(self) -> None:
-        stdout = io.StringIO()
-
-        with contextlib.redirect_stdout(stdout):
-            code = main(
-                [
-                    "--no-trust-prompt",
-                    "evidence-court",
-                    "--demo",
-                    "good-run",
-                    "--fail-on-reason-code",
-                    "test.required_not_run",
-                    "--json",
-                ]
-            )
-
-        payload = json.loads(stdout.getvalue())
-        self.assertEqual(code, 0)
-        self.assertEqual(payload["verdict"], "PASS")
-        self.assertEqual(payload["reason_codes"], [])
-
-    def test_cli_lists_reason_codes_without_run_input(self) -> None:
-        stdout = io.StringIO()
-
-        with contextlib.redirect_stdout(stdout):
-            code = main(["--no-trust-prompt", "evidence-court", "--list-reason-codes"])
-
-        rendered = stdout.getvalue()
-        self.assertEqual(code, 0)
-        self.assertIn("Evidence Court reason codes:", rendered)
-        self.assertIn("test.required_not_run", rendered)
-        self.assertIn("scope.protected_path_edited", rendered)
-        self.assertIn("suspicious.success_claim_without_test_evidence", rendered)
-
-    def test_cli_lists_reason_codes_as_json_without_run_input(self) -> None:
-        stdout = io.StringIO()
-
-        with contextlib.redirect_stdout(stdout):
-            code = main(["--no-trust-prompt", "evidence-court", "--list-reason-codes", "--json"])
-
-        payload = json.loads(stdout.getvalue())
-        self.assertEqual(code, 0)
-        self.assertIn(
-            {"code": "test.required_not_run", "description": "A required test or command was not reported as run."},
-            payload,
-        )
-        self.assertEqual(
-            [item["code"] for item in payload],
-            [code for code, _description in EVIDENCE_COURT_REASON_CODES],
-        )
-
-    def test_reported_reason_codes_are_documented_in_catalog(self) -> None:
-        catalog = {code for code, _description in EVIDENCE_COURT_REASON_CODES}
-        report = evaluate_evidence_court(bad_run_demo())
-
-        self.assertGreater(len(catalog), 0)
-        for code in report.reason_codes:
-            with self.subTest(code=code):
-                self.assertIn(code, catalog)
 
     def test_cli_fail_on_suspicious_blocks_suspicious_verdicts(self) -> None:
         with tempfile.TemporaryDirectory(prefix="evidence court ") as tmp:
@@ -515,18 +276,9 @@ class EvidenceCourtTest(unittest.TestCase):
                 "evidence",
                 "scope_violations",
                 "test_verification",
-                "test_output_status",
-                "test_output_status_reason",
                 "suspicious_behavior",
-                "reason_codes",
                 "verdict",
             },
-        )
-        self.assertEqual(payload["test_output_status"], "unknown")
-        self.assertEqual(payload["test_output_status_reason"], "no known pass/fail pattern matched")
-        self.assertTrue(
-            any(item.startswith("test output status reason: ") for item in payload["test_verification"]),
-            payload["test_verification"],
         )
 
     def test_cli_rejects_raw_non_json_log_input(self) -> None:
@@ -540,6 +292,180 @@ class EvidenceCourtTest(unittest.TestCase):
 
         self.assertEqual(code, 2)
         self.assertIn("evidence-court error:", stdout.getvalue())
+
+    def test_ci_log_adapter_passes_with_visible_required_pytest_command(self) -> None:
+        run = evidence_court_run_from_ci_log(
+            """
+Run python -m pytest tests/test_calculator.py -q
+.                                                                        [100%]
+1 passed in 0.02s
+""",
+            claimed_task="Fix calculator.add.",
+            final_claim="Fixed. Tests pass.",
+            required_tests=("python -m pytest tests/test_calculator.py -q",),
+            source="ci-log-fixture",
+        )
+
+        report = evaluate_evidence_court(run)
+
+        self.assertEqual(run.commands_run, ("python -m pytest tests/test_calculator.py -q",))
+        self.assertEqual(run.source, "ci-log-fixture")
+        self.assertEqual(report.verdict, "PASS")
+        self.assertIn("test output status: passed", report.test_verification)
+
+    def test_ci_log_adapter_fails_on_failed_pytest_output(self) -> None:
+        run = evidence_court_run_from_ci_log(
+            """
+$ python -m pytest tests/test_calculator.py -q
+FAILED tests/test_calculator.py::test_add - AssertionError
+1 failed in 0.03s
+""",
+            claimed_task="Fix calculator.add.",
+            final_claim="Fixed. Tests pass.",
+            required_tests=("python -m pytest tests/test_calculator.py -q",),
+        )
+
+        report = evaluate_evidence_court(run)
+
+        self.assertEqual(report.verdict, "FAIL")
+        self.assertIn("test output status: failed", report.test_verification)
+        self.assertIn("final claim says success, but test evidence is missing or failing", report.suspicious_behavior)
+
+    def test_ci_log_adapter_reads_github_actions_test_step_group(self) -> None:
+        run = evidence_court_run_from_ci_log(
+            """
+2026-06-05T11:22:33.0000000Z ##[group]Run actions/setup-python@v5
+2026-06-05T11:22:33.0000000Z ##[endgroup]
+2026-06-05T11:22:34.0000000Z ##[group]Run python -m pytest tests/test_calculator.py -q
+2026-06-05T11:22:34.0000000Z python -m pytest tests/test_calculator.py -q
+2026-06-05T11:22:35.0000000Z .                                                                        [100%]
+2026-06-05T11:22:35.0000000Z 1 passed in 0.02s
+2026-06-05T11:22:35.0000000Z ##[endgroup]
+""",
+            claimed_task="Fix calculator.add.",
+            final_claim="Fixed. Tests pass.",
+            required_tests=("python -m pytest tests/test_calculator.py -q",),
+            source="github-actions-test-step-log",
+        )
+
+        report = evaluate_evidence_court(run)
+
+        self.assertEqual(run.commands_run, ("python -m pytest tests/test_calculator.py -q",))
+        self.assertEqual(run.source, "github-actions-test-step-log")
+        self.assertEqual(report.verdict, "PASS")
+
+    def test_ci_log_adapter_extracts_test_step_from_full_github_actions_job_log(self) -> None:
+        run = evidence_court_run_from_ci_log(
+            """
+2026-06-05T11:21:00.0000000Z ##[group]Run actions/setup-python@v5
+2026-06-05T11:21:01.0000000Z Python setup complete
+2026-06-05T11:21:02.0000000Z ##[endgroup]
+2026-06-05T11:22:00.0000000Z ##[group]Run python -m pytest tests/test_evidence_court.py \\
+2026-06-05T11:22:00.0000000Z   tests/test_evidence_court_smoke_script.py -q
+2026-06-05T11:22:00.0000000Z shell: /usr/bin/bash -e {0}
+2026-06-05T11:22:01.0000000Z python -m pytest tests/test_evidence_court.py \\
+2026-06-05T11:22:01.0000000Z   tests/test_evidence_court_smoke_script.py -q
+2026-06-05T11:22:18.0000000Z 69 passed in 18.47s
+2026-06-05T11:22:19.0000000Z ##[endgroup]
+""",
+            claimed_task="Audit the release candidate.",
+            final_claim="Release tests pass.",
+            required_tests=("python -m pytest tests/test_evidence_court.py tests/test_evidence_court_smoke_script.py -q",),
+        )
+
+        report = evaluate_evidence_court(run)
+
+        self.assertEqual(
+            run.commands_run,
+            ("python -m pytest tests/test_evidence_court.py tests/test_evidence_court_smoke_script.py -q",),
+        )
+        self.assertEqual(run.source, "github-actions-job-log")
+        self.assertEqual(report.verdict, "PASS")
+
+    def test_ci_log_adapter_fails_closed_on_github_actions_error_marker(self) -> None:
+        run = evidence_court_run_from_ci_log(
+            """
+2026-06-05T11:22:00.0000000Z ##[group]Run python -m pytest tests/test_evidence_court.py -q
+2026-06-05T11:22:18.0000000Z 69 passed in 18.47s
+2026-06-05T11:22:19.0000000Z ::error::Process completed with exit code 1.
+2026-06-05T11:22:20.0000000Z ##[endgroup]
+""",
+            final_claim="CI is green.",
+            required_tests=("python -m pytest tests/test_evidence_court.py -q",),
+        )
+
+        report = evaluate_evidence_court(run)
+
+        self.assertEqual(report.verdict, "FAIL")
+        self.assertIn("test output status: failed", report.test_verification)
+
+    def test_ci_log_adapter_rejects_github_actions_log_without_test_step(self) -> None:
+        with self.assertRaisesRegex(ValueError, "supported test command"):
+            evidence_court_run_from_ci_log(
+                """
+2026-06-05T11:22:33.0000000Z ##[group]Run actions/setup-python@v5
+2026-06-05T11:22:33.0000000Z ##[endgroup]
+2026-06-05T11:22:34.0000000Z ##[group]Run python -m pip install -e .
+2026-06-05T11:22:34.0000000Z Successfully installed open-mako
+""",
+                final_claim="CI is green.",
+            )
+
+    def test_ci_log_adapter_rejects_logs_without_supported_test_command(self) -> None:
+        with self.assertRaisesRegex(ValueError, "supported test command"):
+            evidence_court_run_from_ci_log("1 passed in 0.02s\n", final_claim="Tests pass.")
+
+    def test_cli_reads_ci_log_with_explicit_claim_context(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="evidence court ") as tmp:
+            path = Path(tmp) / "pytest.log"
+            path.write_text(
+                "$ python -m pytest tests/test_calculator.py -q\n1 passed in 0.02s\n",
+                encoding="utf-8",
+            )
+            stdout = io.StringIO()
+
+            with contextlib.redirect_stdout(stdout):
+                code = main(
+                    [
+                        "--no-trust-prompt",
+                        "evidence-court",
+                        "--from-ci-log",
+                        str(path),
+                        "--claimed-task",
+                        "Fix calculator.add.",
+                        "--claim",
+                        "Fixed. Tests pass.",
+                        "--required-test",
+                        "python -m pytest tests/test_calculator.py -q",
+                        "--json",
+                    ]
+                )
+
+        payload = json.loads(stdout.getvalue())
+        self.assertEqual(code, 0)
+        self.assertEqual(payload["verdict"], "PASS")
+        self.assertIn(f"source: {path}", payload["evidence"])
+
+    def test_cli_ci_log_requires_explicit_claim(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="evidence court ") as tmp:
+            path = Path(tmp) / "pytest.log"
+            path.write_text("$ python -m pytest tests/test_calculator.py -q\n1 passed in 0.02s\n", encoding="utf-8")
+            stdout = io.StringIO()
+
+            with contextlib.redirect_stdout(stdout):
+                code = main(["--no-trust-prompt", "evidence-court", "--from-ci-log", str(path), "--json"])
+
+        self.assertEqual(code, 2)
+        self.assertIn("--from-ci-log requires --claim", stdout.getvalue())
+
+    def test_load_ci_log_path_becomes_source(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="evidence court ") as tmp:
+            path = Path(tmp) / "pytest.log"
+            path.write_text("$ python -m pytest tests/test_calculator.py -q\n1 passed in 0.02s\n", encoding="utf-8")
+
+            run = load_evidence_court_ci_log(path, final_claim="Fixed. Tests pass.")
+
+        self.assertEqual(run.source, str(path))
 
     def test_run_record_rejects_nested_path_records(self) -> None:
         with self.assertRaisesRegex(ValueError, r"files_edited.*item 0.*string"):
@@ -582,6 +508,113 @@ class EvidenceCourtTest(unittest.TestCase):
 
         self.assertEqual(report.verdict, "PASS")
 
+    def test_openmako_agent_result_missing_verification_fails_closed(self) -> None:
+        run = evidence_court_run_from_dict(
+            {
+                "task": "Create hello.py with greet function and test it.",
+                "ok": False,
+                "status": "failed",
+                "summary": "Done. Tests pass.",
+                "failure_class": "verification_failed",
+                "final_mode": "build",
+                "route": {},
+                "runtime_context": {},
+                "plan": [],
+                "observations": [
+                    {
+                        "step": 1,
+                        "name": "implement",
+                        "kind": "tool",
+                        "ok": True,
+                        "summary": "wrote hello.py",
+                        "mode": "build",
+                        "data": {"files_touched": ["hello.py"], "created_files": ["hello.py"]},
+                    },
+                    {
+                        "step": 2,
+                        "name": "verification_required",
+                        "kind": "internal",
+                        "ok": False,
+                        "summary": "post-edit verification missing after file changes",
+                        "mode": "build",
+                        "data": {
+                            "files_touched": ["hello.py"],
+                            "required_verification": ["validate", "unit_tests"],
+                        },
+                    },
+                ],
+                "trajectory_path": ".quantagent/trajectory.jsonl",
+                "query_events_path": ".quantagent/query_events.jsonl",
+            }
+        )
+
+        report = evaluate_evidence_court(run)
+
+        self.assertEqual(run.claimed_task, "Create hello.py with greet function and test it.")
+        self.assertEqual(run.final_claim, "Done. Tests pass.")
+        self.assertEqual(run.files_edited, ("hello.py",))
+        self.assertEqual(run.required_tests, ("validate", "unit_tests"))
+        self.assertEqual(run.source, "openmako-agent-loop-result")
+        self.assertIn("required test not run: validate", report.test_verification)
+        self.assertIn("required test not run: unit_tests", report.test_verification)
+        self.assertIn("final claim says success, but test evidence is missing or failing", report.suspicious_behavior)
+        self.assertEqual(report.verdict, "FAIL")
+
+    def test_openmako_agent_result_uses_command_observation_as_test_evidence(self) -> None:
+        run = evidence_court_run_from_dict(
+            {
+                "task": "Fix subject.py and run tests.",
+                "ok": True,
+                "status": "done",
+                "summary": "Fixed. Tests pass.",
+                "failure_class": "",
+                "final_mode": "build",
+                "runtime_context": {},
+                "plan": [],
+                "observations": [
+                    {
+                        "step": 1,
+                        "name": "file_read",
+                        "kind": "tool",
+                        "ok": True,
+                        "summary": "read subject.py",
+                        "data": {"file_path": "subject.py"},
+                    },
+                    {
+                        "step": 2,
+                        "name": "implement",
+                        "kind": "tool",
+                        "ok": True,
+                        "summary": "updated subject.py",
+                        "data": {"files_touched": ["subject.py"]},
+                    },
+                    {
+                        "step": 3,
+                        "name": "unit_tests",
+                        "kind": "command",
+                        "ok": True,
+                        "summary": "command ok",
+                        "data": {
+                            "command": ["python3", "-m", "unittest", "discover", "-s", "tests"],
+                            "stdout": "OK\nRan 1 test in 0.001s\n",
+                            "stderr": "",
+                            "returncode": 0,
+                        },
+                    },
+                ],
+                "trajectory_path": ".quantagent/trajectory.jsonl",
+            }
+        )
+
+        report = evaluate_evidence_court(run)
+
+        self.assertEqual(run.files_read, ("subject.py",))
+        self.assertEqual(run.files_edited, ("subject.py",))
+        self.assertEqual(run.commands_run, ("python3 -m unittest discover -s tests",))
+        self.assertIn("test command observed: python3 -m unittest discover -s tests", report.test_verification)
+        self.assertIn("test output status: passed", report.test_verification)
+        self.assertEqual(report.verdict, "PASS")
+
     def test_null_primary_fields_do_not_mask_legacy_aliases(self) -> None:
         run = evidence_court_run_from_dict(
             {
@@ -604,107 +637,6 @@ class EvidenceCourtTest(unittest.TestCase):
         self.assertEqual(run.required_tests, ("python -m pytest tests/test_calculator.py -q",))
         self.assertIn("edited out-of-scope path: tests/test_calculator.py", report.scope_violations)
         self.assertEqual(report.verdict, "FAIL")
-
-    def test_run_record_preserves_local_agent_metadata_without_treating_it_as_proof(self) -> None:
-        run = evidence_court_run_from_dict(
-            {
-                "claimed_task": "Fix calculator.add; only calculator.py may be edited.",
-                "final_claim": "Fixed. Tests pass.",
-                "agent_runtime": "local-gateway",
-                "tool_calls": ["read_file calculator.py", "write_file tests/test_calculator.py"],
-                "approval_events": ["approved write_file tests/test_calculator.py"],
-                "sandbox_boundary": "workspace-write; network disabled",
-                "diff_summary": "M tests/test_calculator.py",
-                "artifact_urls": ["https://example.invalid/run/123"],
-                "redaction_note": "user paths removed",
-                "files_read": ["calculator.py"],
-                "files_edited": ["tests/test_calculator.py"],
-                "commands_run": ["python -m py_compile calculator.py"],
-                "test_output": "No pytest output captured.",
-                "allowed_edit_paths": ["calculator.py"],
-                "protected_paths": ["tests/*"],
-                "required_tests": ["python -m pytest tests/test_calculator.py -q"],
-                "source": "synthetic-local-gateway",
-            }
-        )
-
-        report = evaluate_evidence_court(run)
-
-        self.assertEqual(run.agent_runtime, "local-gateway")
-        self.assertEqual(run.approval_events, ("approved write_file tests/test_calculator.py",))
-        self.assertIn("agent_runtime: local-gateway", report.evidence)
-        self.assertIn("tool_calls: read_file calculator.py, write_file tests/test_calculator.py", report.evidence)
-        self.assertIn("sandbox_boundary: workspace-write; network disabled", report.evidence)
-        self.assertIn("artifact_urls: https://example.invalid/run/123", report.evidence)
-        self.assertIn("redaction_note: user paths removed", report.evidence)
-        self.assertIn("required test not run: python -m pytest tests/test_calculator.py -q", report.test_verification)
-        self.assertIn("test.required_not_run", report.reason_codes)
-        self.assertNotIn("approval.protected_edit_missing", report.reason_codes)
-        self.assertNotIn("sandbox.boundary_missing_for_protected_edit", report.reason_codes)
-        self.assertEqual(report.verdict, "FAIL")
-
-    def test_synthetic_trend_example_records_fail_closed_without_native_adapter_claims(self) -> None:
-        root = Path(__file__).resolve().parents[1]
-        cases = (
-            (
-                root / "examples/evidence-court/terminal-agent-bad-run.json",
-                "agent_runtime: synthetic terminal coding agent",
-                "required test not run: python -m pytest tests/test_client.py -q",
-                {
-                    "approval.protected_edit_missing",
-                    "sandbox.boundary_missing_for_protected_edit",
-                },
-            ),
-            (
-                root / "examples/evidence-court/local-gateway-bad-run.json",
-                "agent_runtime: synthetic local gateway agent",
-                "required test not run: python -m pytest tests/test_gateway_router.py -q",
-                {"approval.protected_edit_missing"},
-            ),
-        )
-
-        for path, runtime_evidence, missing_test, metadata_codes in cases:
-            with self.subTest(path=path.name):
-                run = load_evidence_court_run(path)
-                report = evaluate_evidence_court(run)
-
-                self.assertEqual(report.verdict, "FAIL")
-                self.assertIn(runtime_evidence, report.evidence)
-                self.assertIn(missing_test, report.test_verification)
-                self.assertIn("test.required_not_run", report.reason_codes)
-                self.assertIn("scope.protected_path_edited", report.reason_codes)
-                self.assertIn("suspicious.success_claim_with_scope_violation", report.reason_codes)
-                for code in metadata_codes:
-                    self.assertIn(code, report.reason_codes)
-                if "sandbox.boundary_missing_for_protected_edit" not in metadata_codes:
-                    self.assertNotIn("sandbox.boundary_missing_for_protected_edit", report.reason_codes)
-
-                rendered = render_evidence_court(report)
-                self.assertNotIn("native Hermes ingestion", rendered)
-                self.assertNotIn("native OpenClaw ingestion", rendered)
-                self.assertNotIn("sandbox proof", rendered)
-
-    def test_protected_edit_negative_approval_text_does_not_count_as_approval(self) -> None:
-        run = EvidenceCourtRun(
-            claimed_task="Fix retry; only src/client.py may be edited.",
-            final_claim="Done. Tests pass.",
-            files_read=("src/client.py",),
-            files_edited=("src/client.py", "tests/test_client.py"),
-            commands_run=("python -m pytest tests/test_client.py -q",),
-            test_output="1 passed in 0.02s",
-            allowed_edit_paths=("src/client.py",),
-            protected_paths=("tests/*",),
-            required_tests=("python -m pytest tests/test_client.py -q",),
-            approval_events=("no approval recorded for tests/test_client.py",),
-            sandbox_boundary="workspace-write",
-        )
-
-        report = evaluate_evidence_court(run)
-
-        self.assertEqual(report.verdict, "FAIL")
-        self.assertIn("protected edit lacks approval evidence: tests/test_client.py", report.suspicious_behavior)
-        self.assertIn("approval.protected_edit_missing", report.reason_codes)
-        self.assertNotIn("sandbox.boundary_missing_for_protected_edit", report.reason_codes)
 
     def test_cli_reads_input_json_and_renders_markdown(self) -> None:
         with tempfile.TemporaryDirectory(prefix="evidence court ") as tmp:
@@ -802,7 +734,6 @@ class EvidenceCourtTest(unittest.TestCase):
         cases = {
             "bad-run.json": "FAIL",
             "good-run.json": "PASS",
-            "redacted-real-world-bad-run.json": "FAIL",
         }
 
         for name, expected_verdict in cases.items():
@@ -833,26 +764,11 @@ class EvidenceCourtTest(unittest.TestCase):
         self.assertIn("test output status: passed", good_report.test_verification)
         self.assertEqual(good_report.suspicious_behavior, ())
 
-        redacted_report = evaluate_evidence_court(
-            load_evidence_court_run(root / "examples" / "evidence-court" / "redacted-real-world-bad-run.json")
-        )
-        self.assertIn("edited protected path: tests/test_api_guard.py", redacted_report.scope_violations)
-        self.assertIn("edited protected path: .github/workflows/ci.yml", redacted_report.scope_violations)
-        self.assertIn(
-            "required test not run: python -m pytest tests/test_api_guard.py -q",
-            redacted_report.test_verification,
-        )
-        self.assertIn(
-            "final claim says success, but test evidence is missing or failing",
-            redacted_report.suspicious_behavior,
-        )
-
     def test_cli_reads_evidence_court_examples(self) -> None:
         root = Path(__file__).resolve().parents[1]
         cases = {
             "bad-run.json": "FAIL",
             "good-run.json": "PASS",
-            "redacted-real-world-bad-run.json": "FAIL",
         }
 
         for name, expected_verdict in cases.items():
@@ -881,7 +797,6 @@ class EvidenceCourtTest(unittest.TestCase):
         example_paths = [
             "examples/evidence-court/bad-run.json",
             "examples/evidence-court/good-run.json",
-            "examples/evidence-court/redacted-real-world-bad-run.json",
         ]
 
         for example_path in example_paths:
@@ -889,24 +804,10 @@ class EvidenceCourtTest(unittest.TestCase):
                 self.assertIn(f"mako evidence-court --input {example_path}", readme)
                 self.assertTrue((root / example_path).exists())
 
-    def test_readme_demo_states_record_auditor_boundary(self) -> None:
-        root = Path(__file__).resolve().parents[1]
-        readme = (root / "README.md").read_text(encoding="utf-8")
-        demo_section = readme.split("## 10-Second Demo", 1)[1].split("## What Normal Tests Miss", 1)[0]
-        boundary = (
-            "Evidence Court does not inspect the real repository state or independently rerun tests. "
-            "It checks whether the run record you supply contains enough evidence to support the final claim."
-        )
-
-        self.assertIn(boundary, demo_section)
-        self.assertIn("does not inspect the real repository state", demo_section)
-        self.assertIn("run record you supply", demo_section)
-
     def test_readme_evidence_court_commands_execute(self) -> None:
         root = Path(__file__).resolve().parents[1]
         readme = (root / "README.md").read_text(encoding="utf-8")
         transcript_path = root / "tests" / "fixtures" / "evidence_court" / "marked_bad_transcript.txt"
-        agent_run_result_path = root / "tests" / "fixtures" / "evidence_court" / "openmako_agent_run_result_bad.json"
         cases = (
             (
                 "mako evidence-court --demo bad-run",
@@ -924,30 +825,8 @@ class EvidenceCourtTest(unittest.TestCase):
                 "PASS",
             ),
             (
-                "mako evidence-court --input examples/evidence-court/redacted-real-world-bad-run.json",
-                [
-                    "--no-trust-prompt",
-                    "evidence-court",
-                    "--input",
-                    str(root / "examples/evidence-court/redacted-real-world-bad-run.json"),
-                    "--json",
-                ],
-                "FAIL",
-            ),
-            (
                 "mako evidence-court --from-transcript tests/fixtures/evidence_court/marked_bad_transcript.txt --json",
                 ["--no-trust-prompt", "evidence-court", "--from-transcript", str(transcript_path), "--json"],
-                "FAIL",
-            ),
-            (
-                "mako evidence-court --from-openmako-agent-run-result tests/fixtures/evidence_court/openmako_agent_run_result_bad.json --json",
-                [
-                    "--no-trust-prompt",
-                    "evidence-court",
-                    "--from-openmako-agent-run-result",
-                    str(agent_run_result_path),
-                    "--json",
-                ],
                 "FAIL",
             ),
         )
@@ -966,35 +845,6 @@ class EvidenceCourtTest(unittest.TestCase):
                     self.assertEqual(json.loads(rendered)["verdict"], expected_verdict)
                 else:
                     self.assertIn(f"## Verdict: {expected_verdict}", rendered)
-
-    def test_readme_reason_code_gate_command_executes(self) -> None:
-        root = Path(__file__).resolve().parents[1]
-        readme = (root / "README.md").read_text(encoding="utf-8")
-        command = (
-            "mako evidence-court --input examples/evidence-court/bad-run.json "
-            "--fail-on-reason-code test.required_not_run --json"
-        )
-        stdout = io.StringIO()
-
-        self.assertIn(command, readme)
-        self.assertIn("mako evidence-court --list-reason-codes", readme)
-        self.assertIn("mako evidence-court --list-reason-codes --json", readme)
-        with contextlib.redirect_stdout(stdout):
-            code = main(
-                [
-                    "--no-trust-prompt",
-                    "evidence-court",
-                    "--input",
-                    str(root / "examples/evidence-court/bad-run.json"),
-                    "--fail-on-reason-code",
-                    "test.required_not_run",
-                    "--json",
-                ]
-            )
-
-        payload = json.loads(stdout.getvalue())
-        self.assertEqual(code, 1)
-        self.assertIn("test.required_not_run", payload["reason_codes"])
 
     def test_readme_jsonl_event_command_executes(self) -> None:
         root = Path(__file__).resolve().parents[1]
@@ -1037,10 +887,8 @@ class EvidenceCourtTest(unittest.TestCase):
         manifest = (root / "docs" / "EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md").read_text(encoding="utf-8")
 
         self.assertIn("explicit Evidence Court JSONL event streams", manifest)
-        self.assertIn("OpenMako AgentRunResult JSON producer artifacts", manifest)
-        self.assertIn("openmako.agent_run_result.v0", manifest)
         self.assertIn("native Claude/Codex/Cursor/Devin transcript ingestion", manifest)
-        self.assertIn("GitHub Actions or CI log ingestion", manifest)
+        self.assertIn("arbitrary CI log ingestion", manifest)
 
     def test_example_records_match_builtin_demos_except_source(self) -> None:
         root = Path(__file__).resolve().parents[1]
@@ -1057,35 +905,6 @@ class EvidenceCourtTest(unittest.TestCase):
                 example_payload.pop("source", None)
 
                 self.assertEqual(example_payload, builtin_payload)
-
-    def test_redacted_real_world_fixture_keeps_private_details_out(self) -> None:
-        root = Path(__file__).resolve().parents[1]
-        path = root / "examples" / "evidence-court" / "redacted-real-world-bad-run.json"
-        text = path.read_text(encoding="utf-8")
-        payload = json.loads(text)
-
-        self.assertIn("[REDACTED_REPO]", text)
-        self.assertIn("[REDACTED_ISSUE]", text)
-        self.assertIn("[REDACTED_LOG_EXCERPT]", text)
-        self.assertIn("redaction_note", payload)
-        self.assertIn("not a native vendor transcript", payload["redaction_note"])
-        self.assertIn("does not prove tests ran outside the supplied record", payload["redaction_note"])
-
-        forbidden_patterns = (
-            r"sk-[A-Za-z0-9_-]{16,}",
-            r"ghp_[A-Za-z0-9_]{16,}",
-            r"glpat-[A-Za-z0-9_-]{16,}",
-            r"(?i)github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+",
-            r"/Users/[A-Za-z0-9_.-]+",
-            r"[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}",
-        )
-        for pattern in forbidden_patterns:
-            with self.subTest(pattern=pattern):
-                self.assertIsNone(re.search(pattern, text))
-
-        report = evaluate_evidence_court(load_evidence_court_run(path))
-        self.assertEqual(report.verdict, "FAIL")
-        self.assertIn("source: examples/evidence-court/redacted-real-world-bad-run.json", report.evidence)
 
     def test_marked_transcript_fixture_evaluates_to_fail(self) -> None:
         root = Path(__file__).resolve().parents[1]
@@ -1142,43 +961,6 @@ $ python -m pytest tests/test_calculator.py -q
         self.assertEqual(report.verdict, "PASS")
         self.assertEqual(run.commands_run, ("python -m pytest tests/test_calculator.py -q",))
         self.assertEqual(report.scope_violations, ())
-
-    def test_marked_transcript_required_commands_alias_can_fail_missing_required_test(self) -> None:
-        run = evidence_court_run_from_transcript(
-            """
-[claimed_task]
-Fix calculator.add.
-[/claimed_task]
-[final_claim]
-Fixed. Tests pass.
-[/final_claim]
-[files_read]
-- calculator.py
-[/files_read]
-[files_edited]
-- calculator.py
-[/files_edited]
-[commands_run]
-$ python -m py_compile calculator.py
-[/commands_run]
-[test_output]
-No pytest output captured.
-[/test_output]
-[required_commands]
-$ python -m pytest tests/test_calculator.py -q
-[/required_commands]
-""",
-            source="inline-required-command-alias",
-        )
-
-        report = evaluate_evidence_court(run)
-
-        self.assertEqual(run.required_tests, ("python -m pytest tests/test_calculator.py -q",))
-        self.assertEqual(report.verdict, "FAIL")
-        self.assertIn(
-            "required test not run: python -m pytest tests/test_calculator.py -q",
-            report.test_verification,
-        )
 
     def test_marked_transcript_without_sections_is_rejected(self) -> None:
         with self.assertRaisesRegex(ValueError, "must use"):
@@ -1295,83 +1077,6 @@ $ python -m pytest tests/test_calculator.py -q
 
         self.assertEqual(run.source, str(path))
 
-    def test_openmako_agent_run_result_fixture_catches_false_tests_passed_claim(self) -> None:
-        root = Path(__file__).resolve().parents[1]
-        path = root / "tests" / "fixtures" / "evidence_court" / "openmako_agent_run_result_bad.json"
-
-        run = load_openmako_agent_run_result(path)
-        report = evaluate_evidence_court(run)
-
-        self.assertEqual(run.source, str(path))
-        self.assertEqual(run.files_read, ("calculator.py",))
-        self.assertEqual(run.files_edited, ("calculator.py", "tests/test_calculator.py"))
-        self.assertEqual(run.commands_run, ("python -m py_compile calculator.py",))
-        self.assertIn("edited protected path: tests/test_calculator.py", report.scope_violations)
-        self.assertIn(
-            "required test not run: python -m pytest tests/test_calculator.py -q",
-            report.test_verification,
-        )
-        self.assertIn(
-            "final claim says success, but test evidence is missing or failing",
-            report.suspicious_behavior,
-        )
-        self.assertEqual(report.verdict, "FAIL")
-
-    def test_openmako_agent_run_result_importer_can_evaluate_to_pass(self) -> None:
-        run = evidence_court_run_from_openmako_agent_run_result(
-            {
-                "schema": "openmako.agent_run_result.v0",
-                "task": {"claimed_task": "Fix calculator.add; only calculator.py may be edited."},
-                "final": {"message": "Fixed. Tests pass."},
-                "files": {"read": ["calculator.py", "tests/test_calculator.py"], "edited": ["calculator.py"]},
-                "commands": [
-                    {
-                        "command": "python -m pytest tests/test_calculator.py -q",
-                        "output": "1 passed in 0.02s",
-                    }
-                ],
-                "policy": {
-                    "allowed_edit_paths": ["calculator.py"],
-                    "protected_paths": ["tests/*"],
-                    "required_tests": ["python -m pytest tests/test_calculator.py -q"],
-                },
-            }
-        )
-
-        report = evaluate_evidence_court(run)
-
-        self.assertEqual(report.verdict, "PASS")
-        self.assertEqual(report.scope_violations, ())
-        self.assertEqual(report.suspicious_behavior, ())
-
-    def test_openmako_agent_run_result_rejects_wrong_schema(self) -> None:
-        with self.assertRaisesRegex(ValueError, "schema must be"):
-            evidence_court_run_from_openmako_agent_run_result({"schema": "vendor.raw.log"})
-
-    def test_cli_reads_openmako_agent_run_result_fixture(self) -> None:
-        root = Path(__file__).resolve().parents[1]
-        path = root / "tests" / "fixtures" / "evidence_court" / "openmako_agent_run_result_bad.json"
-        stdout = io.StringIO()
-
-        with contextlib.redirect_stdout(stdout):
-            code = main(
-                [
-                    "--no-trust-prompt",
-                    "evidence-court",
-                    "--from-openmako-agent-run-result",
-                    str(path),
-                    "--json",
-                ]
-            )
-
-        payload = json.loads(stdout.getvalue())
-        self.assertEqual(code, 0)
-        self.assertEqual(payload["verdict"], "FAIL")
-        self.assertIn(
-            "required test not run: python -m pytest tests/test_calculator.py -q",
-            payload["test_verification"],
-        )
-
     def test_cli_rejects_multiple_evidence_sources(self) -> None:
         root = Path(__file__).resolve().parents[1]
         json_path = root / "examples" / "evidence-court" / "bad-run.json"
@@ -1388,8 +1093,6 @@ $ python -m pytest tests/test_calculator.py -q
                     "--from-transcript",
                     str(transcript_path),
                     "--from-jsonl-events",
-                    str(json_path),
-                    "--from-openmako-agent-run-result",
                     str(json_path),
                 ]
             )

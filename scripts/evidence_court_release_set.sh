@@ -7,54 +7,32 @@ cd "${REPO_ROOT}"
 PY="${PYTHON:-python3}"
 
 INCLUDE_PATHS=(
-  ".github/ISSUE_TEMPLATE/technical-review-request.md"
   ".github/workflows/evidence-court.yml"
   "LICENSE"
   "README.md"
-  "pyproject.toml"
   "docs/CAPABILITY_GATES.md"
   "docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md"
+  "docs/EVIDENCE_COURT_V0_1_PACKAGE_README.md"
   "docs/EVIDENCE_COURT_V0_1_PR_BODY.md"
   "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md"
   "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md"
-  "docs/EVIDENCE_COURT_COMPARISON.md"
-  "docs/RUN_RECORD_FIELD_CHECKLIST.md"
-  "docs/TECHNICAL_TREND_RADAR.md"
-  "docs/REDACTION_GUIDE.md"
-  "docs/CURRENT_PROOF_STATUS.md"
-  "docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md"
-  "docs/EXPERT_REVIEW_BRIEF.md"
-  "docs/OUTREACH.md"
-  "docs/OUTREACH_TARGETS.md"
-  "docs/TECHNICAL_REVIEW_REQUEST.md"
-  "docs/PUBLIC_PROOF.md"
-  "docs/demo-terminal.svg"
-  "docs/LAUNCH_POST.md"
-  "docs/social-card.svg"
-  "docs/RELEASE_NOTES_V0_1_0.md"
-  "docs/RELEASE_NOTES_V0_1_1.md"
-  "docs/RELEASE_NOTES_V0_1_2.md"
   "examples/evidence-court/bad-run.json"
-  "examples/evidence-court/bad-run.report.json"
   "examples/evidence-court/good-run.json"
-  "examples/evidence-court/local-gateway-bad-run.json"
-  "examples/evidence-court/redacted-real-world-bad-run.json"
-  "examples/evidence-court/run-record.schema.json"
-  "examples/evidence-court/terminal-agent-bad-run.json"
-  "quantagent/evidence_court.py"
+  "MANIFEST.in"
+  "pyproject.toml"
   "quantagent/__init__.py"
-  "quantagent/cli.py"
+  "quantagent/evidence_court.py"
   "scripts/evidence_court_release_set.sh"
   "scripts/evidence_court_smoke.sh"
+  "setup.py"
   "tests/fixtures/evidence_court/marked_bad_transcript.txt"
-  "tests/fixtures/evidence_court/openmako_agent_run_result_bad.json"
-  "tests/fixtures/evidence_court/test_outputs/runner_outputs.json"
   "tests/test_evidence_court.py"
   "tests/test_evidence_court_smoke_script.py"
 )
 
 EXCLUDE_PATHS=(
   "quantagent/agent_planner.py"
+  "quantagent/cli.py"
   "tests/test_agent_planner_contract.py"
   "tests/test_external_benchmark_multimodule_regression.py"
 )
@@ -67,7 +45,6 @@ Usage:
   bash scripts/evidence_court_release_set.sh --audit-staged-claim-copy
   bash scripts/evidence_court_release_set.sh --check-branch-diff [BASE_REF]
   bash scripts/evidence_court_release_set.sh --verify-artifact-dir DIR
-  bash scripts/evidence_court_release_set.sh --render-current-main-review-packet [RUN_URL]
   bash scripts/evidence_court_release_set.sh --list
 
 --check verifies that release files exist and that any staged files are limited
@@ -78,15 +55,11 @@ Court v0.1 PR. PROGRESS.md is allowed only by --check, not by this exact gate.
 --audit-staged-claim-copy checks staged public copy for required claim
 boundaries after --check-staged-release-set passes.
 --check-branch-diff verifies that committed branch changes against BASE_REF
-are limited to the Evidence Court v0.1 release set. BASE_REF defaults to main.
+are limited to the Evidence Court v0.1 release set. BASE_REF defaults to
+origin/main.
 --verify-artifact-dir verifies a downloaded or local evidence-court-smoke
 artifact directory, including review-path files, expected verdict/source text,
 and SHA-256 hashes recorded in artifact-manifest.json.
---render-current-main-review-packet prints a bounded outreach packet with the
-current remote main SHA and a successful public Evidence Court Smoke run URL.
-Pass RUN_URL or EVIDENCE_COURT_RUN_URL if public GitHub HTML discovery is not
-available. Automatic discovery checks the most recent public run pages only.
-Do not send the packet unless the run URL belongs to the same main SHA.
 EOF
 }
 
@@ -182,6 +155,12 @@ check_staged_release_set() {
   done < <(git diff --cached --name-only)
 
   for path in "${INCLUDE_PATHS[@]}"; do
+    if [[ "${staged_count}" -gt 0 ]] && contains_path "${path}" "${staged_paths[@]}"; then
+      continue
+    fi
+    if git cat-file -e ":${path}" 2>/dev/null && [[ -e "${path}" ]]; then
+      continue
+    fi
     if [[ "${staged_count}" -eq 0 ]] || ! contains_path "${path}" "${staged_paths[@]}"; then
       echo "missing staged release file for Evidence Court v0.1: ${path}" >&2
       invalid=1
@@ -189,7 +168,7 @@ check_staged_release_set() {
   done
 
   if [[ "${invalid}" -eq 0 ]]; then
-    echo "Staged files exactly cover the Evidence Court v0.1 release set."
+    echo "Staged files plus existing release files cover the Evidence Court v0.1 release set."
   fi
   return "${invalid}"
 }
@@ -207,52 +186,37 @@ require_staged_contains() {
 audit_staged_claim_copy() {
   local invalid=0
   require_staged_contains "README.md" "does not yet natively ingest" || invalid=1
-  require_staged_contains "README.md" "Claude Code, Codex, Cursor, Devin, or CI logs" || invalid=1
+  require_staged_contains "README.md" "Claude Code, Codex, Cursor, or Devin logs" || invalid=1
+  require_staged_contains "README.md" "The CI-log path is intentionally narrower" || invalid=1
+  require_staged_contains "README.md" "not arbitrary CI ingestion" || invalid=1
+  require_staged_contains "README.md" "Packaging boundary: The open-mako wheel for this release installs only the" || invalid=1
+  require_staged_contains "README.md" "quantagent.evidence_court" || invalid=1
+  require_staged_contains "docs/CAPABILITY_GATES.md" "Supplied pytest/GitHub Actions log auditing" || invalid=1
+  require_staged_contains "docs/CAPABILITY_GATES.md" "v0.1 narrow support, not native CI ingestion" || invalid=1
+  require_staged_contains "docs/EVIDENCE_COURT_V0_1_PACKAGE_README.md" "supplied pytest logs, GitHub Actions test-step logs, or GitHub Actions job" || invalid=1
+  require_staged_contains "docs/EVIDENCE_COURT_V0_1_PACKAGE_README.md" "does not natively ingest Claude Code, Codex, Cursor, Devin" || invalid=1
+  require_staged_contains "docs/EVIDENCE_COURT_V0_1_PACKAGE_README.md" "arbitrary CI logs" || invalid=1
   require_staged_contains "docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md" 'Remote CI evidence requires GitHub Actions `Evidence Court Smoke` green for the PR head commit.' || invalid=1
+  require_staged_contains "docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md" "supplied pytest/GitHub Actions logs with visible supported test commands" || invalid=1
+  require_staged_contains "docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md" "github-actions-test-step.json" || invalid=1
+  require_staged_contains "docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md" "github-actions-job-log.json" || invalid=1
+  require_staged_contains "docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md" "failed-pytest-log.json" || invalid=1
   require_staged_contains "docs/EVIDENCE_COURT_V0_1_PR_BODY.md" "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md" || invalid=1
-  require_staged_contains "docs/EVIDENCE_COURT_V0_1_PR_BODY.md" "examples/evidence-court/run-record.schema.json" || invalid=1
-  require_staged_contains "docs/EVIDENCE_COURT_V0_1_PR_BODY.md" "docs/RUN_RECORD_FIELD_CHECKLIST.md" || invalid=1
-  require_staged_contains "docs/EVIDENCE_COURT_V0_1_PR_BODY.md" "docs/TECHNICAL_TREND_RADAR.md" || invalid=1
-  require_staged_contains "docs/EVIDENCE_COURT_V0_1_PR_BODY.md" "not evidence of endorsement, adoption, integration, or review" || invalid=1
-  require_staged_contains "docs/EVIDENCE_COURT_V0_1_PR_BODY.md" "This PR does not claim native Claude/Codex/Cursor/Devin/CI log ingestion" || invalid=1
+  require_staged_contains "docs/EVIDENCE_COURT_V0_1_PR_BODY.md" "This PR does not claim native Claude/Codex/Cursor/Devin transcript ingestion" || invalid=1
+  require_staged_contains "docs/EVIDENCE_COURT_V0_1_PR_BODY.md" "arbitrary CI log ingestion" || invalid=1
+  require_staged_contains "docs/EVIDENCE_COURT_V0_1_PR_BODY.md" "github-actions-test-step.json" || invalid=1
+  require_staged_contains "docs/EVIDENCE_COURT_V0_1_PR_BODY.md" "github-actions-job-log.json" || invalid=1
+  require_staged_contains "docs/EVIDENCE_COURT_V0_1_PR_BODY.md" "failed-pytest-log.json" || invalid=1
+  require_staged_contains "docs/EVIDENCE_COURT_V0_1_PR_BODY.md" "Packaging boundary: The open-mako wheel for this release installs only the" || invalid=1
+  require_staged_contains "docs/EVIDENCE_COURT_V0_1_PR_BODY.md" "quantagent.evidence_court" || invalid=1
   require_staged_contains "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md" "workflow wired locally" || invalid=1
+  require_staged_contains "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md" "arbitrary CI log ingestion" || invalid=1
+  require_staged_contains "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md" "github-actions-test-step.json" || invalid=1
+  require_staged_contains "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md" "github-actions-job-log.json" || invalid=1
+  require_staged_contains "docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md" "failed-pytest-log.json" || invalid=1
   require_staged_contains "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md" "Only these release files support" || invalid=1
-  require_staged_contains "docs/EVIDENCE_COURT_COMPARISON.md" "Evidence Court only audits the supplied record" || invalid=1
-  require_staged_contains "docs/EVIDENCE_COURT_COMPARISON.md" "does not prove tests actually ran outside" || invalid=1
-  require_staged_contains "docs/EVIDENCE_COURT_COMPARISON.md" "does not natively ingest Claude/Codex/Cursor/Devin/CI logs" || invalid=1
-  require_staged_contains "docs/RUN_RECORD_FIELD_CHECKLIST.md" "not evidence of native ingestion, endorsement, adoption" || invalid=1
-  require_staged_contains "docs/RUN_RECORD_FIELD_CHECKLIST.md" 'only its claim/evidence/scope/test logic affects the verdict' || invalid=1
-  require_staged_contains "docs/RUN_RECORD_FIELD_CHECKLIST.md" "does not natively ingest Hermes Agent, OpenClaw, opencode" || invalid=1
-  require_staged_contains "docs/TECHNICAL_TREND_RADAR.md" "not evidence of endorsement, adoption, integration, or review" || invalid=1
-  require_staged_contains "docs/TECHNICAL_TREND_RADAR.md" "Fresh Source Receipts" || invalid=1
-  require_staged_contains "docs/TECHNICAL_TREND_RADAR.md" "does not natively ingest Hermes, OpenClaw, opencode" || invalid=1
-  require_staged_contains "docs/OUTREACH_TARGETS.md" "https://github.com/anomalyco/opencode" || invalid=1
-  require_staged_contains "docs/REDACTION_GUIDE.md" "Evidence Court only audits the supplied record" || invalid=1
-  require_staged_contains "docs/REDACTION_GUIDE.md" "does not prove tests actually ran outside" || invalid=1
-  require_staged_contains "docs/REDACTION_GUIDE.md" "not native Claude/Codex/Cursor/Devin/CI" || invalid=1
-  require_staged_contains "docs/CURRENT_PROOF_STATUS.md" "Remote CI evidence is confirmed for latest verified main proof anchor commit" || invalid=1
-  require_staged_contains "docs/CURRENT_PROOF_STATUS.md" "sha256:b753e0563d63ca5c0f9c1850b67a13ec9fb2f8f53e5591b9260a93d77561332e" || invalid=1
-  require_staged_contains "docs/CURRENT_PROOF_STATUS.md" "does not automatically prove current or later main commits" || invalid=1
-  require_staged_contains "docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md" "not an endorsement request" || invalid=1
-  require_staged_contains "docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md" "Do not treat this draft as a sent review request" || invalid=1
-  require_staged_contains "docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md" "--fail-on-reason-code test.required_not_run" || invalid=1
-  require_staged_contains "docs/EXPERT_REVIEW_BRIEF.md" "Do Not Share If" || invalid=1
-  require_staged_contains "docs/OUTREACH.md" "Do Not Say" || invalid=1
-  require_staged_contains "docs/OUTREACH.md" "does not natively ingest Claude/Codex/Cursor/CI logs" || invalid=1
-  require_staged_contains "docs/OUTREACH_TARGETS.md" "None of these people, projects, or organizations has endorsed" || invalid=1
-  require_staged_contains "docs/OUTREACH_TARGETS.md" "Start with five targets before scaling" || invalid=1
-  require_staged_contains "docs/TECHNICAL_REVIEW_REQUEST.md" "not an endorsement request" || invalid=1
-  require_staged_contains "docs/TECHNICAL_REVIEW_REQUEST.md" "Review Questions" || invalid=1
-  require_staged_contains "docs/TECHNICAL_REVIEW_REQUEST.md" "--fail-on-reason-code test.required_not_run" || invalid=1
-  require_staged_contains ".github/ISSUE_TEMPLATE/technical-review-request.md" "not an endorsement request" || invalid=1
-  require_staged_contains ".github/ISSUE_TEMPLATE/technical-review-request.md" "Review Questions" || invalid=1
-  require_staged_contains ".github/ISSUE_TEMPLATE/technical-review-request.md" "--fail-on-reason-code test.required_not_run" || invalid=1
-  require_staged_contains "docs/EXPERT_REVIEW_BRIEF.md" "does not provide proof that tests actually ran outside" || invalid=1
-  require_staged_contains "docs/EXPERT_REVIEW_BRIEF.md" "reason-codes.json" || invalid=1
-  require_staged_contains "docs/LAUNCH_POST.md" "reason-codes.json" || invalid=1
-  require_staged_contains "docs/LAUNCH_POST.md" "test.required_not_run" || invalid=1
-  require_staged_contains "docs/PUBLIC_PROOF.md" "What This Does Not Prove" || invalid=1
-  require_staged_contains "docs/PUBLIC_PROOF.md" "Artifact digest" || invalid=1
+  require_staged_contains "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md" "Broader OpenMako and quantagent runtime modules are" || invalid=1
+  require_staged_contains "docs/EVIDENCE_COURT_V0_1_RELEASE_MANIFEST.md" "outside this launch claim unless covered by separate gates." || invalid=1
   if [[ "${invalid}" -eq 0 ]]; then
     echo "Staged Evidence Court public claim copy keeps the v0.1 boundaries."
   fi
@@ -260,13 +224,22 @@ audit_staged_claim_copy() {
 }
 
 check_branch_diff() {
-  local base_ref="${1:-${EVIDENCE_COURT_BASE_REF:-main}}"
+  local base_ref="${1:-${EVIDENCE_COURT_BASE_REF:-origin/main}}"
   local invalid=0
   local diff_count=0
+  local diff_paths=""
   local path
 
   if ! git rev-parse --verify "${base_ref}^{commit}" >/dev/null 2>&1; then
     echo "base ref not found for Evidence Court branch diff: ${base_ref}" >&2
+    return 2
+  fi
+  if ! git merge-base "${base_ref}" HEAD >/dev/null 2>&1; then
+    echo "no merge base for Evidence Court branch diff: ${base_ref}...HEAD" >&2
+    return 2
+  fi
+  if ! diff_paths="$(git diff --name-only "${base_ref}...HEAD")"; then
+    echo "failed to compute Evidence Court branch diff: ${base_ref}...HEAD" >&2
     return 2
   fi
 
@@ -282,7 +255,7 @@ check_branch_diff() {
       echo "unexpected branch diff for Evidence Court v0.1: ${path}" >&2
       invalid=1
     fi
-  done < <(git diff --name-only "${base_ref}...HEAD")
+  done <<< "${diff_paths}"
 
   if [[ "${invalid}" -eq 0 ]]; then
     if [[ "${diff_count}" -eq 0 ]]; then
@@ -292,82 +265,6 @@ check_branch_diff() {
     fi
   fi
   return "${invalid}"
-}
-
-discover_successful_run_urls_for_sha() {
-  local main_sha="$1"
-  local repo_slug="${EVIDENCE_COURT_REPO_SLUG:-1966536805l-crypto/openmako-evidence-court}"
-  local workflow_url="https://github.com/${repo_slug}/actions/workflows/evidence-court.yml?query=branch%3Amain"
-  local scan_limit="${EVIDENCE_COURT_RUN_SCAN_LIMIT:-5}"
-  local workflow_html
-  local run_id
-  local run_html
-
-  command -v curl >/dev/null 2>&1 || return 1
-  workflow_html="$(curl --max-time 10 -fsSL "${workflow_url}" 2>/dev/null || true)"
-  [[ -n "${workflow_html}" ]] || return 1
-
-  printf '%s' "${workflow_html}" \
-    | grep -Eo '/actions/runs/[0-9]+' \
-    | sed 's#.*/##' \
-    | awk '!seen[$0]++' \
-    | head -n "${scan_limit}" \
-    | while IFS= read -r run_id; do
-        [[ -n "${run_id}" ]] || continue
-        run_html="$(curl --max-time 10 -fsSL "https://github.com/${repo_slug}/actions/runs/${run_id}" 2>/dev/null || true)"
-        [[ -n "${run_html}" ]] || continue
-        if printf '%s' "${run_html}" | grep -Fq "${main_sha}" \
-          && printf '%s' "${run_html}" | grep -Fqi 'completed successfully'; then
-          printf 'https://github.com/%s/actions/runs/%s\n' "${repo_slug}" "${run_id}"
-        fi
-      done
-}
-
-render_current_main_review_packet() {
-  local supplied_run_url="${1:-${EVIDENCE_COURT_RUN_URL:-}}"
-  local repo_slug="${EVIDENCE_COURT_REPO_SLUG:-1966536805l-crypto/openmako-evidence-court}"
-  local remote="${EVIDENCE_COURT_REMOTE:-origin}"
-  local main_ref="${EVIDENCE_COURT_MAIN_REF:-refs/heads/main}"
-  local main_sha="${EVIDENCE_COURT_MAIN_SHA:-}"
-  local run_url="${supplied_run_url}"
-
-  if [[ -z "${main_sha}" ]]; then
-    main_sha="$(git ls-remote "${remote}" "${main_ref}" | awk '{print $1}')"
-  fi
-  if [[ ! "${main_sha}" =~ ^[0-9a-f]{40}$ ]]; then
-    echo "could not resolve a 40-character remote main SHA from ${remote} ${main_ref}" >&2
-    return 2
-  fi
-
-  if [[ -z "${run_url}" ]]; then
-    run_url="$(discover_successful_run_urls_for_sha "${main_sha}" | head -n 1 || true)"
-  fi
-  if [[ -z "${run_url}" ]]; then
-    echo "could not resolve a successful public Evidence Court Smoke run for ${main_sha}" >&2
-    echo "Pass EVIDENCE_COURT_RUN_URL=https://github.com/${repo_slug}/actions/runs/<run-id> after verifying that run page contains ${main_sha} and completed successfully." >&2
-    return 2
-  fi
-  if [[ ! "${run_url}" =~ ^https://github\.com/[^[:space:]]+/actions/runs/[0-9]+$ ]]; then
-    echo "run URL does not look like a GitHub Actions run URL: ${run_url}" >&2
-    return 2
-  fi
-
-  cat <<EOF
-I added current-main evidence for the supplied-record boundary:
-Repo: https://github.com/${repo_slug}
-Main commit: ${main_sha}
-CI: ${run_url}
-Artifact digest: not included here; verify public Actions artifact metadata before claiming artifact contents.
-
-The current run-record schema preserves optional metadata like agent_runtime,
-tool_calls, approval_events, sandbox_boundary, diff_summary, artifact_urls, and
-redaction_note, but those fields are reviewer context only. They do not prove
-sandboxing, approval, native log ingestion, or real test execution.
-
-Could you give one technical boundary check: is this supplied-record handoff
-shape useful for coding-agent runs, or is a required field missing?
-Not asking for endorsement, adoption, or a share.
-EOF
 }
 
 verify_artifact_dir() {
@@ -406,14 +303,17 @@ manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 expected_review_path = [
     "reviewer-quickstart.md",
     "bad-run.md",
-    "redacted-real-world-bad-run.json",
     "fail-on-fail.json",
-    "reason-codes.json",
-    "reason-codes.md",
     "good-run.json",
     "marked-transcript.json",
-    "openmako-agent-run-result.json",
     "jsonl-events.json",
+    "openmako-agent-result.json",
+    "github-actions-test-step.log",
+    "github-actions-test-step.json",
+    "github-actions-job-log.log",
+    "github-actions-job-log.json",
+    "failed-pytest-log.log",
+    "failed-pytest-log.json",
     "mixed-source-rejection.txt",
     "smoke-summary.txt",
 ]
@@ -423,7 +323,6 @@ require(actual_files == expected_files, f"artifact file set mismatch: {sorted(ac
 require(manifest.get("artifact") == "evidence-court-smoke", "artifact manifest has wrong artifact name")
 require(manifest.get("version") == "v0.1", "artifact manifest has wrong version")
 require("supplied JSON run records" in manifest.get("safe_claim", ""), "artifact manifest missing safe claim")
-require("OpenMako AgentRunResult JSON producer artifacts" in manifest.get("safe_claim", ""), "artifact manifest missing AgentRunResult safe claim")
 require(manifest.get("review_path") == expected_review_path, "artifact manifest review_path mismatch")
 
 hashes = manifest.get("artifact_file_sha256")
@@ -437,68 +336,78 @@ for name in expected_review_path:
 
 expected_checks = manifest.get("expected_checks", {})
 require(expected_checks.get("bad-run.md") == "## Verdict: FAIL", "manifest missing bad-run expected check")
-require(expected_checks.get("redacted-real-world-bad-run.json") == '"verdict": "FAIL"', "manifest missing redacted expected check")
 require(
     expected_checks.get("fail-on-fail.json") == '"verdict": "FAIL" and command exit code 1',
     "manifest missing fail-on-fail expected check",
 )
-require(expected_checks.get("reason-codes.json") == '"code": "test.required_not_run"', "manifest missing reason-code JSON expected check")
-require(expected_checks.get("reason-codes.md") == "test.required_not_run", "manifest missing reason-code markdown expected check")
 require(expected_checks.get("good-run.json") == '"verdict": "PASS"', "manifest missing good-run expected check")
-require(expected_checks.get("openmako-agent-run-result.json") == '"verdict": "FAIL"', "manifest missing AgentRunResult expected check")
 require(expected_checks.get("jsonl-events.json") == '"verdict": "FAIL"', "manifest missing JSONL expected check")
+require(
+    expected_checks.get("openmako-agent-result.json") == '"verdict": "FAIL"',
+    "manifest missing OpenMako agent result expected check",
+)
+require(
+    expected_checks.get("github-actions-test-step.json") == '"verdict": "PASS"',
+    "manifest missing GitHub Actions test-step expected check",
+)
+require(
+    expected_checks.get("github-actions-job-log.json") == '"verdict": "PASS"',
+    "manifest missing GitHub Actions job-log expected check",
+)
+require(
+    expected_checks.get("failed-pytest-log.json") == '"verdict": "FAIL"',
+    "manifest missing failed pytest log expected check",
+)
 
 source_checks = manifest.get("source_provenance_checks", {})
 require(source_checks.get("bad-run.md") == "source: bad-run-demo", "manifest missing bad-run source check")
-require(
-    source_checks.get("redacted-real-world-bad-run.json")
-    == "source: examples/evidence-court/redacted-real-world-bad-run.json",
-    "manifest missing redacted source check",
-)
 require(source_checks.get("fail-on-fail.json") == "source: bad-run-demo", "manifest missing fail-on source check")
 require(source_checks.get("good-run.json") == "source: good-run-demo", "manifest missing good-run source check")
 require(
     source_checks.get("marked-transcript.json") == "source: tests/fixtures/evidence_court/marked_bad_transcript.txt",
     "manifest missing transcript source check",
 )
+require(source_checks.get("jsonl-events.json") == "source: ", "manifest missing JSONL source check")
 require(
-    source_checks.get("openmako-agent-run-result.json")
-    == "source: tests/fixtures/evidence_court/openmako_agent_run_result_bad.json",
-    "manifest missing AgentRunResult source check",
+    source_checks.get("openmako-agent-result.json") == "source: openmako-agent-result-shaped-record",
+    "manifest missing OpenMako agent result source check",
 )
 require(
-    source_checks.get("jsonl-events.json") == "source: evidence-court-smoke-jsonl-events.jsonl",
-    "manifest missing JSONL source check",
-)
-
-ci_policy_recipe = manifest.get("ci_policy_recipe", {})
-require(
-    ci_policy_recipe.get("required_test_gate")
-    == "mako evidence-court --input <run-record.json> --fail-on-reason-code test.required_not_run --json",
-    "manifest missing required-test CI policy recipe",
+    source_checks.get("github-actions-test-step.json") == "github-actions-test-step.log",
+    "manifest missing GitHub Actions test-step source check",
 )
 require(
-    ci_policy_recipe.get("effect")
-    == "exits 1 when the supplied record omits the required test command",
-    "manifest missing CI policy recipe effect",
+    source_checks.get("github-actions-job-log.json") == "github-actions-job-log.log",
+    "manifest missing GitHub Actions job-log source check",
+)
+require(
+    source_checks.get("failed-pytest-log.json") == "failed-pytest-log.log",
+    "manifest missing failed pytest log source check",
 )
 
 boundaries = set(manifest.get("boundaries", []))
-require("No native Claude/Codex/Cursor/Devin/CI log ingestion claim." in boundaries, "manifest missing native-ingestion boundary")
-require("No proof that tests ran outside the supplied record." in boundaries, "manifest missing supplied-record boundary")
+require(
+    "No native Claude/Codex/Cursor/Devin transcript ingestion claim." in boundaries,
+    "manifest missing native-ingestion boundary",
+)
+require(
+    "The CI-log path only audits supplied pytest logs, GitHub Actions test-step logs, or GitHub Actions job logs with visible supported test commands." in boundaries,
+    "manifest missing supplied CI-log boundary",
+)
+require(
+    "No proof that tests ran outside the supplied record or supplied log." in boundaries,
+    "manifest missing supplied-record/log boundary",
+)
 require("No broad SWE repair, unknown NPM reasoning, or Desktop L4/L5 autonomy claim." in boundaries, "manifest missing autonomy boundary")
 
 content_checks = {
     "reviewer-quickstart.md": [
         "## 30-Second Review Path",
         "Open `bad-run.md` first",
-        "Open `redacted-real-world-bad-run.json`",
-        "Open `reason-codes.json` or `reason-codes.md`",
         "artifact file SHA-256 hashes",
-        "## CI Policy Recipe",
-        "--fail-on-reason-code test.required_not_run",
-        "does not rerun tests or parse native CI logs",
-        "does not prove native Claude/Codex/Cursor/Devin/CI log ingestion",
+        "does not prove native Claude/Codex/Cursor/Devin transcript ingestion",
+        "supplied pytest/GitHub Actions test-step logs",
+        "supplied full GitHub Actions job log input passes",
     ],
     "bad-run.md": [
         "## Verdict: FAIL",
@@ -506,36 +415,53 @@ content_checks = {
         "edited protected path: tests/test_calculator.py",
         "required test not run: python -m pytest tests/test_calculator.py -q",
     ],
-    "redacted-real-world-bad-run.json": [
-        '"verdict": "FAIL"',
-        "source: examples/evidence-court/redacted-real-world-bad-run.json",
-        "edited protected path: tests/test_api_guard.py",
-        "edited protected path: .github/workflows/ci.yml",
-        "required test not run: python -m pytest tests/test_api_guard.py -q",
-    ],
     "fail-on-fail.json": ['"verdict": "FAIL"', "source: bad-run-demo"],
-    "reason-codes.json": ['"code": "test.required_not_run"', '"description": "A required test or command was not reported as run."'],
-    "reason-codes.md": ["Evidence Court reason codes:", "test.required_not_run"],
     "good-run.json": ['"verdict": "PASS"', "source: good-run-demo"],
     "marked-transcript.json": [
         '"verdict": "FAIL"',
         "source: tests/fixtures/evidence_court/marked_bad_transcript.txt",
     ],
-    "openmako-agent-run-result.json": [
-        '"verdict": "FAIL"',
-        "source: tests/fixtures/evidence_court/openmako_agent_run_result_bad.json",
-        "edited protected path: tests/test_calculator.py",
-        "required test not run: python -m pytest tests/test_calculator.py -q",
-    ],
     "jsonl-events.json": [
         '"verdict": "FAIL"',
         "required test not run: python -m pytest tests/test_calculator.py -q",
     ],
+    "openmako-agent-result.json": [
+        '"verdict": "FAIL"',
+        "source: openmako-agent-result-shaped-record",
+        "required test not run: validate",
+        "required test not run: unit_tests",
+    ],
+    "github-actions-test-step.log": [
+        "##[group]Run python -m pytest tests/test_calculator.py -q",
+        "1 passed in 0.02s",
+    ],
+    "github-actions-test-step.json": [
+        '"verdict": "PASS"',
+        "github-actions-test-step.log",
+        "test command observed: python -m pytest tests/test_calculator.py -q",
+    ],
+    "github-actions-job-log.log": [
+        "##[group]Run actions/setup-python@v5",
+        "##[group]Run python -m pytest tests/test_evidence_court.py",
+        "69 passed in 18.47s",
+    ],
+    "github-actions-job-log.json": [
+        '"verdict": "PASS"',
+        "github-actions-job-log.log",
+        "test command observed: python -m pytest tests/test_evidence_court.py tests/test_evidence_court_smoke_script.py -q",
+    ],
+    "failed-pytest-log.log": [
+        "$ python -m pytest tests/test_calculator.py -q",
+        "1 failed in 0.03s",
+    ],
+    "failed-pytest-log.json": [
+        '"verdict": "FAIL"',
+        "failed-pytest-log.log",
+        "test output status: failed",
+    ],
     "mixed-source-rejection.txt": ["exit_code=2"],
     "smoke-summary.txt": [
         "Evidence Court smoke gate passed.",
-        "reason-code gate checked bad-run exits 1 with --fail-on-reason-code test.required_not_run.",
-        "reason-code catalog gate checked --list-reason-codes text and JSON output.",
         "review-path artifacts must have SHA-256 hashes",
     ],
 }
@@ -568,13 +494,10 @@ case "${mode}" in
     ;;
   --check-branch-diff)
     check_paths_exist
-    check_branch_diff "${2:-${EVIDENCE_COURT_BASE_REF:-main}}"
+    check_branch_diff "${2:-${EVIDENCE_COURT_BASE_REF:-origin/main}}"
     ;;
   --verify-artifact-dir)
     verify_artifact_dir "${2:-}"
-    ;;
-  --render-current-main-review-packet)
-    render_current_main_review_packet "${2:-}"
     ;;
   -h|--help)
     usage

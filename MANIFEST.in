@@ -1,0 +1,8 @@
+exclude README.md
+include LICENSE
+include docs/EVIDENCE_COURT_V0_1_PACKAGE_README.md
+recursive-exclude quantagent *
+include quantagent/__init__.py
+include quantagent/evidence_court.py
+include examples/evidence-court/bad-run.json
+include examples/evidence-court/good-run.json

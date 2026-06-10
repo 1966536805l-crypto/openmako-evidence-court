@@ -66,6 +66,10 @@ Evidence Court does not prove tests really ran outside the supplied record.
 It audits whether the record supports the claim.
 ```
 
+The supplied CI-log path is narrower than arbitrary CI ingestion: it audits
+supplied pytest logs, GitHub Actions test-step logs, or GitHub Actions job logs
+only when a supported test command is visible and an explicit claim is provided.
+
 ## Proof Commands
 
 Run these before public launch:
@@ -75,14 +79,14 @@ bash scripts/evidence_court_release_set.sh --check-staged-release-set
 bash scripts/evidence_court_release_set.sh --audit-staged-claim-copy
 bash scripts/evidence_court_smoke.sh
 bash scripts/evidence_court_smoke.sh --artifact-dir /tmp/evidence-court-smoke
-python -m pytest -p no:cacheprovider tests/test_evidence_court_smoke_script.py tests/test_evidence_court.py -q
+python3 -m pytest -p no:cacheprovider tests/test_evidence_court_smoke_script.py tests/test_evidence_court.py -q
 git diff --check
 ```
 
 After the release commit and before remote publication:
 
 ```bash
-bash scripts/evidence_court_release_set.sh --check-branch-diff main
+bash scripts/evidence_court_release_set.sh --check-branch-diff origin/main
 ```
 
 Expected local evidence:
@@ -92,6 +96,8 @@ Expected local evidence:
 - Bad demo reports `Verdict: FAIL`.
 - Good demo JSON reports `"verdict": "PASS"`.
 - Marked transcript v0 fixture reports `"verdict": "FAIL"`.
+- Supplied GitHub Actions pytest test-step log reports `"verdict": "PASS"`.
+- Supplied failed pytest log reports `"verdict": "FAIL"`.
 - Mixed JSON plus transcript inputs are rejected.
 - `bash scripts/evidence_court_smoke.sh --artifact-dir /tmp/evidence-court-smoke` writes the local reviewer artifact bundle.
 
@@ -105,31 +111,34 @@ candidate:
 
 ### Claim
 - [ ] Public claim is limited to structured JSON run records, explicit marked
-      transcript v0 files, and explicit Evidence Court JSONL event streams.
-- [ ] PR description does not claim native Claude/Codex/Cursor/Devin/CI log
-      ingestion.
+      transcript v0 files, explicit Evidence Court JSONL event streams, and
+      supplied pytest/GitHub Actions logs with visible supported test commands.
+- [ ] PR description does not claim native Claude/Codex/Cursor/Devin transcript
+      ingestion or arbitrary CI ingestion.
 - [ ] PR description does not claim broad SWE-style repair, unknown NPM
       reasoning, or Desktop L4/L5 autonomy.
 
 ### Included Files
 - [ ] `.github/workflows/evidence-court.yml`
+- [ ] `LICENSE`
 - [ ] `docs/EVIDENCE_COURT_V0_1_RELEASE_CUT.md`
 - [ ] `docs/EVIDENCE_COURT_V0_1_LAUNCH_PACKET.md`
-- [ ] `docs/EVIDENCE_COURT_COMPARISON.md`
-- [ ] `docs/REDACTION_GUIDE.md`
-- [ ] `docs/CURRENT_PROOF_STATUS.md`
-- [ ] `docs/TECHNICAL_REVIEW_ISSUE_DRAFT.md`
+- [ ] `docs/EVIDENCE_COURT_V0_1_PACKAGE_README.md`
 - [ ] `examples/evidence-court/bad-run.json`
 - [ ] `examples/evidence-court/good-run.json`
-- [ ] `examples/evidence-court/redacted-real-world-bad-run.json`
+- [ ] `MANIFEST.in`
+- [ ] `pyproject.toml`
+- [ ] `quantagent/__init__.py`
 - [ ] `quantagent/evidence_court.py`
 - [ ] `scripts/evidence_court_smoke.sh`
+- [ ] `setup.py`
 - [ ] `tests/fixtures/evidence_court/marked_bad_transcript.txt`
 - [ ] `tests/test_evidence_court.py`
 - [ ] `tests/test_evidence_court_smoke_script.py`
 
 ### Excluded From This Claim
 - [ ] `quantagent/agent_planner.py`
+- [ ] `quantagent/cli.py`
 - [ ] `tests/test_agent_planner_contract.py`
 - [ ] `tests/test_external_benchmark_multimodule_regression.py`
 
@@ -138,9 +147,9 @@ candidate:
 - [ ] `bash scripts/evidence_court_release_set.sh --audit-staged-claim-copy`
 - [ ] `bash scripts/evidence_court_smoke.sh`
 - [ ] `bash scripts/evidence_court_smoke.sh --artifact-dir /tmp/evidence-court-smoke`
-- [ ] `python -m pytest -p no:cacheprovider tests/test_evidence_court_smoke_script.py tests/test_evidence_court.py -q`
+- [ ] `python3 -m pytest -p no:cacheprovider tests/test_evidence_court_smoke_script.py tests/test_evidence_court.py -q`
 - [ ] `git diff --check`
-- [ ] After the release commit: `bash scripts/evidence_court_release_set.sh --check-branch-diff main`
+- [ ] After the release commit: `bash scripts/evidence_court_release_set.sh --check-branch-diff origin/main`
 
 ### Local Artifact Review Path
 Before remote CI exists:
@@ -156,20 +165,22 @@ sed -n '1,40p' /tmp/evidence-court-smoke/bad-run.md
 - [ ] GitHub Actions `Evidence Court Smoke` is green for the PR head commit.
 - [ ] GitHub Actions uploaded the `evidence-court-smoke` artifact containing
       `artifact-manifest.json`, `reviewer-quickstart.md`, `bad-run.md`,
-      `redacted-real-world-bad-run.json`, `fail-on-fail.json`,
-      `good-run.json`, `marked-transcript.json`,
-      `openmako-agent-run-result.json`, `jsonl-events.json`,
+      `fail-on-fail.json`, `good-run.json`, `marked-transcript.json`,
+      `jsonl-events.json`, `openmako-agent-result.json`,
+      `github-actions-test-step.log`, `github-actions-test-step.json`,
+      `github-actions-job-log.log`, `github-actions-job-log.json`,
+      `failed-pytest-log.log`, `failed-pytest-log.json`,
       `mixed-source-rejection.txt`, and `smoke-summary.txt`.
 - [ ] Artifact content check: `artifact-manifest.json` lists the safe claim,
       review path, expected checks, source provenance checks, artifact file SHA-256 hashes, and boundaries; `reviewer-quickstart.md` tells reviewers to
       open `bad-run.md` first; `bad-run.md` shows `Verdict: FAIL`;
-      `redacted-real-world-bad-run.json` shows `"verdict": "FAIL"` and
-      `source: examples/evidence-court/redacted-real-world-bad-run.json`;
       `fail-on-fail.json` contains `"verdict": "FAIL"` and is
       written only after `--fail-on fail` exits 1; `good-run.json` shows `"verdict": "PASS"`;
-      `marked-transcript.json` shows `"verdict": "FAIL"`; `openmako-agent-run-result.json`
-      shows `"verdict": "FAIL"` with `source: tests/fixtures/evidence_court/openmako_agent_run_result_bad.json`;
-      `jsonl-events.json` shows `"verdict": "FAIL"`;
+      `marked-transcript.json` shows `"verdict": "FAIL"`; `jsonl-events.json` shows `"verdict": "FAIL"`;
+      `openmako-agent-result.json` shows `"verdict": "FAIL"`;
+      `github-actions-test-step.json` shows `"verdict": "PASS"`;
+      `github-actions-job-log.json` shows `"verdict": "PASS"`;
+      `failed-pytest-log.json` shows `"verdict": "FAIL"`;
       `mixed-source-rejection.txt` shows `exit_code=2`; report artifacts include `source: ...`;
       `artifact-manifest.json` includes SHA-256 hashes for every file in the review path;
       `smoke-summary.txt` shows
@@ -178,8 +189,9 @@ sed -n '1,40p' /tmp/evidence-court-smoke/bad-run.md
 
 The PR body must include the same 30-second reviewer path as the remote
 artifact: `bad-run.md`, `fail-on-fail.json`, `artifact-manifest.json`,
-`redacted-real-world-bad-run.json`, `reviewer-quickstart.md`,
-`openmako-agent-run-result.json`, `jsonl-events.json`, and
+`reviewer-quickstart.md`, `jsonl-events.json`,
+`github-actions-test-step.json`, `github-actions-job-log.json`,
+`failed-pytest-log.json`, and
 `mixed-source-rejection.txt`.
 
 Optional remote artifact download, only if GitHub CLI is installed and
@@ -193,25 +205,6 @@ sed -n '1,80p' /tmp/evidence-court-smoke/reviewer-quickstart.md
 sed -n '1,40p' /tmp/evidence-court-smoke/bad-run.md
 ```
 
-## Post-PR Public Gate
-
-Use this sequence after the PR is created and before any broader public
-outreach:
-
-1. Record the PR URL and PR head SHA before updating any public proof file.
-2. Wait for GitHub Actions `Evidence Court Smoke` to finish on the PR head
-   commit.
-3. Check the remote `evidence-court-smoke` artifact and confirm the files named
-   in the remote evidence checklist above.
-4. Update `docs/CURRENT_PROOF_STATUS.md` only after the remote evidence URL,
-   run id, commit SHA, and artifact check are known.
-5. Do not mark outreach as `sent`, `replied`, or `shared` without a public
-   evidence URL for that status.
-6. Do not ask trend-watch targets for promotion before PR-head CI evidence
-   exists or a first-batch reviewer replies.
-7. Do not state external review, endorsement, adoption, share, 10k stars, or
-   10000 stars without evidence URLs.
-
 ## Safe Boundaries
 
 Say:
@@ -219,13 +212,15 @@ Say:
 - "Evidence Court audits supplied structured JSON run records, explicit marked
   transcript v0 files, and explicit Evidence Court JSONL event streams."
 - "Marked transcript v0 is an explicit marker format."
+- "Supplied pytest/GitHub Actions logs are audited only when a supported test
+  command is visible."
 - "The smoke gate is wired into GitHub Actions."
 - "Remote CI evidence requires GitHub Actions `Evidence Court Smoke` green for the PR head commit."
 
 Do not say:
 
 - "Native Claude/Codex/Cursor/Devin ingestion is supported."
-- "CI logs / GitHub Actions logs are ingested."
+- "Arbitrary CI logs are ingested."
 - "Evidence Court proves tests really ran outside the supplied record."
 - "OpenMako proves broad SWE-style repository repair."
 - "OpenMako has achieved Desktop L4/L5 autonomy."

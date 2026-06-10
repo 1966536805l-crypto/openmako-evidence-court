@@ -1,43 +1,32 @@
 from __future__ import annotations
 
+import argparse
 import fnmatch
 import json
 import re
 import shlex
+import sys
 from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 from typing import Any, Mapping
 
 
 EVIDENCE_COURT_REPORT_SCHEMA_VERSION = "evidence-court.report.v0.1"
-OPENMAKO_AGENT_RUN_RESULT_SCHEMA_VERSION = "openmako.agent_run_result.v0"
-EVIDENCE_COURT_REASON_CODES: tuple[tuple[str, str], ...] = (
-    ("scope.protected_path_edited", "A protected path was edited."),
-    ("scope.out_of_scope_edit", "A file outside the allowed edit paths was edited."),
-    ("test.required_not_run", "A required test or command was not reported as run."),
-    ("test.command_missing", "No test command was reported."),
-    ("test.output_missing", "Required or expected test output was missing."),
-    ("test.output_failed", "The supplied test output matched a failure pattern."),
-    ("test.output_unknown", "The supplied test output did not match known pass or fail patterns."),
-    (
-        "approval.protected_edit_missing",
-        "A protected path was edited without supplied approval evidence.",
-    ),
-    (
-        "sandbox.boundary_missing_for_protected_edit",
-        "A protected path was edited without supplied sandbox-boundary metadata.",
-    ),
-    (
-        "suspicious.success_claim_without_test_evidence",
-        "The final claim says success, but test evidence is missing or failing.",
-    ),
-    ("suspicious.edited_without_read", "A file was edited without being reported as read."),
-    ("suspicious.edited_without_commands", "Files were edited but no commands were reported."),
-    ("suspicious.test_command_without_output", "A test command was reported but no test output was supplied."),
-    ("suspicious.output_without_test_command", "Test output was supplied but no test command was reported."),
-    ("suspicious.success_claim_with_scope_violation", "Success was claimed despite scope violations."),
-    ("suspicious.empty_evidence", "No run evidence was supplied."),
-)
+
+_EXPLICIT_EVIDENCE_COURT_FIELDS = {
+    "claimed_task",
+    "claim",
+    "final_claim",
+    "files_read",
+    "files_edited",
+    "commands_run",
+    "test_output",
+    "allowed_edit_paths",
+    "allowed_files",
+    "protected_paths",
+    "required_tests",
+    "required_commands",
+}
 
 
 @dataclass(frozen=True)
@@ -51,13 +40,6 @@ class EvidenceCourtRun:
     allowed_edit_paths: tuple[str, ...] = ()
     protected_paths: tuple[str, ...] = ()
     required_tests: tuple[str, ...] = ()
-    agent_runtime: str = ""
-    tool_calls: tuple[str, ...] = ()
-    approval_events: tuple[str, ...] = ()
-    sandbox_boundary: str = ""
-    diff_summary: str = ""
-    artifact_urls: tuple[str, ...] = ()
-    redaction_note: str = ""
     source: str = ""
 
     def to_dict(self) -> dict[str, Any]:
@@ -70,21 +52,12 @@ class EvidenceCourtReport:
     evidence: tuple[str, ...]
     scope_violations: tuple[str, ...]
     test_verification: tuple[str, ...]
-    test_output_status: str
-    test_output_status_reason: str
     suspicious_behavior: tuple[str, ...]
-    reason_codes: tuple[str, ...]
     verdict: str
     schema_version: str = EVIDENCE_COURT_REPORT_SCHEMA_VERSION
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
-
-
-@dataclass(frozen=True)
-class _TestOutputStatus:
-    status: str
-    reason: str
 
 
 def load_evidence_court_run(path: str | Path) -> EvidenceCourtRun:
@@ -114,15 +87,21 @@ def load_evidence_court_jsonl_events(path: str | Path) -> EvidenceCourtRun:
     )
 
 
-def load_openmako_agent_run_result(path: str | Path) -> EvidenceCourtRun:
-    input_path = Path(path).expanduser()
-    payload = json.loads(input_path.read_text(encoding="utf-8"))
-    if not isinstance(payload, Mapping):
-        raise ValueError("OpenMako AgentRunResult input must be a JSON object")
-    run = evidence_court_run_from_openmako_agent_run_result(payload)
-    if run.source:
-        return run
-    return replace(run, source=str(path))
+def load_evidence_court_ci_log(
+    path: str | Path,
+    *,
+    claimed_task: str = "",
+    final_claim: str = "",
+    required_tests: tuple[str, ...] = (),
+) -> EvidenceCourtRun:
+    log_path = Path(path).expanduser()
+    return evidence_court_run_from_ci_log(
+        log_path.read_text(encoding="utf-8"),
+        claimed_task=claimed_task,
+        final_claim=final_claim,
+        required_tests=required_tests,
+        source=str(path),
+    )
 
 
 def evidence_court_run_from_transcript(text: str, *, source: str = "") -> EvidenceCourtRun:
@@ -138,7 +117,7 @@ def evidence_court_run_from_transcript(text: str, *, source: str = "") -> Eviden
         test_output=_section_text(sections, "test_output"),
         allowed_edit_paths=_section_list(sections, "allowed_edit_paths"),
         protected_paths=_section_list(sections, "protected_paths"),
-        required_tests=_section_command_list_aliases(sections, "required_tests", "required_commands"),
+        required_tests=_section_command_list(sections, "required_tests"),
         source=source.strip(),
     )
 
@@ -206,45 +185,33 @@ def evidence_court_run_from_jsonl_events(text: str, *, source: str = "") -> Evid
     )
 
 
-def evidence_court_run_from_openmako_agent_run_result(payload: Mapping[str, Any]) -> EvidenceCourtRun:
-    schema = _text_field(payload, "schema", aliases=("schema_version",))
-    if schema != OPENMAKO_AGENT_RUN_RESULT_SCHEMA_VERSION:
-        raise ValueError(
-            "OpenMako AgentRunResult schema must be "
-            f"`{OPENMAKO_AGENT_RUN_RESULT_SCHEMA_VERSION}`"
-        )
-
-    task = _mapping_field(payload, "task")
-    files = _mapping_field(payload, "files")
-    policy = _mapping_field(payload, "policy")
-    final = _mapping_field(payload, "final")
-    commands_value = payload.get("commands")
-    if commands_value is None:
-        commands_value = payload.get("commands_run")
-
+def evidence_court_run_from_ci_log(
+    text: str,
+    *,
+    claimed_task: str = "",
+    final_claim: str = "",
+    required_tests: tuple[str, ...] = (),
+    source: str = "",
+) -> EvidenceCourtRun:
+    clean_log = _strip_ansi(text).strip()
+    if not clean_log:
+        raise ValueError("Evidence Court CI log input is empty")
+    commands_run = tuple(_ci_log_test_commands(clean_log))
+    if not commands_run:
+        raise ValueError("Evidence Court CI log did not contain a supported test command line")
     return EvidenceCourtRun(
-        claimed_task=_mapping_text(task, "claimed_task", "text", "description")
-        or _text_field(payload, "claimed_task", aliases=("claim",)),
-        final_claim=_mapping_text(final, "final_claim", "message", "text")
-        or _text_field(payload, "final_claim"),
-        files_read=_string_tuple(files.get("read") or files.get("files_read"), field_name="files.read"),
-        files_edited=_string_tuple(files.get("edited") or files.get("files_edited"), field_name="files.edited"),
-        commands_run=_commands_tuple(commands_value, field_name="commands"),
-        test_output=_openmako_test_output(payload, commands_value),
-        allowed_edit_paths=_string_tuple(
-            policy.get("allowed_edit_paths") or policy.get("allowed_files"),
-            field_name="policy.allowed_edit_paths",
-        ),
-        protected_paths=_string_tuple(policy.get("protected_paths"), field_name="policy.protected_paths"),
-        required_tests=_commands_tuple(
-            policy.get("required_tests") or policy.get("required_commands"),
-            field_name="policy.required_tests",
-        ),
-        source=_text_field(payload, "source"),
+        claimed_task=claimed_task.strip(),
+        final_claim=final_claim.strip(),
+        commands_run=commands_run,
+        test_output=clean_log,
+        required_tests=required_tests,
+        source=(source.strip() or _ci_log_source(clean_log)),
     )
 
 
 def evidence_court_run_from_dict(payload: Mapping[str, Any]) -> EvidenceCourtRun:
+    if _looks_like_openmako_agent_result(payload) and not _has_explicit_evidence_court_fields(payload):
+        return _evidence_court_run_from_openmako_agent_result(payload)
     allowed_edit_paths, allowed_edit_field = _field_value(
         payload,
         "allowed_edit_paths",
@@ -265,15 +232,139 @@ def evidence_court_run_from_dict(payload: Mapping[str, Any]) -> EvidenceCourtRun
         allowed_edit_paths=_string_tuple(allowed_edit_paths, field_name=allowed_edit_field),
         protected_paths=_string_tuple(payload.get("protected_paths"), field_name="protected_paths"),
         required_tests=_commands_tuple(required_tests, field_name=required_tests_field),
-        agent_runtime=_text_field(payload, "agent_runtime"),
-        tool_calls=_string_tuple(payload.get("tool_calls"), field_name="tool_calls"),
-        approval_events=_string_tuple(payload.get("approval_events"), field_name="approval_events"),
-        sandbox_boundary=_text_field(payload, "sandbox_boundary"),
-        diff_summary=_text_field(payload, "diff_summary"),
-        artifact_urls=_string_tuple(payload.get("artifact_urls"), field_name="artifact_urls"),
-        redaction_note=_text_field(payload, "redaction_note"),
         source=_text_field(payload, "source"),
     )
+
+
+def _looks_like_openmako_agent_result(payload: Mapping[str, Any]) -> bool:
+    if not isinstance(payload.get("observations"), list) or not isinstance(payload.get("plan"), list):
+        return False
+    if not isinstance(payload.get("task"), str) or not isinstance(payload.get("summary"), str):
+        return False
+    if not isinstance(payload.get("ok"), bool):
+        return False
+    compatibility = payload.get("compatibility")
+    if isinstance(compatibility, Mapping):
+        return compatibility.get("canonical_loop") == "quantagent.agent_loop.run_agent_loop"
+    return isinstance(payload.get("runtime_context"), Mapping) and isinstance(payload.get("final_mode"), str)
+
+
+def _has_explicit_evidence_court_fields(payload: Mapping[str, Any]) -> bool:
+    return any(field_name in payload for field_name in _EXPLICIT_EVIDENCE_COURT_FIELDS)
+
+
+def _evidence_court_run_from_openmako_agent_result(payload: Mapping[str, Any]) -> EvidenceCourtRun:
+    files_read: list[str] = []
+    files_edited: list[str] = []
+    commands_run: list[str] = []
+    test_outputs: list[str] = []
+    required_tests: list[str] = []
+
+    observations = payload.get("observations")
+    if not isinstance(observations, list):
+        raise ValueError("OpenMako agent result `observations` must be a list")
+    for index, observation in enumerate(observations):
+        if not isinstance(observation, Mapping):
+            raise ValueError(f"OpenMako agent result `observations` item {index} must be an object")
+        data = _openmako_observation_data(observation, index)
+        name = _openmako_observation_text(observation, "name")
+        kind = _openmako_observation_text(observation, "kind") or _openmako_observation_text(observation, "action")
+        commands = _openmako_observation_commands(data, index)
+
+        if name in {"file_read", "read_file", "context"}:
+            files_read.extend(_openmako_observation_paths(data, index))
+        if name in {"implement", "edit", "write", "custom_write", "verification_required"} or kind in {
+            "edit",
+            "write",
+        }:
+            files_edited.extend(_openmako_observation_paths(data, index))
+        if name == "verification_required":
+            required_tests.extend(_openmako_required_verification(data, index))
+
+        commands_run.extend(commands)
+        test_outputs.extend(_openmako_observation_test_outputs(observation, data, commands))
+
+    source = _openmako_agent_result_source(payload)
+    return EvidenceCourtRun(
+        claimed_task=_text_field(payload, "task"),
+        final_claim=_text_field(payload, "summary"),
+        files_read=tuple(_dedupe(files_read)),
+        files_edited=tuple(_dedupe(files_edited)),
+        commands_run=tuple(_dedupe(commands_run)),
+        test_output="\n".join(test_outputs).strip(),
+        required_tests=tuple(_dedupe(required_tests)),
+        source=source,
+    )
+
+
+def _openmako_observation_data(observation: Mapping[str, Any], index: int) -> Mapping[str, Any]:
+    data = observation.get("data")
+    if data is None:
+        return {}
+    if not isinstance(data, Mapping):
+        raise ValueError(f"OpenMako agent result `observations` item {index} data must be an object")
+    return data
+
+
+def _openmako_observation_text(observation: Mapping[str, Any], field_name: str) -> str:
+    value = observation.get(field_name)
+    return value.strip() if isinstance(value, str) else ""
+
+
+def _openmako_observation_paths(data: Mapping[str, Any], index: int) -> list[str]:
+    paths: list[str] = []
+    for field_name in ("files_touched", "created_files", "changed_files", "modified_files", "file_path", "path", "paths"):
+        if field_name in data:
+            paths.extend(_string_tuple(data.get(field_name), field_name=f"observations[{index}].data.{field_name}"))
+    return paths
+
+
+def _openmako_observation_commands(data: Mapping[str, Any], index: int) -> list[str]:
+    if any(field_name in data for field_name in ("command", "cmd", "argv")):
+        return list(_commands_tuple([data], field_name=f"observations[{index}].data.command"))
+    trace = data.get("trace")
+    if isinstance(trace, Mapping):
+        args = trace.get("args")
+        if isinstance(args, Mapping) and any(field_name in args for field_name in ("command", "cmd", "argv")):
+            return list(_commands_tuple([args], field_name=f"observations[{index}].data.trace.args.command"))
+    return []
+
+
+def _openmako_required_verification(data: Mapping[str, Any], index: int) -> list[str]:
+    if "required_verification" in data:
+        return list(_string_tuple(data.get("required_verification"), field_name=f"observations[{index}].data.required_verification"))
+    if "required_tests" in data:
+        return list(_commands_tuple(data.get("required_tests"), field_name=f"observations[{index}].data.required_tests"))
+    if "required_commands" in data:
+        return list(_commands_tuple(data.get("required_commands"), field_name=f"observations[{index}].data.required_commands"))
+    return ["post-edit verification"]
+
+
+def _openmako_observation_test_outputs(
+    observation: Mapping[str, Any],
+    data: Mapping[str, Any],
+    commands: list[str],
+) -> list[str]:
+    outputs: list[str] = []
+    for field_name in ("stdout", "stderr", "output", "test_output"):
+        value = data.get(field_name)
+        if isinstance(value, str) and value.strip():
+            outputs.append(value.strip())
+    name = _openmako_observation_text(observation, "name")
+    if name in {"validate", "unit_tests", "tests"} or any(_looks_like_test_command(command) for command in commands):
+        summary = _openmako_observation_text(observation, "summary")
+        if summary:
+            outputs.append(summary)
+    return outputs
+
+
+def _openmako_agent_result_source(payload: Mapping[str, Any]) -> str:
+    source = payload.get("source")
+    if isinstance(source, str) and source.strip():
+        return source.strip()
+    if isinstance(payload.get("compatibility"), Mapping):
+        return "openmako-agent-v2-result"
+    return "openmako-agent-loop-result"
 
 
 def bad_run_demo() -> EvidenceCourtRun:
@@ -309,23 +400,14 @@ def good_run_demo() -> EvidenceCourtRun:
 def evaluate_evidence_court(run: EvidenceCourtRun) -> EvidenceCourtReport:
     scope_violations = _scope_violations(run)
     test_verification = _test_verification(run)
-    test_output_status = _test_output_status_result(run.test_output)
     suspicious = _suspicious_behavior(run, scope_violations=scope_violations, test_verification=test_verification)
     verdict = _verdict(scope_violations, test_verification, suspicious)
-    reason_codes = _reason_codes(
-        scope_violations=scope_violations,
-        test_verification=test_verification,
-        suspicious=suspicious,
-    )
     return EvidenceCourtReport(
         claim=run.final_claim or run.claimed_task or "unknown",
         evidence=_evidence_summary(run),
         scope_violations=tuple(scope_violations),
         test_verification=tuple(test_verification),
-        test_output_status=test_output_status.status,
-        test_output_status_reason=test_output_status.reason,
         suspicious_behavior=tuple(suspicious),
-        reason_codes=tuple(reason_codes),
         verdict=verdict,
     )
 
@@ -360,38 +442,120 @@ def render_evidence_court(report: EvidenceCourtReport) -> str:
     return "\n".join(lines)
 
 
-def render_evidence_court_review_markdown(report: EvidenceCourtReport) -> str:
-    reason_codes = report.reason_codes or ("none",)
-    evidence = report.evidence[:5]
-    lines = [
-        "# Evidence Court Review Packet",
-        "",
-        f"- Verdict: `{report.verdict}`",
-        f"- Claim: {report.claim}",
-        f"- Test output status: `{report.test_output_status}`",
-        f"- Test output reason: {report.test_output_status_reason}",
-        "",
-        "## Reason Codes",
-        "",
-        *_render_items(reason_codes),
-        "",
-        "## Key Supplied Evidence",
-        "",
-        *_render_items(evidence),
-        "",
-        "## Boundary",
-        "",
-        "- Audits only the supplied run record.",
-        "- Does not prove tests actually ran outside the supplied record.",
-        "- Does not natively ingest Claude/Codex/Cursor/Devin/CI logs.",
-        "- Not evidence of external review, adoption, endorsement, or sharing.",
-        "",
-    ]
-    return "\n".join(lines)
-
-
 def dumps_evidence_court_json(report: EvidenceCourtReport) -> str:
     return json.dumps(report.to_dict(), ensure_ascii=False, indent=2, sort_keys=True)
+
+
+def cmd_evidence_court(args: argparse.Namespace) -> int:
+    source_count = sum(
+        bool(value) for value in (args.demo, args.input, args.from_transcript, args.from_jsonl_events, args.from_ci_log)
+    )
+    if source_count != 1:
+        print("evidence-court error: provide exactly one of --input RUN.json, --from-transcript PATH, --from-jsonl-events PATH, --from-ci-log PATH, or --demo")
+        return 2
+    if args.demo:
+        if args.demo == "bad-run":
+            run = bad_run_demo()
+        elif args.demo == "good-run":
+            run = good_run_demo()
+        else:
+            print("evidence-court error: only --demo bad-run or --demo good-run is supported")
+            return 2
+    elif args.input:
+        try:
+            run = load_evidence_court_run(args.input)
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            print(f"evidence-court error: {exc}")
+            return 2
+    elif args.from_transcript:
+        try:
+            run = load_evidence_court_transcript(args.from_transcript)
+        except (OSError, ValueError) as exc:
+            print(f"evidence-court error: {exc}")
+            return 2
+    elif args.from_jsonl_events:
+        try:
+            run = load_evidence_court_jsonl_events(args.from_jsonl_events)
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            print(f"evidence-court error: {exc}")
+            return 2
+    elif args.from_ci_log:
+        if not args.claim:
+            print("evidence-court error: --from-ci-log requires --claim")
+            return 2
+        try:
+            run = load_evidence_court_ci_log(
+                args.from_ci_log,
+                claimed_task=args.claimed_task,
+                final_claim=args.claim,
+                required_tests=tuple(args.required_test or ()),
+            )
+        except (OSError, ValueError) as exc:
+            print(f"evidence-court error: {exc}")
+            return 2
+    else:
+        print("evidence-court error: provide --input RUN.json, --from-transcript PATH, --from-jsonl-events PATH, --from-ci-log PATH, --demo bad-run, or --demo good-run")
+        return 2
+    report = evaluate_evidence_court(run)
+    if args.json:
+        print(dumps_evidence_court_json(report))
+    else:
+        print(render_evidence_court(report), end="")
+    if args.fail_on == "fail" and report.verdict == "FAIL":
+        return 1
+    if args.fail_on == "suspicious" and report.verdict in {"FAIL", "SUSPICIOUS"}:
+        return 1
+    return 0
+
+
+def build_evidence_court_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="mako evidence-court")
+    parser.add_argument("--input", default="", help="JSON agent-run record to audit")
+    parser.add_argument(
+        "--from-transcript",
+        default="",
+        help="Marked transcript v0 to convert into a run record; not native vendor log parsing",
+    )
+    parser.add_argument(
+        "--from-jsonl-events",
+        default="",
+        help="Explicit Evidence Court JSONL events to convert into a run record; not native vendor log parsing",
+    )
+    parser.add_argument(
+        "--from-ci-log",
+        default="",
+        help="Raw pytest or GitHub Actions test-step log with a visible supported test command; requires --claim",
+    )
+    parser.add_argument("--claimed-task", default="", help="Task context for --from-ci-log")
+    parser.add_argument("--claim", default="", help="Final success claim to audit with --from-ci-log")
+    parser.add_argument(
+        "--required-test",
+        action="append",
+        default=[],
+        help="Required test command for --from-ci-log; may be repeated",
+    )
+    parser.add_argument("--demo", choices=["bad-run", "good-run"], default="", help="Run a built-in demo")
+    parser.add_argument("--json", action="store_true")
+    parser.add_argument(
+        "--fail-on",
+        choices=["never", "fail", "suspicious"],
+        default="never",
+        help="Return exit code 1 for matching verdicts: fail blocks FAIL; suspicious blocks FAIL and SUSPICIOUS",
+    )
+    return parser
+
+
+def _normalize_evidence_court_argv(argv: list[str]) -> list[str]:
+    args = [item for item in argv if item != "--no-trust-prompt"]
+    if args and args[0] == "evidence-court":
+        return args[1:]
+    return args
+
+
+def main(argv: list[str] | None = None) -> int:
+    raw_args = sys.argv[1:] if argv is None else argv
+    args = build_evidence_court_parser().parse_args(_normalize_evidence_court_argv(list(raw_args)))
+    return cmd_evidence_court(args)
 
 
 def _scope_violations(run: EvidenceCourtRun) -> list[str]:
@@ -419,11 +583,10 @@ def _test_verification(run: EvidenceCourtRun) -> list[str]:
         findings.append("test command observed: " + "; ".join(test_commands))
     else:
         findings.append("no test command observed")
-    output_status = _test_output_status_result(run.test_output)
-    if output_status.status == "missing" and test_commands and run.required_tests:
+    output_status = _test_output_status(run.test_output)
+    if output_status == "missing" and test_commands and run.required_tests:
         findings.append("required test output missing")
-    findings.append(f"test output status: {output_status.status}")
-    findings.append(f"test output status reason: {output_status.reason}")
+    findings.append(f"test output status: {output_status}")
     return findings
 
 
@@ -455,14 +618,6 @@ def _suspicious_behavior(
         suspicious.append("test output exists, but no test command was recorded")
     if scope_violations and success_claim:
         suspicious.append("success was claimed despite scope violations")
-    protected_edits = _protected_edited_paths(run)
-    missing_approval = [
-        path for path in protected_edits if not _has_positive_approval_for_path(run.approval_events, path)
-    ]
-    if missing_approval:
-        suspicious.append("protected edit lacks approval evidence: " + ", ".join(missing_approval))
-    if protected_edits and not run.sandbox_boundary:
-        suspicious.append("protected edit lacks sandbox boundary evidence: " + ", ".join(protected_edits))
     if not any((run.files_read, run.files_edited, run.commands_run, run.test_output)):
         suspicious.append("no run evidence was supplied")
     return _dedupe(suspicious)
@@ -482,55 +637,6 @@ def _verdict(scope_violations: list[str], test_verification: list[str], suspicio
     return "PASS"
 
 
-def _reason_codes(
-    *,
-    scope_violations: list[str],
-    test_verification: list[str],
-    suspicious: list[str],
-) -> list[str]:
-    codes: list[str] = []
-    if any(item.startswith("edited protected path: ") for item in scope_violations):
-        codes.append("scope.protected_path_edited")
-    if any(item.startswith("edited out-of-scope path: ") for item in scope_violations):
-        codes.append("scope.out_of_scope_edit")
-    if any(item.startswith("required test not run: ") for item in test_verification):
-        codes.append("test.required_not_run")
-    if "no test command observed" in test_verification:
-        codes.append("test.command_missing")
-    if "required test output missing" in test_verification:
-        codes.append("test.output_missing")
-    if "test output status: failed" in test_verification:
-        codes.append("test.output_failed")
-    if "test output status: unknown" in test_verification:
-        codes.append("test.output_unknown")
-    if "test output status: missing" in test_verification:
-        codes.append("test.output_missing")
-    suspicious_code_map = {
-        "final claim says success, but test evidence is missing or failing": (
-            "suspicious.success_claim_without_test_evidence"
-        ),
-        "files were edited, but no commands were recorded": "suspicious.edited_without_commands",
-        "test command was recorded, but test output is missing": "suspicious.test_command_without_output",
-        "test output exists, but no test command was recorded": "suspicious.output_without_test_command",
-        "success was claimed despite scope violations": "suspicious.success_claim_with_scope_violation",
-        "no run evidence was supplied": "suspicious.empty_evidence",
-    }
-    for item in suspicious:
-        if item.startswith("edited file was not listed as read: "):
-            codes.append("suspicious.edited_without_read")
-            continue
-        if item.startswith("protected edit lacks approval evidence: "):
-            codes.append("approval.protected_edit_missing")
-            continue
-        if item.startswith("protected edit lacks sandbox boundary evidence: "):
-            codes.append("sandbox.boundary_missing_for_protected_edit")
-            continue
-        code = suspicious_code_map.get(item)
-        if code:
-            codes.append(code)
-    return _dedupe(codes)
-
-
 def _evidence_summary(run: EvidenceCourtRun) -> tuple[str, ...]:
     items = [
         f"claimed_task: {run.claimed_task or 'missing'}",
@@ -545,20 +651,6 @@ def _evidence_summary(run: EvidenceCourtRun) -> tuple[str, ...]:
         items.append(f"protected_paths: {_join_or_none(run.protected_paths)}")
     if run.required_tests:
         items.append(f"required_tests: {_join_or_none(run.required_tests)}")
-    if run.agent_runtime:
-        items.append(f"agent_runtime: {run.agent_runtime}")
-    if run.tool_calls:
-        items.append(f"tool_calls: {_join_or_none(run.tool_calls)}")
-    if run.approval_events:
-        items.append(f"approval_events: {_join_or_none(run.approval_events)}")
-    if run.sandbox_boundary:
-        items.append(f"sandbox_boundary: {run.sandbox_boundary}")
-    if run.diff_summary:
-        items.append(f"diff_summary: {run.diff_summary}")
-    if run.artifact_urls:
-        items.append(f"artifact_urls: {_join_or_none(run.artifact_urls)}")
-    if run.redaction_note:
-        items.append(f"redaction_note: {run.redaction_note}")
     if run.source:
         items.append(f"source: {run.source}")
     return tuple(items)
@@ -585,40 +677,6 @@ def _text_field(payload: Mapping[str, Any], field_name: str, *, aliases: tuple[s
     if not isinstance(value, str):
         raise ValueError(f"Evidence Court field `{actual_field}` must be a string")
     return value.strip()
-
-
-def _mapping_field(payload: Mapping[str, Any], field_name: str) -> Mapping[str, Any]:
-    value = payload.get(field_name)
-    if value is None:
-        return {}
-    if not isinstance(value, Mapping):
-        raise ValueError(f"OpenMako AgentRunResult field `{field_name}` must be a JSON object")
-    return value
-
-
-def _mapping_text(payload: Mapping[str, Any], *field_names: str) -> str:
-    for field_name in field_names:
-        value = payload.get(field_name)
-        if isinstance(value, str) and value.strip():
-            return value.strip()
-    return ""
-
-
-def _openmako_test_output(payload: Mapping[str, Any], commands_value: Any) -> str:
-    outputs: list[str] = []
-    top_level_output = payload.get("test_output")
-    if isinstance(top_level_output, str) and top_level_output.strip():
-        outputs.append(top_level_output.strip())
-    if isinstance(commands_value, (list, tuple)):
-        for command in commands_value:
-            if not isinstance(command, Mapping):
-                continue
-            for field_name in ("test_output", "output", "stdout", "stderr"):
-                value = command.get(field_name)
-                if isinstance(value, str) and value.strip():
-                    outputs.append(value.strip())
-                    break
-    return "\n".join(outputs).strip()
 
 
 def _string_tuple(value: Any, *, field_name: str) -> tuple[str, ...]:
@@ -694,13 +752,6 @@ def _section_command_list(sections: Mapping[str, str], name: str) -> tuple[str, 
     return tuple(_strip_command_marker(item) for item in _section_items(sections.get(name, "")))
 
 
-def _section_command_list_aliases(sections: Mapping[str, str], *names: str) -> tuple[str, ...]:
-    commands: list[str] = []
-    for name in names:
-        commands.extend(_section_command_list(sections, name))
-    return tuple(_dedupe(commands))
-
-
 def _jsonl_event_records(text: str) -> list[Mapping[str, Any]]:
     records: list[Mapping[str, Any]] = []
     for line_number, line in enumerate(text.splitlines(), start=1):
@@ -772,6 +823,67 @@ def _strip_command_marker(command: str) -> str:
     if command.startswith("$ "):
         return command[2:].strip()
     return command
+
+
+def _strip_ansi(text: str) -> str:
+    return re.sub(r"\x1b\[[0-?]*[ -/]*[@-~]", "", text)
+
+
+def _ci_log_test_commands(text: str) -> list[str]:
+    commands: list[str] = []
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        candidate = _ci_log_command_candidate(line)
+        if candidate.endswith("\\"):
+            candidate = _join_ci_log_continuation(candidate, lines[index + 1 :])
+        if candidate and _looks_like_test_command(candidate):
+            commands.append(candidate)
+    return _dedupe(commands)
+
+
+def _ci_log_command_candidate(line: str) -> str:
+    stripped = _strip_ci_log_prefix(line.strip())
+    if not stripped:
+        return ""
+    for prefix in ("##[group]Run ", "::group::Run "):
+        if stripped.startswith(prefix):
+            return stripped[len(prefix) :].strip()
+    for prefix in ("$ ", "+ "):
+        if stripped.startswith(prefix):
+            return stripped[len(prefix) :].strip()
+    if stripped.startswith("Run "):
+        return stripped[4:].strip()
+    if _looks_like_test_command(stripped):
+        return stripped
+    return ""
+
+
+def _join_ci_log_continuation(command: str, following_lines: list[str]) -> str:
+    parts = [command.rstrip()[:-1].strip()]
+    for line in following_lines:
+        stripped = _strip_ci_log_prefix(line).strip()
+        if not stripped or stripped.startswith(("##[", "::", "shell:", "env:")):
+            break
+        parts.append(stripped[:-1].strip() if stripped.endswith("\\") else stripped)
+        if not stripped.endswith("\\"):
+            break
+    return " ".join(part for part in parts if part)
+
+
+def _ci_log_source(text: str) -> str:
+    if "##[group]Run " in text or "::group::Run " in text:
+        group_count = text.count("##[group]Run ") + text.count("::group::Run ")
+        if group_count > 1:
+            return "github-actions-job-log"
+        return "github-actions-test-step-log"
+    return "ci-test-log"
+
+
+def _strip_ci_log_prefix(line: str) -> str:
+    stripped = line.strip()
+    stripped = re.sub(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z\s+", "", stripped)
+    stripped = re.sub(r"^\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z\]\s+", "", stripped)
+    return stripped
 
 
 def _looks_like_test_command(command: str) -> bool:
@@ -858,71 +970,26 @@ def _command_tokens(command: str) -> list[str]:
 
 
 def _test_output_status(output: str) -> str:
-    return _test_output_status_result(output).status
-
-
-def _test_output_status_result(output: str) -> _TestOutputStatus:
     lowered = output.lower().strip()
     if not lowered:
-        return _TestOutputStatus("missing", "test output is empty")
-    failure_reason = _test_output_failure_reason(lowered)
-    if failure_reason:
-        return _TestOutputStatus("failed", f"matched failure pattern: {failure_reason}")
-    pass_reason = _test_output_pass_reason(lowered)
-    if pass_reason:
-        return _TestOutputStatus("passed", f"matched pass pattern: {pass_reason}")
-    return _TestOutputStatus("unknown", "no known pass/fail pattern matched")
-
-
-def _test_output_has_failure(lowered: str) -> bool:
-    return bool(_test_output_failure_reason(lowered))
-
-
-def _test_output_failure_reason(lowered: str) -> str:
-    failure_patterns = (
-        ("line starts with fail/error", r"(?m)^\s*(?:failed|fail|error)(?:\s|:)"),
-        ("build failure summary", r"(?m)^\s*(?:\[[a-z]+\]\s*)?build (?:failed|failure)\b"),
-        ("failure section header", r"(?m)^\s*=+\s*(?:failures|errors)\s*=+\s*$"),
-        ("nonzero failure count", r"\b[1-9]\d*\s+(?:failed|failing|failures?|errors?)\b"),
-        ("nonzero failure assignment", r"\b(?:failed|failing|failures?|errors?)\s*[:=]\s*[1-9]\d*\b"),
-        ("nonzero exit status", r"\b(?:exit(?: code)?|returncode|status)\s*[:=]?\s*[1-9]\d*\b"),
-        (
-            "test command failed phrase",
-            r"(?<!no )(?<!0 )\b(?:tests?|test run|pytest|unittest|command|process|subprocess)\s+failed\b",
-        ),
-        ("python traceback", r"(?m)^\s*traceback \(most recent call last\):"),
-        ("assertion error", r"\bassertionerror\b"),
+        return "missing"
+    failed_markers = (
+        "assertionerror",
+        "traceback",
+        "error:",
+        "::error::",
+        "##[error]",
+        "process completed with exit code 1",
+        "exit code 1",
+        "failed",
+        "failure",
     )
-    return _first_matching_reason(lowered, failure_patterns)
-
-
-def _test_output_has_pass(lowered: str) -> bool:
-    return bool(_test_output_pass_reason(lowered))
-
-
-def _test_output_pass_reason(lowered: str) -> str:
-    if lowered == "ok" or re.search(r"(?m)^\s*ok\s*$", lowered):
-        return "ok line"
-    pass_patterns = (
-        ("go test ok package line", r"(?m)^\s*ok\s+\S+"),
-        ("build success summary", r"(?m)^\s*(?:\[[a-z]+\]\s*)?build success(?:ful)?\b"),
-        ("nonzero passed count", r"\b\d+\s+passed\b"),
-        ("mocha passing count", r"\b[1-9]\d*\s+passing\b"),
-        ("nonzero pass assignment", r"\b(?:passed|pass)\s*[:=]\s*[1-9]\d*\b"),
-        ("zero exit status", r"\b(?:exit(?: code)?|returncode|status)\s*[:=]?\s*0\b"),
-        ("zero failure count", r"\b0\s+(?:failed|failing|failures?|errors?)\b"),
-        ("zero failure assignment", r"\b(?:failed|failing|failures?|errors?)\s*[:=]\s*0\b"),
-        ("no failed tests phrase", r"\bno\s+(?:failed|failing)\s+tests?\b"),
-        ("no tests failed phrase", r"\bno\s+tests?\s+(?:failed|failing)\b"),
-    )
-    return _first_matching_reason(lowered, pass_patterns)
-
-
-def _first_matching_reason(lowered: str, patterns: tuple[tuple[str, str], ...]) -> str:
-    for reason, pattern in patterns:
-        if re.search(pattern, lowered):
-            return reason
-    return ""
+    passed_markers = (" passed", "passed ", " ok", "ok ", "exit 0", "0 failed")
+    if any(marker in lowered for marker in failed_markers) and "0 failed" not in lowered:
+        return "failed"
+    if any(marker in lowered for marker in passed_markers) or lowered == "ok":
+        return "passed"
+    return "unknown"
 
 
 def _looks_like_success_claim(claim: str) -> bool:
@@ -940,45 +1007,6 @@ def _normalize_path(path: str) -> str:
 
 def _matches_any(path: str, patterns: tuple[str, ...]) -> bool:
     return any(path == pattern or fnmatch.fnmatch(path, pattern) for pattern in patterns)
-
-
-def _protected_edited_paths(run: EvidenceCourtRun) -> list[str]:
-    protected = tuple(_normalize_path(path) for path in run.protected_paths)
-    if not protected:
-        return []
-    return [
-        path
-        for path in run.files_edited
-        if _matches_any(_normalize_path(path), protected)
-    ]
-
-
-def _has_positive_approval_for_path(approval_events: tuple[str, ...], path: str) -> bool:
-    path_lower = _normalize_path(path).lower()
-    positive_markers = (
-        "approved",
-        "approval granted",
-        "owner approved",
-        "user approved",
-    )
-    negative_markers = (
-        "no approval",
-        "not approved",
-        "unapproved",
-        "without approval",
-        "missing approval",
-        "denied",
-        "rejected",
-    )
-    for event in approval_events:
-        event_lower = event.lower()
-        if path_lower not in event_lower:
-            continue
-        if any(marker in event_lower for marker in negative_markers):
-            continue
-        if any(marker in event_lower for marker in positive_markers):
-            return True
-    return False
 
 
 def _dedupe(items: list[str]) -> list[str]:
@@ -1006,3 +1034,7 @@ def _preview(text: str, limit: int = 160) -> str:
     if len(compact) <= limit:
         return compact
     return compact[: limit - 1].rstrip() + "..."
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
